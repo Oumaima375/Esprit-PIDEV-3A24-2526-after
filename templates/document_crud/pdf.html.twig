@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        body { font-family: Arial; font-size: 12px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { background-color: #1e3c72; color: white; padding: 8px; }
+        td { border: 1px solid #ddd; padding: 6px; }
+        h1 { color: #1e3c72; text-align: center; }
+        .expire { color: red; font-weight: bold; }
+        .valide { color: green; }
+    </style>
+</head>
+<body>
+    <h1>📄 AFTER Travel - Liste des Documents</h1>
+    <p>Généré le : {{ "now"|date("d/m/Y H:i") }}</p>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nom Document</th>
+                <th>Catégorie</th>
+                <th>Date Ajout</th>
+                <th>Date Expiration</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for document in documents %}
+            <tr>
+                <td>{{ document.idDocument }}</td>
+                <td>{{ document.nomDocument }}</td>
+                <td>{{ document.categorie ? document.categorie.libelle : 'N/A' }}</td>
+                <td>{{ document.dateAjout ? document.dateAjout|date('d/m/Y') : '' }}</td>
+                <td>{{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}</td>
+                <td>
+                    {% if document.dateExpiration and document.dateExpiration < date() %}
+                        <span class="expire">❌ Expiré</span>
+                    {% else %}
+                        <span class="valide">✅ Valide</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>

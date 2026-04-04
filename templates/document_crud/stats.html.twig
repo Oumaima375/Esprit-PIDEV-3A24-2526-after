@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statistiques - AFTER Travel{% endblock %}
+{% block body %}
+
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">📊 Statistiques</h1>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <div class="row mb-5">
+        <div class="col-md-4">
+            <div class="card text-white bg-primary text-center p-4">
+                <h1>{{ total }}</h1>
+                <p>📄 Total Documents</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-success text-center p-4">
+                <h1>{{ valides }}</h1>
+                <p>✅ Valides</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card text-white bg-danger text-center p-4">
+                <h1>{{ expires }}</h1>
+                <p>❌ Expirés</p>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="mb-4">📂 Documents par catégorie</h3>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            <thead class="table-primary">
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Nombre de documents</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in parCategorie %}
+                <tr>
+                    <td><span class="badge bg-info text-dark">{{ row.libelle ?? 'Sans catégorie' }}</span></td>
+                    <td>{{ row.total }}</td>
+                    <td>
+                        <div class="progress">
+                            <div class="progress-bar bg-primary"
+                                 style="width: {{ total > 0 ? (row.total / total * 100)|round : 0 }}%">
+                                {{ total > 0 ? (row.total / total * 100)|round : 0 }}%
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <a href="{{ path('app_document_crud_index') }}" class="btn btn-primary mt-3">
+        ← Retour aux documents
+    </a>
+</div>
+{% endblock %}
