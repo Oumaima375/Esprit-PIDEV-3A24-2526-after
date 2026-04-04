@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Entity\CategorieDocument;
 use App\Form\CategorieDocumentType;
 use App\Repository\CategorieDocumentRepository;
+use App\Repository\DocumentRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -43,10 +44,21 @@ final class CategorieDocumentController extends AbstractController
     }
 
     #[Route('/{idCategorie}', name: 'app_categorie_document_show', methods: ['GET'])]
-    public function show(CategorieDocument $categorieDocument): Response
-    {
+    public function show(
+        int $idCategorie,
+        CategorieDocumentRepository $categorieRepository,
+        DocumentRepository $documentRepository
+    ): Response {
+        $categorie = $categorieRepository->find($idCategorie);
+        if (!$categorie) {
+            throw $this->createNotFoundException('Catégorie non trouvée');
+        }
+
+        $documents = $documentRepository->findBy(['categorie' => $categorie]);
+
         return $this->render('categorie_document/show.html.twig', [
-            'categorie_document' => $categorieDocument,
+            'categorie_document' => $categorie,
+            'documents' => $documents,
         ]);
     }
 

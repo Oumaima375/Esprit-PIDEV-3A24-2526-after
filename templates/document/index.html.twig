@@ -1,20 +1,222 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Hello DocumentController!{% endblock %}
+{% block title %}Mes Documents - AFTER Travel{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/Users/MSI/IdeaProjects/gestion-document/src/Controller/DocumentController.php</code></li>
-        <li>Your template at <code>C:/Users/MSI/IdeaProjects/gestion-document/templates/document/index.html.twig</code></li>
-    </ul>
+<!-- Header -->
+<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+    <div class="container py-5">
+        <div class="row justify-content-center py-5">
+            <div class="col-lg-10 text-center">
+                <h1 class="display-3 text-white animated slideInDown">✈ Mes Documents</h1>
+                <p class="text-white fs-5">Gérez vos documents de voyage en toute simplicité</p>
+            </div>
+        </div>
+    </div>
 </div>
+
+<div class="container py-5">
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show rounded-3">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4" style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                <div style="font-size:36px;">📄</div>
+                <h2 class="text-white fw-bold mb-0">{{ total }}</h2>
+                <p class="text-white-50 mb-0">Total Documents</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4" style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                <div style="font-size:36px;">✅</div>
+                <h2 class="text-white fw-bold mb-0">{{ valides }}</h2>
+                <p class="text-white-50 mb-0">Documents Valides</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <div style="font-size:36px;">❌</div>
+                <h2 class="text-white fw-bold mb-0">{{ expires }}</h2>
+                <p class="text-white-50 mb-0">Documents Expirés</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recherche AJAX + Filtres -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-5">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0">🔍</span>
+                    <input type="text"
+                           id="searchInput"
+                           class="form-control border-start-0 ps-0"
+                           placeholder="Rechercher un document..."
+                           autocomplete="off">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select id="filtreSelect" class="form-select">
+                    <option value="tous">Tous les documents</option>
+                    <option value="valides">✅ Valides seulement</option>
+                    <option value="expires">❌ Expirés seulement</option>
+                    <option value="bientot">⚠️ Expirent bientôt</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="triSelect" class="form-select">
+                    <option value="dateAjout">Date ajout</option>
+                    <option value="nomDocument">Nom</option>
+                    <option value="dateExpiration">Expiration</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ path('app_document_crud_new') }}" class="btn btn-primary w-100 rounded-3">
+                    ➕ Ajouter
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Résultats -->
+    <div id="resultsCount" class="text-muted mb-3 fs-6"></div>
+
+    <!-- Cards Documents -->
+    <div id="documentsContainer" class="row g-4">
+        {% for document in documents %}
+        <div class="col-md-6 col-lg-4 document-card-wrapper">
+            <div class="card border-0 shadow-sm rounded-4 h-100 document-card"
+                 style="transition: transform 0.2s, box-shadow 0.2s;"
+                 onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.15)';"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+
+                <!-- Card Header -->
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">
+                            {{ document.categorie ? document.categorie.libelle : 'N/A' }}
+                        </span>
+                        {% if document.dateExpiration %}
+                            {% if document.dateExpiration < date() %}
+                                <span class="badge bg-danger rounded-pill">❌ Expiré</span>
+                            {% else %}
+                                <span class="badge bg-success rounded-pill">✅ Valide</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold text-dark mb-3">
+                        ✈ {{ document.nomDocument }}
+                    </h5>
+
+                    <div class="d-flex flex-column gap-2 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted" style="font-size:13px;">📅 Ajouté :</span>
+                            <span class="fw-medium" style="font-size:13px;">
+                                {{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}
+                            </span>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="text-muted" style="font-size:13px;">⏳ Expire :</span>
+                            {% if document.dateExpiration %}
+                                <span class="fw-medium {{ document.dateExpiration < date() ? 'text-danger' : 'text-success' }}"
+                                      style="font-size:13px;">
+                                    {{ document.dateExpiration|date('d/m/Y') }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted" style="font-size:13px;">N/A</span>
+                            {% endif %}
+                        </div>
+                        {% if document.cheminFichier starts with 'http' %}
+                        <div class="d-flex align-items-center gap-2">
+                            <a href="{{ document.cheminFichier }}" target="_blank"
+                               class="btn btn-outline-primary btn-sm rounded-pill">
+                                🔗 Voir le fichier
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="card-footer bg-transparent border-0 px-4 pb-4">
+                    <div class="d-flex gap-2">
+                        <a href="{{ path('app_document_crud_show', {'idDocument': document.idDocument}) }}"
+                           class="btn btn-outline-primary btn-sm rounded-pill flex-fill">
+                            👁 Voir
+                        </a>
+                        <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}"
+                           class="btn btn-warning btn-sm rounded-pill flex-fill">
+                            ✏️ Modifier
+                        </a>
+                        <form method="post"
+                              action="{{ path('app_document_crud_delete', {'idDocument': document.idDocument}) }}"
+                              onsubmit="return confirm('Supprimer ce document ?')"
+                              style="flex:1">
+                            <input type="hidden" name="_token"
+                                   value="{{ csrf_token('delete' ~ document.idDocument) }}">
+                            <button class="btn btn-danger btn-sm rounded-pill w-100">🗑</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div style="font-size:64px;">📭</div>
+            <h4 class="text-muted">Aucun document trouvé</h4>
+            <a href="{{ path('app_document_crud_new') }}" class="btn btn-primary rounded-pill mt-3">
+                ➕ Ajouter votre premier document
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script>
+const searchInput = document.getElementById('searchInput');
+const filtreSelect = document.getElementById('filtreSelect');
+const triSelect = document.getElementById('triSelect');
+const container = document.getElementById('documentsContainer');
+const resultsCount = document.getElementById('resultsCount');
+
+let searchTimeout;
+
+function doSearch() {
+    const search = searchInput.value;
+    const filtre = filtreSelect.value;
+    const tri = triSelect.value;
+
+    fetch(`/document/crud/search?search=${encodeURIComponent(search)}&filtre=${filtre}&tri=${tri}`)
+        .then(r => r.json())
+        .then(data => {
+            resultsCount.textContent = data.count + ' résultat(s)';
+            container.innerHTML = data.html;
+        });
+}
+
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 300);
+});
+
+filtreSelect.addEventListener('change', doSearch);
+triSelect.addEventListener('change', doSearch);
+</script>
 {% endblock %}

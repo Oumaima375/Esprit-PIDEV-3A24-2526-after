@@ -1,73 +1,36 @@
 {% extends 'base.html.twig' %}
-
 {% block title %}Catégories - AFTER Travel{% endblock %}
 
 {% block body %}
 
-<!-- Header -->
 <div class="container-fluid bg-primary py-5 mb-5 hero-header">
-    <div class="container py-5">
-        <div class="row justify-content-center py-5">
-            <div class="col-lg-10 text-center">
-                <h1 class="display-3 text-white">📂 Catégories</h1>
-                <p class="text-white">Gérez les catégories de documents</p>
-            </div>
-        </div>
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">📂 Catégories</h1>
+        <p class="text-white fs-5">Explorez vos documents par catégorie</p>
     </div>
 </div>
 
 <div class="container py-5">
 
-    <div class="d-flex justify-content-between mb-4">
-        <h2>Liste des catégories</h2>
-        <a href="{{ path('app_categorie_document_new') }}" class="btn btn-primary">
-            ➕ Ajouter une catégorie
-        </a>
+    <div class="row g-4">
+        {% for categorie in categorie_documents %}
+        <div class="col-md-4 col-lg-3">
+            <a href="{{ path('app_categorie_document_show', {'idCategorie': categorie.idCategorie}) }}"
+               style="text-decoration:none;">
+                <div class="card border-0 shadow-sm rounded-4 text-center p-4 h-100"
+                     style="transition: transform 0.2s, box-shadow 0.2s; cursor:pointer;"
+                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(37,99,235,0.2)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+                    <div style="font-size:48px; margin-bottom:12px;">📂</div>
+                    <h5 class="fw-bold text-dark">{{ categorie.libelle }}</h5>
+                    <p class="text-muted small">{{ categorie.description ?? 'Cliquez pour voir les documents' }}</p>
+                    <span class="badge bg-primary rounded-pill mt-2">Voir documents →</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead class="table-primary">
-                <tr>
-                    <th>ID</th>
-                    <th>Libelle</th>
-                    <th>Description</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for categorie in categorie_documents %}
-                <tr>
-                    <td>{{ categorie.idCategorie }}</td>
-                    <td>
-                        <span class="badge bg-info text-dark">
-                            {{ categorie.libelle }}
-                        </span>
-                    </td>
-                    <td>{{ categorie.description ?? 'N/A' }}</td>
-                    <td>
-                        <a href="{{ path('app_categorie_document_show', {'idCategorie': categorie.idCategorie}) }}"
-                           class="btn btn-sm btn-info">👁 Voir</a>
-                        <a href="{{ path('app_categorie_document_edit', {'idCategorie': categorie.idCategorie}) }}"
-                           class="btn btn-sm btn-warning">✏️ Modifier</a>
-                        <form method="post"
-                              action="{{ path('app_categorie_document_delete', {'idCategorie': categorie.idCategorie}) }}"
-                              style="display:inline-block"
-                              onsubmit="return confirm('Confirmer la suppression ?')">
-                            <input type="hidden" name="_token"
-                                   value="{{ csrf_token('delete' ~ categorie.idCategorie) }}">
-                            <button class="btn btn-sm btn-danger">🗑 Supprimer</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="4" class="text-center">Aucune catégorie trouvée</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
 </div>
 
 {% endblock %}
