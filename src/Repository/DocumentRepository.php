@@ -56,6 +56,27 @@ class DocumentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+public function getMonthlyUploads(): array
+{
+    $conn = $this->getEntityManager()->getConnection();
+    $sql = "SELECT DATE_FORMAT(date_ajout, '%Y-%m') AS month, COUNT(id_document) as total 
+            FROM document 
+            GROUP BY month 
+            ORDER BY month ASC";
+    return $conn->executeQuery($sql)->fetchAllAssociative();
+}
+
+public function findExpiringSoon(): array
+{
+    $today = new \DateTime();
+    $soon = new \DateTime('+30 days');
+    return $this->createQueryBuilder('d')
+        ->andWhere('d.dateExpiration BETWEEN :today AND :soon')
+        ->setParameter('today', $today)
+        ->setParameter('soon', $soon)
+        ->getQuery()
+        ->getResult();
+}
 
     public function countByCategorie(): array
     {

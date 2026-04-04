@@ -165,6 +165,22 @@ final class DocumentCrudController extends AbstractController
         ]);
     }
 
+    // ===== SUPPRIMER TOUS LES EXPIRES =====
+    #[Route('/supprimer/expires', name: 'app_document_supprimer_expires', methods: ['GET'])]
+    public function supprimerExpires(
+        DocumentRepository $documentRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $expires = $documentRepository->findExpired();
+        foreach ($expires as $doc) {
+            $entityManager->remove($doc);
+        }
+        $entityManager->flush();
+        $this->addFlash('success', '🗑 ' . count($expires) . ' documents expirés supprimés !');
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+
     // ===== DELETE =====
     #[Route('/{idDocument}', name: 'app_document_crud_delete', methods: ['POST'])]
     public function delete(
