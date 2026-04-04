@@ -1,11 +1,66 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}New Document{% endblock %}
-
+{% block title %}Ajouter Document{% endblock %}
 {% block body %}
-    <h1>Create new Document</h1>
 
-    {{ include('document_crud/_form.html.twig') }}
+<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">➕ Ajouter un Document</h1>
+    </div>
+</div>
 
-    <a href="{{ path('app_document_crud_index') }}">back to list</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">📄 Nouveau Document</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    {{ form_start(form, {'attr': {'class': 'row g-3'}}) }}
+
+                        <div class="col-12">
+                            {{ form_label(form.nomDocument, 'Nom du document', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.nomDocument, {'attr': {'class': 'form-control', 'placeholder': 'Ex: Passeport, Visa France...'}}) }}
+                            <small class="text-muted">🤖 La catégorie sera détectée automatiquement par Gemini AI</small>
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.cheminFichier, 'Chemin / URL du fichier', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.cheminFichier, {'attr': {'class': 'form-control', 'placeholder': 'Ex: docs/passeport.pdf ou https://...'}}) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.dateAjout, 'Date d\'ajout', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.dateAjout, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.dateExpiration, 'Date d\'expiration', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.dateExpiration, {'attr': {'class': 'form-control'}}) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.categorie, 'Catégorie (optionnel)', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.categorie, {'attr': {'class': 'form-select'}}) }}
+                            <small class="text-muted">Si non sélectionnée, Gemini détecte automatiquement</small>
+                        </div>
+
+                        <div class="col-12 d-flex gap-3 mt-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                💾 Enregistrer
+                            </button>
+                            <a href="{{ path('app_document_crud_index') }}" class="btn btn-outline-secondary px-4">
+                                ← Retour à la liste
+                            </a>
+                        </div>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

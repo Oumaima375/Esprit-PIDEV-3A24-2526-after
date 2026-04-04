@@ -1,11 +1,49 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}New CategorieDocument{% endblock %}
-
+{% block title %}Ajouter Catégorie{% endblock %}
 {% block body %}
-    <h1>Create new CategorieDocument</h1>
 
-    {{ include('categorie_document/_form.html.twig') }}
+<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">➕ Ajouter une Catégorie</h1>
+    </div>
+</div>
 
-    <a href="{{ path('app_categorie_document_index') }}">back to list</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-primary text-white rounded-top-4">
+                    <h4 class="mb-0">📂 Nouvelle Catégorie</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    {{ form_start(form, {'attr': {'class': 'row g-3'}}) }}
+
+                        <div class="col-12">
+                            {{ form_label(form.libelle, 'Libellé', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.libelle, {'attr': {'class': 'form-control', 'placeholder': 'Ex: PASSEPORT, VISA...'}}) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'placeholder': 'Description de la catégorie...'}}) }}
+                        </div>
+
+                        <div class="col-12 d-flex gap-3 mt-3">
+                            <button type="submit" class="btn btn-primary px-4">
+                                💾 Enregistrer
+                            </button>
+                            <a href="{{ path('app_categorie_document_index') }}" class="btn btn-outline-secondary px-4">
+                                ← Retour à la liste
+                            </a>
+                        </div>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

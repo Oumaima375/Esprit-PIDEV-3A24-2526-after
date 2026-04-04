@@ -1,38 +1,80 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Document{% endblock %}
-
+{% block title %}Document - {{ document.nomDocument }}{% endblock %}
 {% block body %}
-    <h1>Document</h1>
 
-    <table class="table">
-        <tbody>
-            <tr>
-                <th>IdDocument</th>
-                <td>{{ document.idDocument }}</td>
-            </tr>
-            <tr>
-                <th>NomDocument</th>
-                <td>{{ document.nomDocument }}</td>
-            </tr>
-            <tr>
-                <th>CheminFichier</th>
-                <td>{{ document.cheminFichier }}</td>
-            </tr>
-            <tr>
-                <th>DateAjout</th>
-                <td>{{ document.dateAjout ? document.dateAjout|date('Y-m-d') : '' }}</td>
-            </tr>
-            <tr>
-                <th>DateExpiration</th>
-                <td>{{ document.dateExpiration ? document.dateExpiration|date('Y-m-d') : '' }}</td>
-            </tr>
-        </tbody>
-    </table>
+<div class="container-fluid bg-info py-5 mb-5">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">👁 Détail Document</h1>
+    </div>
+</div>
 
-    <a href="{{ path('app_document_crud_index') }}">back to list</a>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow border-0 rounded-4">
+                <div class="card-header bg-info text-white rounded-top-4">
+                    <h4 class="mb-0">📄 {{ document.nomDocument }}</h4>
+                </div>
+                <div class="card-body p-4">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th class="bg-light">ID</th>
+                            <td>{{ document.idDocument }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Nom Document</th>
+                            <td>{{ document.nomDocument }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Catégorie</th>
+                            <td>
+                                <span class="badge bg-info text-dark fs-6">
+                                    {{ document.categorie ? document.categorie.libelle : 'N/A' }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Chemin Fichier</th>
+                            <td>
+                                {% if document.cheminFichier starts with 'http' %}
+                                    <a href="{{ document.cheminFichier }}" target="_blank" class="btn btn-sm btn-outline-primary">
+                                        🔗 Ouvrir le fichier
+                                    </a>
+                                {% else %}
+                                    {{ document.cheminFichier }}
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Date Ajout</th>
+                            <td>{{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}</td>
+                        </tr>
+                        <tr>
+                            <th class="bg-light">Date Expiration</th>
+                            <td>
+                                {% if document.dateExpiration %}
+                                    {% if document.dateExpiration < date() %}
+                                        <span class="text-danger fw-bold">❌ {{ document.dateExpiration|date('d/m/Y') }} (Expiré)</span>
+                                    {% else %}
+                                        <span class="text-success">✅ {{ document.dateExpiration|date('d/m/Y') }}</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="text-muted">N/A</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
 
-    <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}">edit</a>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}"
+                           class="btn btn-warning">✏️ Modifier</a>
+                        <a href="{{ path('app_document_crud_index') }}"
+                           class="btn btn-outline-secondary">← Retour à la liste</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-    {{ include('document_crud/_delete_form.html.twig') }}
 {% endblock %}
