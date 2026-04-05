@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}After Travel - Voyages{% endblock %}
+
+{% block body %}
+
+<!-- Header -->
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">Nos Voyages</h1>
+            <p class="text-white fs-5">Découvrez toutes nos destinations et trouvez le voyage parfait</p>
+            <a href="{{ path('app_voyage_new') }}" class="btn btn-light rounded-pill py-2 px-4 mt-3">
+                <i class="fa fa-plus me-2"></i>Ajouter un Voyage
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Filtres -->
+<div class="container mb-5">
+    <form method="GET" action="{{ path('app_voyage') }}">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label fw-bold">Recherche</label>
+                <input type="text" name="search" class="form-control rounded-pill" placeholder="Titre du voyage..." value="{{ app.request.query.get('search') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Prix min (TND)</label>
+                <input type="number" name="prix_min" class="form-control rounded-pill" placeholder="0" value="{{ app.request.query.get('prix_min') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Prix max (TND)</label>
+                <input type="number" name="prix_max" class="form-control rounded-pill" placeholder="9999" value="{{ app.request.query.get('prix_max') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Date début</label>
+                <input type="date" name="date_debut" class="form-control rounded-pill" value="{{ app.request.query.get('date_debut') }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label fw-bold">Places min</label>
+                <input type="number" name="places_min" class="form-control rounded-pill" placeholder="0" value="{{ app.request.query.get('places_min') }}">
+            </div>
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary rounded-pill w-100">
+                    <i class="fa fa-search"></i>
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Cards Voyages -->
+<div class="container mb-5">
+    {% set favoris = app.session.get('favoris', []) %}
+    <div class="row g-4">
+        {% for voyage in voyages %}
+        <div class="col-lg-4 col-md-6">
+            <div class="blog-item h-100">
+                <div class="blog-img">
+                    <div class="blog-img-inner">
+                        <img class="img-fluid w-100 rounded-top" 
+                             style="height: 220px; object-fit: cover;" 
+                             src="{{ voyage.image starts with 'http' ? voyage.image : asset('img/blog-' ~ (loop.index % 3 == 0 ? 3 : loop.index % 3) ~ '.jpg') }}" 
+                             alt="{{ voyage.titre }}">
+                    </div>
+                    <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
+                        <small class="flex-fill text-center border-end py-2">
+                            <i class="fa fa-calendar-alt text-primary me-1"></i>
+                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }}
+                        </small>
+                        <small class="flex-fill text-center border-end py-2">
+                            <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
+                        </small>
+                        <small class="flex-fill text-center py-2">
+                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nb_places }} places
+                        </small>
+                    </div>
+                </div>
+                <div class="blog-content border border-top-0 rounded-bottom p-4">
+                    <h4 class="mb-2">{{ voyage.titre }}</h4>
+                    <p class="text-muted mb-3">{{ voyage.description|slice(0,100) }}...</p>
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }} → {{ voyage.date_fin ? voyage.date_fin|date('d/m/Y') : 'N/A' }}
+                        </span>
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage}) }}" 
+                           class="btn rounded-pill py-1 px-3 ms-auto {{ voyage.id_voyage in favoris ? 'btn-danger' : 'btn-outline-danger' }}">
+                            <i class="fa fa-heart me-1"></i>
+                            {{ voyage.id_voyage in favoris ? 'Favori ❤' : 'Ajouter ♡' }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <h4 class="text-muted">Aucun voyage trouvé</h4>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">After Travel</h4>
+                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Liens Rapides</h4>
+                <div class="d-flex flex-column">
+                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
+                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
+                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
+                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+    </div>
+</div>
+
+{% endblock %}

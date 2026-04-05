@@ -1,0 +1,148 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}After Travel - Modifier un Voyage{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">Modifier le Voyage</h1>
+            <p class="text-white fs-5">{{ voyage.titre }}</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="bg-light rounded p-5">
+
+                {{ form_start(form, {
+                    'attr': {
+                        'novalidate': 'novalidate',
+                        'enctype': 'multipart/form-data'
+                    }
+                }) }}
+
+                <div class="mb-4">
+                    {{ form_label(form.titre) }}
+                    {{ form_widget(form.titre) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form_label(form.dateDebut) }}
+                        {{ form_widget(form.dateDebut) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.dateDebut) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.dateFin) }}
+                        {{ form_widget(form.dateFin) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.dateFin) }}</div>
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form_label(form.prix) }}
+                        {{ form_widget(form.prix) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.prix) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.nbPlaces) }}
+                        {{ form_widget(form.nbPlaces) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.nbPlaces) }}</div>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Image actuelle</label>
+                    {% if voyage.image %}
+                        <div class="mb-2">
+                            <img src="{{ voyage.image starts with 'http' ? voyage.image : asset(voyage.image) }}"
+                                 style="height: 120px; object-fit: cover; border-radius: 10px;" alt="image actuelle">
+                        </div>
+                    {% endif %}
+                    <div class="input-group">
+                        <input type="text" name="voyage_type[image]"
+                               class="form-control rounded-start-pill"
+                               placeholder="https://images.unsplash.com/..."
+                               value="{{ voyage.image }}">
+                        <label class="btn btn-primary rounded-end-pill mb-0" style="cursor:pointer;">
+                            <i class="fa fa-folder-open me-1"></i> Choisir
+                            <input type="file" name="voyage_type[imageFile]"
+                                   accept="image/*"
+                                   style="display:none;"
+                                   onchange="document.querySelector('input[name=\'voyage_type[image]\']').value = this.files[0].name">
+                        </label>
+                    </div>
+                    <small class="text-muted">Collez une nouvelle URL ou choisissez un fichier</small>
+                </div>
+
+                <div class="mb-4">
+                    {{ form_label(form.idDestination) }}
+                    {{ form_widget(form.idDestination) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.idDestination) }}</div>
+                </div>
+
+                <div style="display:none;">
+                    {{ form_widget(form.image) }}
+                    {{ form_widget(form.imageFile) }}
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill py-2 px-5">
+                        <i class="fa fa-save me-2"></i>Enregistrer
+                    </button>
+                    <a href="{{ path('app_voyage') }}" class="btn btn-outline-secondary rounded-pill py-2 px-4">
+                        <i class="fa fa-times me-2"></i>Annuler
+                    </a>
+                </div>
+
+                {{ form_end(form) }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">After Travel</h4>
+                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Liens Rapides</h4>
+                <div class="d-flex flex-column">
+                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
+                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
+                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
+                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+    </div>
+</div>
+
+{% endblock %}
