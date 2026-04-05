@@ -25,7 +25,11 @@
                     <div class="blog-img-inner">
                         <img class="img-fluid w-100 rounded-top"
                              style="height: 220px; object-fit: cover;"
+<<<<<<< Updated upstream
                              src="{{ destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
+=======
+                             src="{{ destination.image and destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
+>>>>>>> Stashed changes
                              alt="{{ destination.pays }}">
                     </div>
                     <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
@@ -41,8 +45,18 @@
                     </div>
                 </div>
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
+<<<<<<< Updated upstream
                     <h4 class="mb-2">{{ destination.pays }} — {{ destination.ville }}</h4>
                     <p class="text-muted mb-3">{{ destination.description ? destination.description|slice(0,100) ~ '...' : 'Aucune description.' }}</p>
+=======
+                    <h4 class="mb-3">{{ destination.pays }} — {{ destination.ville }}</h4>
+
+                    <div id="country-info-{{ loop.index }}" class="mb-3" style="min-height: 60px;">
+                        <span class="spinner-border spinner-border-sm text-primary me-1"></span>
+                        <span class="text-muted small">Chargement des infos...</span>
+                    </div>
+
+>>>>>>> Stashed changes
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="{{ path('app_destination_edit', {'id': destination.id_destination}) }}"
                            class="btn btn-outline-primary rounded-pill py-1 px-3">
@@ -84,7 +98,13 @@
             </div>
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Contact</h4>
+<<<<<<< Updated upstream
                 <a class="text-white mb-2 d-block"><i class="fas fa-envelope me-2"></i>contact@aftertravel.com</a>
+=======
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+>>>>>>> Stashed changes
             </div>
         </div>
     </div>
@@ -95,4 +115,42 @@
     </div>
 </div>
 
+<<<<<<< Updated upstream
+=======
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countries = [
+        {% for destination in destinations %}
+        { index: {{ loop.index }}, pays: "{{ destination.pays }}" },
+        {% endfor %}
+    ];
+
+    countries.forEach(function(c) {
+        fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(c.pays) + '?fields=name,capital,currencies,languages')
+            .then(r => r.json())
+            .then(data => {
+                if (data && data[0]) {
+                    const country = data[0];
+                    const capital = country.capital ? country.capital[0] : 'N/A';
+                    const currencies = country.currencies ? Object.values(country.currencies).map(cur => cur.name).join(', ') : 'N/A';
+                    const languages = country.languages ? Object.values(country.languages).join(', ') : 'N/A';
+
+                    document.getElementById('country-info-' + c.index).innerHTML =
+                        '<p class="mb-1 small"><i class="fa fa-building text-primary me-1"></i><b>Capitale:</b> ' + capital + '</p>' +
+                        '<p class="mb-1 small"><i class="fa fa-coins text-primary me-1"></i><b>Devise:</b> ' + currencies + '</p>' +
+                        '<p class="mb-0 small"><i class="fa fa-language text-primary me-1"></i><b>Langue:</b> ' + languages + '</p>';
+                } else {
+                    document.getElementById('country-info-' + c.index).innerHTML =
+                        '<p class="text-muted small mb-0">Infos non disponibles</p>';
+                }
+            })
+            .catch(() => {
+                document.getElementById('country-info-' + c.index).innerHTML =
+                    '<p class="text-muted small mb-0">Infos non disponibles</p>';
+            });
+    });
+});
+</script>
+
+>>>>>>> Stashed changes
 {% endblock %}
