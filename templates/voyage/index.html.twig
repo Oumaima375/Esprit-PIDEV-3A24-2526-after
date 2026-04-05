@@ -70,8 +70,13 @@
                             {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }}
                         </small>
                         <small class="flex-fill text-center border-end py-2">
-                            <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
-                        </small>
+ <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
+ <br>
+ <span class="text-muted" style="font-size:10px;">
+ ~ {{ (voyage.prix * 0.29)|number_format(0) }} EUR |
+ {{ (voyage.prix * 0.32)|number_format(0) }} USD
+ </span>
+</small>
                         <small class="flex-fill text-center py-2">
                             <i class="fa fa-users text-primary me-1"></i>{{ voyage.nb_places }} places
                         </small>
@@ -79,6 +84,7 @@
                 </div>
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
                     <h4 class="mb-2">{{ voyage.titre }}</h4>
+<<<<<<< Updated upstream
                     <p class="text-muted mb-3">{{ voyage.description|slice(0,100) }}...</p>
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage_voyage}) }}" class="btn btn-primary rounded-pill py-1 px-3">
@@ -100,6 +106,30 @@
 <<<<<<< Updated upstream
 =======
 =======
+>>>>>>> Stashed changes
+=======
+                    <p class="text-muted mb-2" id="desc-{{ loop.index }}">
+ {{ voyage.description|slice(0,100) }}...
+</p>
+<button class="btn btn-outline-secondary btn-sm rounded-pill mb-2"
+ onclick="translateDesc({{ loop.index }}, '{{ voyage.description|slice(0,100)|e('js') }}')">
+ <i class="fa fa-language me-1"></i>FR - EN
+</button>
+
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+                        <span class="badge bg-primary rounded-pill px-3 py-2">
+                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }} → {{ voyage.date_fin ? voyage.date_fin|date('d/m/Y') : 'N/A' }}
+                        </span>
+                        
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage}) }}" 
+                           class="btn rounded-pill py-1 px-3 ms-auto {{ voyage.id_voyage in favoris ? 'btn-danger' : 'btn-outline-danger' }}">
+                            <i class="fa fa-heart me-1"></i>
+                            {{ voyage.id_voyage in favoris ? 'Favori ❤' : 'Ajouter ♡' }}
+                        </a>
+                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id_voyage}) }}"
+ class="btn btn-success rounded-pill py-1 px-3" target="_blank">
+ <i class="fa fa-file-pdf me-1"></i>PDF
+</a>
 >>>>>>> Stashed changes
                         <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage}) }}"
    class="btn btn-outline-secondary rounded-pill py-1 px-3">
@@ -128,7 +158,16 @@
         {% endfor %}
     </div>
 </div>
+<<<<<<< Updated upstream
     <!-- Footer -->
+=======
+<div class="container mb-4">
+ <div class="d-flex justify-content-center">
+ {{ knp_pagination_render(voyages) }}
+ </div>
+</div>
+<!-- Footer -->
+>>>>>>> Stashed changes
 <div class="container-fluid footer py-5">
     <div class="container py-5">
         <div class="row g-5">
@@ -157,4 +196,28 @@
         <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
     </div>
 </div>
+<<<<<<< Updated upstream
+=======
+<script>
+function translateDesc(index, text) {
+ const btn = event.target.closest('button');
+ btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Traduction...';
+ btn.disabled = true;
+ fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=fr|en')
+ .then(r => r.json())
+ .then(data => {
+ const translated = data.responseData.translatedText;
+ document.getElementById('desc-' + index).textContent = translated + '...';
+ btn.innerHTML = '<i class="fa fa-language me-1"></i>EN - FR';
+ btn.disabled = false;
+ btn.onclick = function() {
+ document.getElementById('desc-' + index).textContent = text + '...';
+ btn.innerHTML = '<i class="fa fa-language me-1"></i>FR - EN';
+ btn.onclick = function() { translateDesc(index, text); };
+ };
+ })
+ .catch(() => { btn.innerHTML = 'FR - EN'; btn.disabled = false; });
+}
+</script>s
+>>>>>>> Stashed changes
 {% endblock %}

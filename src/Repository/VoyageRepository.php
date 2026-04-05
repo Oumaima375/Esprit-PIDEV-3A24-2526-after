@@ -40,4 +40,13 @@ class VoyageRepository extends ServiceEntityRepository
 
     return $qb->orderBy('v.date_debut', 'DESC')->getQuery()->getResult();
 }
+public function findWithFiltersQuery($search=null,$prixMin=null,$prixMax=null,$placesMin=null)
+{
+ $qb = $this->createQueryBuilder('v');
+ if ($search) $qb->andWhere('v.titre LIKE :s')->setParameter('s','%'.$search.'%');
+ if ($prixMin) $qb->andWhere('v.prix >= :pmin')->setParameter('pmin',$prixMin);
+ if ($prixMax) $qb->andWhere('v.prix <= :pmax')->setParameter('pmax',$prixMax);
+ if ($placesMin) $qb->andWhere('v.nb_places >= :pl')->setParameter('pl',$placesMin);
+ return $qb->orderBy('v.id_voyage','DESC')->getQuery();
+}
 }

@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ destination.pays }} - {{ destination.ville }}{% endblock %}
+{% block body %}
+<div class="container-fluid bg-primary py-5 mb-5">
+ <div class="container py-5 text-center">
+ <h1 class="text-white display-3">{{ destination.pays }}</h1>
+ <p class="text-white fs-5">{{ destination.ville }} - {{ destination.continent }}</p>
+ <a href="{{ path('app_destination') }}" class="btn btn-light rounded-pill py-2 px-4 mt-3">
+ Retour aux Destinations
+ </a>
+ </div>
+</div>
+<div class="container mb-5">
+ <div class="row g-5">
+ <div class="col-lg-6">
+ <img src="{{ destination.image and destination.image starts with 'http'
+ ? destination.image : asset('img/about-img.jpg') }}"
+ class="img-fluid rounded" style="width:100%;height:350px;object-fit:cover;">
+ </div>
+ <div class="col-lg-6">
+ <h3 class="text-primary mb-4">Informations sur {{ destination.pays }}</h3>
+ <div id="country-details" class="bg-light rounded p-4 mb-4">
+ Chargement des infos...
+ </div>
+ {% if attractions %}
+ <div class="bg-light rounded p-4">
+ <h5 class="text-primary mb-3">Attractions touristiques</h5>
+ {% for a in attractions %}
+ <div class="d-flex align-items-center mb-2">
+ <i class="fa fa-landmark text-primary me-2"></i>
+ <span>{{ a.name }}
+ {% if a.type %}<span class="badge bg-secondary ms-1">{{ a.type }}</span>{% endif %}
+ </span>
+ </div>
+ {% endfor %}
+ </div>
+ {% else %}
+ <div class="alert alert-info">Aucune attraction trouvee pour cette ville.</div>
+ {% endif %}
+ </div>
+ </div>
+</div>
+<script>
+fetch('https://restcountries.com/v3.1/name/{{ destination.pays }}?fields=name,capital,currencies,languages,flags,popu .then(r => r.json())
+ .then(data => {
+ if (data && data[0]) {
+ const c = data[0];
+ document.getElementById('country-details').innerHTML =
+ (c.flags ? '<img src="'+c.flags.png+'" style="height:40px;border-radius:4px;" class="mb-3"><br>' : '' '<p><b>Capitale:</b> ' + (c.capital?.[0] ?? 'N/A') + '</p>' +
+ '<p><b>Devise:</b> ' + (c.currencies?Object.values(c.currencies).map(x=>x.name).join(', '):'N/A') + '< '<p><b>Langue:</b> ' + (c.languages?Object.values(c.languages).join(', '):'N/A') + '</p>' +
+ '<p><b>Population:</b> ' + (c.population?c.population.toLocaleString():'N/A') + '</p>';
+ }
+ });
+</script>
+{% endblock %}

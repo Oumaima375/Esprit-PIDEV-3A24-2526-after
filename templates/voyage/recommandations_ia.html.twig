@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}After Travel - Recommandations IA{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">🤖 Recommandations IA</h1>
+            <p class="text-white fs-5">Laissez Claude vous conseiller le voyage parfait</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+
+            <!-- Formulaire préférences -->
+            <div class="bg-light rounded p-5 mb-5">
+                <h4 class="mb-4"><i class="fa fa-sliders-h text-primary me-2"></i>Vos Préférences</h4>
+                <form method="GET" action="{{ path('app_voyage_recommandations_ia') }}">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">💰 Budget max (TND)</label>
+                            <input type="number" name="budget" class="form-control rounded-pill"
+                                   placeholder="Ex: 500" value="{{ budget }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">🌍 Type de voyage</label>
+                            <select name="type" class="form-select rounded-pill">
+                                <option value="">-- Choisir --</option>
+                                <option value="nature" {{ type == 'nature' ? 'selected' : '' }}>Nature & Aventure</option>
+                                <option value="famille" {{ type == 'famille' ? 'selected' : '' }}>Famille</option>
+                                <option value="romantique" {{ type == 'romantique' ? 'selected' : '' }}>Romantique</option>
+                                <option value="culture" {{ type == 'culture' ? 'selected' : '' }}>Culture & Histoire</option>
+                                <option value="plage" {{ type == 'plage' ? 'selected' : '' }}>Plage & Détente</option>
+                                <option value="sport" {{ type == 'sport' ? 'selected' : '' }}>Sport & Montagne</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">📅 Durée (jours)</label>
+                            <input type="number" name="duree" class="form-control rounded-pill"
+                                   placeholder="Ex: 7" value="{{ duree }}">
+                        </div>
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary rounded-pill py-2 px-5">
+                                <i class="fa fa-magic me-2"></i>Obtenir des Recommandations
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Résultat IA -->
+            {% if suggestion %}
+            <div class="bg-white rounded p-5 border border-primary">
+                <h4 class="text-primary mb-4">
+                    <i class="fa fa-robot me-2"></i>Recommandations de Claude IA
+                </h4>
+                <div class="alert alert-info mb-3">
+                    <strong>Vos critères :</strong>
+                    {% if budget %} Budget : {{ budget }} TND {% endif %}
+                    {% if type %} | Type : {{ type }} {% endif %}
+                    {% if duree %} | Durée : {{ duree }} jours {% endif %}
+                </div>
+                <div style="white-space: pre-line; line-height: 1.8;">
+                    {{ suggestion }}
+                </div>
+                <div class="mt-4">
+                    <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill py-2 px-4">
+                        <i class="fa fa-plane me-2"></i>Voir tous les Voyages
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">After Travel</h4>
+                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Liens Rapides</h4>
+                <div class="d-flex flex-column">
+                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
+                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
+                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
+                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+    </div>
+</div>
+
+{% endblock %}

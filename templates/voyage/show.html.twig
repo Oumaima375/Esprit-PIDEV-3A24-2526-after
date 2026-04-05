@@ -21,9 +21,18 @@
             <img src="{{ voyage.image starts with 'http' ? voyage.image : asset('img/blog-1.jpg') }}"
                  class="img-fluid rounded" style="width:100%; height:400px; object-fit:cover;" alt="{{ voyage.titre }}">
         </div>
+<<<<<<< Updated upstream
         <div class="col-lg-6">
             <h2 class="mb-4">{{ voyage.titre }}</h2>
             <p class="mb-4">{{ voyage.description }}</p>
+=======
+
+        <div class="col-lg-6">
+            <h2 class="mb-4">{{ voyage.titre }}</h2>
+            <p class="mb-4">{{ voyage.description }}</p>
+
+            <!-- BADGES DETAILS -->
+>>>>>>> Stashed changes
             <div class="row g-3 mb-4">
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
@@ -32,6 +41,10 @@
                         <p class="mb-0">{{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }}</p>
                     </div>
                 </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-calendar-check text-primary fa-2x mb-2"></i>
@@ -39,6 +52,10 @@
                         <p class="mb-0">{{ voyage.date_fin ? voyage.date_fin|date('d/m/Y') : 'N/A' }}</p>
                     </div>
                 </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-tag text-primary fa-2x mb-2"></i>
@@ -46,6 +63,10 @@
                         <p class="mb-0 text-primary fw-bold">{{ voyage.prix }} TND</p>
                     </div>
                 </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-users text-primary fa-2x mb-2"></i>
@@ -54,20 +75,82 @@
                     </div>
                 </div>
             </div>
+<<<<<<< Updated upstream
+=======
+
+            <!-- ✅ METEO -->
+            {% if meteo %}
+            <div class="bg-light rounded p-4 mb-4">
+                <h5 class="text-primary mb-3">
+                    <i class="fa fa-cloud-sun me-2"></i>Meteo a {{ meteo.ville }}
+                </h5>
+                <div class="row g-3 text-center">
+                    <div class="col-6">
+                        <div class="fw-bold fs-4">{{ meteo.temperature }}°C</div>
+                        <div class="text-muted small">{{ meteo.description }}</div>
+                    </div>
+                    <div class="col-6">
+                        <div class="fw-bold">{{ meteo.windspeed }} km/h</div>
+                        <div class="text-muted small">Vent</div>
+                    </div>
+                    <div class="col-12">
+                        <div class="alert alert-info mb-0 py-2">{{ meteo.conseil }}</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- ✅ TIMEZONE -->
+            {% if timezone %}
+            <div class="bg-light rounded p-4 mb-4">
+                <h5 class="text-primary mb-3">
+                    <i class="fa fa-clock me-2"></i>Heure locale
+                </h5>
+                <div class="row g-2 text-center">
+                    <div class="col-4">
+                        <div class="fw-bold fs-4">{{ timezone.heure }}</div>
+                        <div class="text-muted small">Heure locale</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold">{{ timezone.moment }}</div>
+                        <div class="text-muted small">Moment</div>
+                    </div>
+                    <div class="col-4">
+                        <div class="fw-bold text-primary">{{ timezone.decalage }}</div>
+                        <div class="text-muted small">Décalage / Tunis</div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- BUTTONS -->
+>>>>>>> Stashed changes
             <div class="d-flex gap-3">
                 <a href="{{ path('app_voyage_edit', {'id': voyage.id_voyage}) }}" class="btn btn-primary rounded-pill py-2 px-4">
                     <i class="fa fa-edit me-2"></i>Modifier
                 </a>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
                 <a href="{{ path('app_voyage_delete', {'id': voyage.id_voyage}) }}"
                    class="btn btn-danger rounded-pill py-2 px-4"
                    onclick="return confirm('Supprimer ce voyage ?')">
                     <i class="fa fa-trash me-2"></i>Supprimer
                 </a>
             </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
         </div>
     </div>
 </div>
 
+<<<<<<< Updated upstream
+=======
+<!-- FOOTER -->
+>>>>>>> Stashed changes
 <div class="container-fluid footer py-5">
     <div class="container py-5">
         <div class="row g-5">
@@ -75,6 +158,10 @@
                 <h4 class="mb-4 text-white">After Travel</h4>
                 <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
             </div>
+<<<<<<< Updated upstream
+=======
+
+>>>>>>> Stashed changes
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Liens Rapides</h4>
                 <div class="d-flex flex-column">
@@ -84,16 +171,33 @@
                     <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
                 </div>
             </div>
+<<<<<<< Updated upstream
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Contact</h4>
                 <a class="text-white mb-2 d-block"><i class="fas fa-envelope me-2"></i>contact@aftertravel.com</a>
+=======
+
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+>>>>>>> Stashed changes
             </div>
         </div>
     </div>
 </div>
+<<<<<<< Updated upstream
 <div class="container-fluid copyright text-body py-4">
     <div class="container text-center">
         <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+=======
+
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i>
+        <span class="text-white">After Travel</span>, All rights reserved.
+>>>>>>> Stashed changes
     </div>
 </div>
 
