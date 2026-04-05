@@ -1,0 +1,387 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Travela - Activités{% endblock %}
+
+{% block body %}
+
+<!-- Spinner Start -->
+<div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<!-- Spinner End -->
+
+<!-- Navbar Start -->
+<div class="container-fluid position-relative p-0">
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <a href="" class="navbar-brand p-0">
+            <h1 class="m-0"><i class="fa fa-map-marker-alt me-3"></i>After Travel </h1>
+        </a>
+        <div class="collapse navbar-collapse">
+            <div class="navbar-nav ms-auto py-0">
+                <a href="{{ path('app_home') }}" class="nav-item nav-link">Home</a>
+                <a href="{{ path('app_activite') }}" class="nav-item nav-link active">Activités</a>
+            </div>
+        </div>
+    </nav>
+</div>
+<!-- Navbar End -->
+
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h3 class="text-white display-3 mb-4">Nos Activités</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+            <li class="breadcrumb-item active text-white">Activités</li>
+        </ol>
+    </div>
+    <div class="container d-flex justify-content-between my-3">
+        <a href="{{ path('app_planning') }}" class="btn btn-primary rounded-pill py-2 px-4">
+            <i class="fa fa-calendar-alt me-2"></i>Planning
+        </a>
+        <a href="{{ path('app_activite_add') }}" class="btn btn-success rounded-pill py-2 px-4">
+            <i class="fa fa-plus me-2"></i>Ajouter une Activité
+        </a>
+    </div>
+    <div class="container my-4 text-center">
+        <div class="card shadow p-4 border-0 rounded">
+            <h4 class="mb-3">Scanner pour voir la liste des activités</h4>
+            <img src="{{ path('app_activite_qr') }}" alt="QR Code" width="200" class="img-fluid">
+            <p class="mt-3 text-muted">Utilisez votre téléphone pour accéder rapidement aux activités 📱</p>
+        </div>
+    </div>
+</div>
+<!-- Header End -->
+
+<!-- Activités Start -->
+<div class="container-fluid blog py-5">
+    <div class="container py-5">
+        <div class="mx-auto text-center mb-5" style="max-width: 900px;">
+            <h5 class="section-title px-3">Nos Activités</h5>
+            <h1 class="mb-4">Liste des Activités</h1>
+        </div>
+
+        <!-- TRI AJAX -->
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <select id="sort" class="form-select rounded-pill px-4 py-2" style="max-width: 250px;">
+                <option value="">-- Trier par --</option>
+                <option value="nom">🔤 Nom</option>
+                <option value="prix">💰 Prix</option>
+                <option value="categorie">🏷️ Catégorie</option>
+                <option value="lieu">📍 Lieu</option>
+            </select>
+        </div>
+
+        <!-- BARRE DE RECHERCHE -->
+        <div class="mb-4" style="max-width: 500px; margin: 0 auto 2rem auto;">
+            <input type="text" id="search" class="form-control rounded-pill px-4 py-2"
+                   placeholder="🔍 Rechercher une activité...">
+        </div>
+
+        <div class="row g-4 justify-content-center">
+
+            <!-- Affichage normal des activités -->
+            <div id="activite-tbody-all" style="display: contents;">
+                {% for activite in activites %}
+                    <div class="col-lg-4 col-md-6">
+                        <div class="blog-item">
+                            <div class="blog-content border rounded p-4">
+
+                                {% if activite.categorie %}
+                                    <span class="badge bg-primary mb-2">{{ activite.categorie }}</span>
+                                {% endif %}
+
+                                <h4 class="mb-2">{{ activite.nom }}</h4>
+
+                                {% if activite.lieu %}
+                                    <p class="mb-2">
+                                        <i class="fa fa-map-marker-alt text-primary me-2"></i>
+                                        {{ activite.lieu }}
+                                    </p>
+                                {% endif %}
+
+                                {# ===== DESCRIPTION + TRADUCTION ===== #}
+                                {% if activite.description %}
+                                    <p class="mb-1 description-text" id="desc-{{ activite.idActivite }}">
+                                        {{ activite.description }}
+                                    </p>
+                                    <div class="mb-3">
+                                        <small class="text-muted">🌍 Traduire en :</small>
+                                        <div class="d-flex gap-1 flex-wrap mt-1">
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="en">🇬🇧 EN</button>
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="de">🇩🇪 DE</button>
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="ar">🇸🇦 AR</button>
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="es">🇪🇸 ES</button>
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="zh">🇨🇳 ZH</button>
+                                            <button class="btn btn-xs btn-outline-secondary btn-translate"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-text="{{ activite.description|escape('html_attr') }}"
+                                                    data-lang="fr">🇫🇷 FR</button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {# ===================================== #}
+
+                                {# ===== PRIX + CONVERSION ===== #}
+                                {% if activite.prix %}
+                                    <p class="mb-1">
+                                        <i class="fa fa-tag text-primary me-2"></i>
+                                        <strong id="prix-{{ activite.idActivite }}">{{ activite.prix }} TND</strong>
+                                    </p>
+                                    <div class="mb-3">
+                                        <small class="text-muted">💱 Convertir en :</small>
+                                        <div class="d-flex gap-1 flex-wrap mt-1">
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="EUR">💶 EUR</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="USD">💵 USD</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="GBP">💷 GBP</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="TND">🔄 TND</button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+                                {# ============================= #}
+
+                                <!-- Boutons actions -->
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <a href="{{ path('app_activite_pdf', {'id': activite.idActivite}) }}"
+                                       class="btn btn-sm btn-success" target="_blank">
+                                        <i class="fa fa-file-pdf"></i> PDF
+                                    </a>
+                                    <a href="{{ path('app_activite_edit', {'id': activite.idActivite}) }}"
+                                       class="btn btn-sm btn-warning">
+                                        <i class="fa fa-edit"></i> Modifier
+                                    </a>
+                                    <a href="{{ path('app_activite_delete', {'id': activite.idActivite}) }}"
+                                       class="btn btn-sm btn-danger"
+                                       onclick="return confirm('Voulez-vous vraiment supprimer cette activité ?')">
+                                        <i class="fa fa-trash"></i> Supprimer
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p>Aucune activité disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Résultats recherche / tri AJAX -->
+            <div id="activite-tbody-search" class="row g-4 justify-content-center"></div>
+
+        </div>
+    </div>
+</div>
+<!-- Activités End -->
+
+<!-- Footer Start -->
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-xl-3">
+                <div class="footer-item d-flex flex-column">
+                    <h4 class="mb-4 text-white">Get In Touch</h4>
+                    <a href=""><i class="fas fa-home me-2"></i> 123 Street, New York, USA</a>
+                    <a href=""><i class="fas fa-envelope me-2"></i> info@example.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Footer End -->
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<style>
+.btn-xs {
+    padding: 2px 8px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+}
+</style>
+<script>
+$(document).ready(function() {
+
+    // ===================== TRADUCTION DESCRIPTION (MyMemory API) =====================
+    $(document).on('click', '.btn-translate', function() {
+        var id   = $(this).data('id');
+        var text = $(this).data('text');
+        var lang = $(this).data('lang');
+        var btn  = $(this);
+
+        btn.text('⏳').prop('disabled', true);
+
+        $.ajax({
+            url: 'https://api.mymemory.translated.net/get',
+            type: 'GET',
+            data: {
+                q: text,
+                langpair: 'fr|' + lang
+            },
+            success: function(response) {
+                var translated = response.responseData.translatedText;
+                $('#desc-' + id).text(translated);
+
+                if (lang === 'ar') {
+                    $('#desc-' + id).attr('dir', 'rtl').css('text-align', 'right');
+                } else {
+                    $('#desc-' + id).attr('dir', 'ltr').css('text-align', 'left');
+                }
+                btn.prop('disabled', false);
+            },
+            error: function() {
+                alert('Erreur de traduction.');
+                btn.prop('disabled', false);
+            }
+        });
+    });
+
+    // ===================== CONVERSION PRIX =====================
+    var tauxConversion = {
+        'EUR': 0.30,
+        'USD': 0.32,
+        'GBP': 0.25,
+        'TND': 1.00
+    };
+
+    $(document).on('click', '.btn-convert', function() {
+        var id     = $(this).data('id');
+        var prix   = parseFloat($(this).data('prix'));
+        var devise = $(this).data('devise');
+
+        var taux      = tauxConversion[devise];
+        var converted = (prix * taux).toFixed(2);
+
+        $('#prix-' + id).text(converted + ' ' + devise);
+    });
+
+    // ===================== RECHERCHE AJAX =====================
+    $("#search").keyup(function() {
+        var value = $(this).val();
+        if (value.trim() === '') {
+            $('#activite-tbody-all').show();
+            $('#activite-tbody-search').empty();
+            $('#sort').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_activite_search') }}",
+            type: 'GET',
+            data: { 'searchValue': value },
+            dataType: 'json',
+            success: function(retour) { afficherResultats(retour); },
+            error: function() { alert('Erreur lors de la recherche!'); }
+        });
+    });
+
+    // ===================== TRI AJAX =====================
+    $("#sort").change(function() {
+        var sortBy = $(this).val();
+        if (sortBy === '') {
+            $('#activite-tbody-all').show();
+            $('#activite-tbody-search').empty();
+            $('#search').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_activite_sort') }}",
+            type: 'GET',
+            data: { 'sortBy': sortBy },
+            dataType: 'json',
+            success: function(retour) { afficherResultats(retour); },
+            error: function() { alert('Erreur lors du tri!'); }
+        });
+    });
+
+    // ===================== FONCTION COMMUNE AJAX =====================
+    function afficherResultats(retour) {
+        $('#activite-tbody-search').empty();
+        $('#activite-tbody-all').hide();
+
+        if (retour && retour.length > 0) {
+            $.each(retour, function(i, obj) {
+                var id = obj.idActivite || obj.id_activite || obj.id;
+                $('#activite-tbody-search').append(
+                    '<div class="col-lg-4 col-md-6">' +
+                        '<div class="blog-content border rounded p-4">' +
+                            (obj.categorie ? '<span class="badge bg-primary mb-2">' + obj.categorie + '</span>' : '') +
+                            '<h4 class="mb-2">' + (obj.nom || '') + '</h4>' +
+                            (obj.lieu ? '<p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-2"></i>' + obj.lieu + '</p>' : '') +
+
+                            (obj.description ?
+                                '<p class="mb-1 description-text" id="desc-' + id + '">' + obj.description + '</p>' +
+                                '<div class="mb-3">' +
+                                    '<small class="text-muted">🌍 Traduire en :</small>' +
+                                    '<div class="d-flex gap-1 flex-wrap mt-1">' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="en">🇬🇧 EN</button>' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="de">🇩🇪 DE</button>' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="ar">🇸🇦 AR</button>' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="es">🇪🇸 ES</button>' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="zh">🇨🇳 ZH</button>' +
+                                        '<button class="btn btn-xs btn-outline-secondary btn-translate" data-id="' + id + '" data-text="' + obj.description.replace(/'/g, "\\'") + '" data-lang="fr">🇫🇷 FR</button>' +
+                                    '</div>' +
+                                '</div>'
+                            : '') +
+
+                            (obj.prix ?
+                                '<p class="mb-1"><i class="fa fa-tag text-primary me-2"></i><strong id="prix-' + id + '">' + obj.prix + ' TND</strong></p>' +
+                                '<div class="mb-3">' +
+                                    '<small class="text-muted">💱 Convertir en :</small>' +
+                                    '<div class="d-flex gap-1 flex-wrap mt-1">' +
+                                        '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="EUR">💶 EUR</button>' +
+                                        '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="USD">💵 USD</button>' +
+                                        '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="GBP">💷 GBP</button>' +
+                                        '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="TND">🔄 TND</button>' +
+                                    '</div>' +
+                                '</div>'
+                            : '') +
+
+                            '<div class="d-flex gap-2 flex-wrap">' +
+                                '<a href="/activite/pdf/' + id + '" class="btn btn-sm btn-success" target="_blank"><i class="fa fa-file-pdf"></i> PDF</a>' +
+                                '<a href="/activite/edit/' + id + '" class="btn btn-sm btn-warning"><i class="fa fa-edit"></i> Modifier</a>' +
+                                '<a href="/activite/delete/' + id + '" class="btn btn-sm btn-danger" onclick="return confirm(\'Supprimer ?\')"><i class="fa fa-trash"></i> Supprimer</a>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>'
+                );
+            });
+        } else {
+            $('#activite-tbody-search').append('<div class="col-12 text-center"><p>Aucune activité trouvée.</p></div>');
+        }
+    }
+
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,102 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Travela - Ajouter Planning{% endblock %}
+
+{% block body %}
+
+    <!-- Navbar Start -->
+    <div class="container-fluid position-relative p-0">
+        <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+            <a href="" class="navbar-brand p-0">
+                <h1 class="m-0"><i class="fa fa-map-marker-alt me-3"></i>Travela</h1>
+            </a>
+            <div class="collapse navbar-collapse">
+                <div class="navbar-nav ms-auto py-0">
+                    <a href="{{ path('app_home') }}" class="nav-item nav-link">Home</a>
+                    <a href="{{ path('app_activite') }}" class="nav-item nav-link">Activités</a>
+                    <a href="{{ path('app_planning') }}" class="nav-item nav-link active">Planning</a>
+                </div>
+            </div>
+        </nav>
+    </div>
+    <!-- Navbar End -->
+
+    <!-- Header Start -->
+    <div class="container-fluid bg-breadcrumb">
+        <div class="container text-center py-5" style="max-width: 900px;">
+            <h3 class="text-white display-3 mb-4">Ajouter un Planning</h3>
+            <ol class="breadcrumb justify-content-center mb-0">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_planning') }}">Planning</a></li>
+                <li class="breadcrumb-item active text-white">Ajouter</li>
+            </ol>
+        </div>
+    </div>
+    <!-- Header End -->
+
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-6">
+                <div class="card border-primary rounded p-4">
+                    <h4 class="mb-4 text-primary">
+                        <i class="fa fa-plus me-2"></i>Nouveau Planning
+                    </h4>
+
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+                    <table class="table">
+                        <tr>
+                            <td>{{ form_label(form.activite, 'Activité') }}</td>
+                            <td>{{ form_widget(form.activite, {'attr': {'class': 'form-select'}}) }}</td>
+                            <td class="text-danger">{{ form_errors(form.activite) }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form_label(form.date_activite, 'Date') }}</td>
+                            <td>{{ form_widget(form.date_activite, {'attr': {'class': 'form-control'}}) }}</td>
+                            <td class="text-danger">{{ form_errors(form.date_activite) }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form_label(form.heure_debut, 'Heure de début') }}</td>
+                            <td>{{ form_widget(form.heure_debut, {'attr': {'class': 'form-control'}}) }}</td>
+                            <td class="text-danger">{{ form_errors(form.heure_debut) }}</td>
+                        </tr>
+                        <tr>
+                            <td>{{ form_label(form.duree, 'Durée (min)') }}</td>
+                            <td>{{ form_widget(form.duree, {'attr': {'class': 'form-control'}}) }}</td>
+                            <td class="text-danger">{{ form_errors(form.duree) }}</td>
+                        </tr>
+                    </table>
+
+                    {{ form_widget(form.save) }}
+
+                    <a href="{{ path('app_planning') }}" class="btn btn-secondary rounded-pill py-2 px-4 ms-2">
+                        <i class="fa fa-times me-2"></i>Annuler
+                    </a>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid footer py-5">
+        <div class="container py-5">
+            <div class="col-xl-3">
+                <div class="footer-item d-flex flex-column">
+                    <h4 class="mb-4 text-white">Get In Touch</h4>
+                    <a href=""><i class="fas fa-home me-2"></i> 123 Street, New York, USA</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid copyright text-body py-4">
+        <div class="container text-center">
+            <i class="fas fa-copyright me-2"></i>
+            <a class="text-white" href="#">Travela</a>, All right reserved.
+        </div>
+    </div>
+
+    <a href="#" class="btn btn-primary btn-md-square back-to-top"><i class="fa fa-arrow-up"></i></a>
+
+{% endblock %}

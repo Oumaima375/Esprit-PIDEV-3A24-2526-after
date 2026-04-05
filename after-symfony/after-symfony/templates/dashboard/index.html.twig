@@ -1,0 +1,377 @@
+{% extends 'dashboard_base.html.twig' %}
+
+{% block title %}Smart Dashboard{% endblock %}
+
+{% block body %}
+
+{# ── Header ── #}
+<div class="sd-header">
+    <div class="sd-header-left">
+        <span class="sd-icon">⬛</span>
+        <div>
+            <h2 class="sd-title">Smart Dashboard</h2>
+            <p class="sd-sub">
+                {{ activites|length }} activités &nbsp;•&nbsp;
+                {{ plannings|length }} plannings &nbsp;•&nbsp;
+                Mis à jour maintenant
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="sd-divider"></div>
+
+{# ── KPI Cards ── #}
+<div class="sd-kpi-row">
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#4A5568;">{{ activites|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">☐</span> Total activités</div>
+    </div>
+
+    {% set totalPrix = 0 %}
+    {% for a in activites %}{% set totalPrix = totalPrix + a.prix %}{% endfor %}
+    {% set prixMoyen = activites|length > 0 ? (totalPrix / activites|length)|round(0) : 0 %}
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#2196F3;">{{ prixMoyen }} DT</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">⊟</span> Prix moyen</div>
+    </div>
+
+    {% set prixMin = 0 %}
+    {% for a in activites %}
+        {% if prixMin == 0 or a.prix < prixMin %}{% set prixMin = a.prix %}{% endif %}
+    {% endfor %}
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#4CAF50;">{{ prixMin }} DT</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">↓</span> Prix min</div>
+    </div>
+
+    {% set prixMax = 0 %}
+    {% for a in activites %}
+        {% if a.prix > prixMax %}{% set prixMax = a.prix %}{% endif %}
+    {% endfor %}
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#FF9800;">{{ prixMax }} DT</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">↑</span> Prix max</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#9C27B0;">{{ totalPrix }} DT</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">Σ</span> Prix total</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#00BCD4;">{{ plannings|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">≡</span> Total plannings</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#F44336;">{{ activites|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">●</span> Actives</div>
+    </div>
+
+</div>
+
+{# ── Charts Row ── #}
+<div class="sd-charts-row">
+    <div class="sd-chart-card">
+        <div class="sd-chart-title">📊 Activités par catégorie</div>
+        <div class="sd-chart-body">
+            <canvas id="pieChart" width="420" height="280"></canvas>
+        </div>
+    </div>
+    <div class="sd-chart-card">
+        <div class="sd-chart-title">📅 Plannings par mois</div>
+        <div class="sd-chart-body">
+            <canvas id="barChart" width="380" height="280"></canvas>
+        </div>
+    </div>
+</div>
+
+{# ── Line Chart ── #}
+<div class="sd-chart-card sd-line-card">
+    <div class="sd-chart-title">📈 Évolution des plannings</div>
+    <div class="sd-chart-body">
+        <canvas id="lineChart" height="100"></canvas>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.sd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    padding: 20px 24px 0;
+}
+.sd-header-left { display: flex; align-items: center; gap: 12px; }
+.sd-icon { font-size: 22px; color: #1A2F4A; }
+.sd-title {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #1A2F4A;
+}
+.sd-sub {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: #4A5568;
+}
+.sd-divider {
+    height: 1.5px;
+    background: #D4C9B5;
+    margin: 14px 24px 20px;
+}
+.sd-kpi-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 0 24px;
+    margin-bottom: 24px;
+}
+.sd-kpi-card {
+    flex: 1;
+    min-width: 130px;
+    background: #FFFFFF;
+    border: 1px solid #E8E0D0;
+    border-radius: 12px;
+    padding: 16px 14px 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+.sd-kpi-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-bottom: 6px;
+}
+.sd-kpi-label {
+    font-size: 11px;
+    color: #4A5568;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.sd-kpi-icon { color: #7A8A9A; }
+.sd-charts-row {
+    display: flex;
+    gap: 16px;
+    padding: 0 24px;
+    margin-bottom: 16px;
+}
+.sd-chart-card {
+    flex: 1;
+    background: #FFFFFF;
+    border: 1px solid #E8E0D0;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.sd-line-card {
+    margin: 0 24px 24px;
+}
+.sd-chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1A2F4A;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #E8E0D0;
+}
+.sd-chart-body {
+    display: flex;
+    justify-content: center;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    {# ── Données Twig → JS ── #}
+    const pieLabels = [];
+    const pieData   = [];
+    {% set catMap = {} %}
+    {% for a in activites %}
+        {% set cat = a.categorie %}
+        {% if catMap[cat] is defined %}
+            {% set catMap = catMap|merge({(cat): catMap[cat] + 1}) %}
+        {% else %}
+            {% set catMap = catMap|merge({(cat): 1}) %}
+        {% endif %}
+    {% endfor %}
+    {% for cat, cnt in catMap %}
+        pieLabels.push({{ cat|json_encode|raw }});
+        pieData.push({{ cnt }});
+    {% endfor %}
+
+    const barLabels = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+    const barData   = [0,0,0,0,0,0,0,0,0,0,0,0];
+    {% for p in plannings %}
+        barData[{{ p.dateActivite|date('n') - 1 }}]++;
+    {% endfor %}
+
+    const lineRaw = {};
+    {% for p in plannings %}
+        {% set d = p.dateActivite|date('Y-m-d') %}
+        lineRaw[{{ d|json_encode|raw }}] = (lineRaw[{{ d|json_encode|raw }}] || 0) + 1;
+    {% endfor %}
+    const lineLabels = Object.keys(lineRaw).sort();
+    const lineData   = lineLabels.map(k => lineRaw[k]);
+
+    const gridColor   = 'rgba(0,0,0,0.07)';
+    const tickColor   = '#4A5568';
+    const legendColor = '#1A2F4A';
+    const bgColors    = ['#2196F3','#4CAF50','#FF9800','#9C27B0','#00BCD4','#F44336','#b87333','#607D8B'];
+
+    {# ── Plugin : affiche les nombres sur chaque segment ── #}
+    const doughnutNumbersPlugin = {
+        id: 'doughnutNumbers',
+        afterDatasetDraw(chart) {
+            const { ctx, data } = chart;
+            chart.getDatasetMeta(0).data.forEach((arc, index) => {
+                const { x, y } = arc.tooltipPosition();
+                const value = data.datasets[0].data[index];
+                const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+                const pct   = ((value / total) * 100).toFixed(0);
+
+                ctx.save();
+                ctx.fillStyle    = '#FFFFFF';
+                ctx.font         = 'bold 13px Segoe UI, sans-serif';
+                ctx.textAlign    = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.shadowColor  = 'rgba(0,0,0,0.4)';
+                ctx.shadowBlur   = 3;
+                ctx.fillText(value + ' (' + pct + '%)', x, y);
+                ctx.restore();
+            });
+        }
+    };
+
+    {# ── Pie / Doughnut ── #}
+    new Chart(document.getElementById('pieChart'), {
+        type: 'doughnut',
+        plugins: [doughnutNumbersPlugin],
+        data: {
+            labels: pieLabels,
+            datasets: [{
+                data: pieData,
+                backgroundColor: bgColors,
+                borderWidth: 3,
+                borderColor: '#FFFFFF',
+                hoverOffset: 8
+            }]
+        },
+        options: {
+            responsive: false,
+            cutout: '45%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: {
+                        font: { size: 12 },
+                        color: legendColor,
+                        padding: 14,
+                        generateLabels: function(chart) {
+                            const data = chart.data;
+                            return data.labels.map((label, i) => ({
+                                text: label + '  (' + data.datasets[0].data[i] + ')',
+                                fillStyle: bgColors[i % bgColors.length],
+                                strokeStyle: '#fff',
+                                lineWidth: 2,
+                                index: i
+                            }));
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                            const pct   = ((context.parsed / total) * 100).toFixed(1);
+                            return '  ' + context.label + ' : ' + context.parsed + ' activité(s)  —  ' + pct + '%';
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    {# ── Bar Chart ── #}
+    new Chart(document.getElementById('barChart'), {
+        type: 'bar',
+        data: {
+            labels: barLabels,
+            datasets: [{
+                label: 'Plannings',
+                data: barData,
+                backgroundColor: 'rgba(33,150,243,0.75)',
+                borderRadius: 6,
+                borderSkipped: false
+            }]
+        },
+        options: {
+            responsive: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => '  ' + ctx.parsed.y + ' planning(s)'
+                    }
+                },
+                datalabels: false
+            },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { size: 11 }, stepSize: 1 },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    {# ── Line Chart ── #}
+    new Chart(document.getElementById('lineChart'), {
+        type: 'line',
+        data: {
+            labels: lineLabels,
+            datasets: [{
+                label: 'Plannings',
+                data: lineData,
+                borderColor: '#b87333',
+                backgroundColor: 'rgba(184,115,51,0.12)',
+                borderWidth: 2.5,
+                pointRadius: 6,
+                pointBackgroundColor: '#b87333',
+                pointBorderColor: '#fff',
+                pointBorderWidth: 2,
+                tension: 0.35,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => '  ' + ctx.parsed.y + ' planning(s)'
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { color: tickColor, font: { size: 11 }, stepSize: 1 },
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
