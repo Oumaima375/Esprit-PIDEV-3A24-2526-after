@@ -1,75 +1,72 @@
 {% extends 'base.html.twig' %}
-{% block title %}Document - {{ document.nomDocument }}{% endblock %}
+{% block title %}{{ document.nomDocument }} - AFTER Travel{% endblock %}
+
 {% block body %}
 
 <div class="container-fluid bg-info py-5 mb-5">
     <div class="container py-5 text-center">
-        <h1 class="display-3 text-white">👁 Détail Document</h1>
+        <h1 class="display-3 text-white">✈ {{ document.nomDocument }}</h1>
     </div>
 </div>
 
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card shadow border-0 rounded-4">
-                <div class="card-header bg-info text-white rounded-top-4">
-                    <h4 class="mb-0">📄 {{ document.nomDocument }}</h4>
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="text-white mb-0">📄 {{ document.nomDocument }}</h4>
+                        {% if document.dateExpiration %}
+                            {% if document.dateExpiration < date() %}
+                                <span class="badge bg-danger rounded-pill fs-6">❌ Expiré</span>
+                            {% else %}
+                                <span class="badge bg-success rounded-pill fs-6">✅ Valide</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
                 <div class="card-body p-4">
                     <table class="table table-bordered">
                         <tr>
-                            <th class="bg-light">ID</th>
-                            <td>{{ document.idDocument }}</td>
-                        </tr>
-                        <tr>
-                            <th class="bg-light">Nom Document</th>
-                            <td>{{ document.nomDocument }}</td>
-                        </tr>
-                        <tr>
-                            <th class="bg-light">Catégorie</th>
+                            <th class="bg-light" style="width:35%">📂 Catégorie</th>
                             <td>
-                                <span class="badge bg-info text-dark fs-6">
+                                <span class="badge bg-primary rounded-pill fs-6">
                                     {{ document.categorie ? document.categorie.libelle : 'N/A' }}
                                 </span>
                             </td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Chemin Fichier</th>
-                            <td>
-                                {% if document.cheminFichier starts with 'http' %}
-                                    <a href="{{ document.cheminFichier }}" target="_blank" class="btn btn-sm btn-outline-primary">
-                                        🔗 Ouvrir le fichier
-                                    </a>
-                                {% else %}
-                                    {{ document.cheminFichier }}
-                                {% endif %}
-                            </td>
-                        </tr>
-                        <tr>
-                            <th class="bg-light">Date Ajout</th>
+                            <th class="bg-light">📅 Date Ajout</th>
                             <td>{{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}</td>
                         </tr>
                         <tr>
-                            <th class="bg-light">Date Expiration</th>
-                            <td>
-                                {% if document.dateExpiration %}
-                                    {% if document.dateExpiration < date() %}
-                                        <span class="text-danger fw-bold">❌ {{ document.dateExpiration|date('d/m/Y') }} (Expiré)</span>
-                                    {% else %}
-                                        <span class="text-success">✅ {{ document.dateExpiration|date('d/m/Y') }}</span>
-                                    {% endif %}
-                                {% else %}
-                                    <span class="text-muted">N/A</span>
+                            <th class="bg-light">⏳ Date Expiration</th>
+                            <td class="{{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger fw-bold' : '' }}">
+                                {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
+                                {% if document.dateExpiration and document.dateExpiration < date() %}
+                                    (Expiré)
                                 {% endif %}
                             </td>
                         </tr>
+                        {% if document.cheminFichier starts with 'http' %}
+                        <tr>
+                            <th class="bg-light">🔗 Fichier</th>
+                            <td>
+                                <a href="{{ document.cheminFichier }}" target="_blank"
+                                   class="btn btn-outline-primary btn-sm rounded-pill">
+                                    🔗 Ouvrir le fichier
+                                </a>
+                            </td>
+                        </tr>
+                        {% endif %}
                     </table>
 
-                    <div class="d-flex gap-3 mt-3">
+                    <div class="d-flex gap-3 mt-4">
                         <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}"
-                           class="btn btn-warning">✏️ Modifier</a>
+                           class="btn btn-warning rounded-pill px-4">✏️ Modifier</a>
                         <a href="{{ path('app_document_crud_index') }}"
-                           class="btn btn-outline-secondary">← Retour à la liste</a>
+                           class="btn btn-outline-secondary rounded-pill px-4">← Retour</a>
                     </div>
                 </div>
             </div>

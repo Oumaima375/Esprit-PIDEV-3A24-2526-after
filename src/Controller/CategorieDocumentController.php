@@ -1,4 +1,5 @@
 <?php
+// src/Controller/CategorieDocumentController.php
 
 namespace App\Controller;
 
@@ -33,8 +34,9 @@ final class CategorieDocumentController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->persist($categorieDocument);
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_categorie_document_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', '✅ Catégorie ajoutée avec succès !');
+            // ← Reste dans le dashboard
+            return $this->redirectToRoute('app_admin_dashboard');
         }
 
         return $this->render('categorie_document/new.html.twig', [
@@ -53,41 +55,68 @@ final class CategorieDocumentController extends AbstractController
         if (!$categorie) {
             throw $this->createNotFoundException('Catégorie non trouvée');
         }
-
         $documents = $documentRepository->findBy(['categorie' => $categorie]);
-
         return $this->render('categorie_document/show.html.twig', [
             'categorie_document' => $categorie,
-            'documents' => $documents,
+            'documents'          => $documents,
         ]);
     }
 
     #[Route('/{idCategorie}/edit', name: 'app_categorie_document_edit', methods: ['GET', 'POST'])]
-    public function edit(Request $request, CategorieDocument $categorieDocument, EntityManagerInterface $entityManager): Response
-    {
+    public function edit(
+        Request $request,
+        int $idCategorie,
+        CategorieDocumentRepository $categorieRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $categorieDocument = $categorieRepository->find($idCategorie);
+        if (!$categorieDocument) {
+            throw $this->createNotFoundException('Catégorie non trouvée');
+        }
+
         $form = $this->createForm(CategorieDocumentType::class, $categorieDocument);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $entityManager->flush();
-
-            return $this->redirectToRoute('app_categorie_document_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', '✅ Catégorie modifiée avec succès !');
+            // ← Reste dans le dashboard
+            return $this->redirectToRoute('app_admin_dashboard');
         }
 
         return $this->render('categorie_document/edit.html.twig', [
             'categorie_document' => $categorieDocument,
-            'form' => $form,
+            'form'               => $form,
         ]);
     }
 
     #[Route('/{idCategorie}', name: 'app_categorie_document_delete', methods: ['POST'])]
-    public function delete(Request $request, CategorieDocument $categorieDocument, EntityManagerInterface $entityManager): Response
-    {
-        if ($this->isCsrfTokenValid('delete'.$categorieDocument->getIdCategorie(), $request->getPayload()->getString('_token'))) {
+    public function delete(
+        Request $request,
+        int $idCategorie,
+        CategorieDocumentRepository $categorieRepository,
+        DocumentRepository $documentRepository,
+        EntityManagerInterface $entityManager
+    ): Response {
+        $categorieDocument = $categorieRepository->find($idCategorie);
+
+        if ($categorieDocument && $this->isCsrfTokenValid(
+            'delete' . $idCategorie,
+            $request->getPayload()->getString('_token')
+        )) {
+            // Vérifier si des documents utilisent cette catégorie
+            $documentsLies = $documentRepository->findBy(['categorie' => $categorieDocument]);
+
+            if (count($documentsLies) > 0) {
+                $this->addFlash('error', '⚠️ Impossible de supprimer "' . $categorieDocument->getLibelle() . '" : ' . count($documentsLies) . ' document(s) utilisent cette catégorie.');
+                return $this->redirectToRoute('app_admin_dashboard');
+            }
+
             $entityManager->remove($categorieDocument);
             $entityManager->flush();
+            $this->addFlash('success', '🗑 Catégorie supprimée !');
         }
 
-        return $this->redirectToRoute('app_categorie_document_index', [], Response::HTTP_SEE_OTHER);
+        return $this->redirectToRoute('app_admin_dashboard');
     }
 }

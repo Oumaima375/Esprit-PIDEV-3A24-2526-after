@@ -13,6 +13,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Dompdf\Dompdf;
+ use Dompdf\Options;
+
 
 #[Route('/document/crud')]
 final class DocumentCrudController extends AbstractController
@@ -48,43 +51,51 @@ final class DocumentCrudController extends AbstractController
 
     // ===== NEW avec Gemini =====
     #[Route('/new', name: 'app_document_crud_new', methods: ['GET', 'POST'])]
-    public function new(
-        Request $request,
-        EntityManagerInterface $entityManager,
-        CategorieDocumentRepository $categorieRepo,
-        GeminiService $gemini
-    ): Response {
+    public function new(Request $request, EntityManagerInterface $entityManager): Response
+    {
         $document = new Document();
         $form = $this->createForm(DocumentType::class, $document);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            if ($document->getCategorie() === null) {
-                $nomCategorie = $gemini->detectCategorie($document->getNomDocument());
+            // Validation dateExpiration > dateAjout
+            $dateAjout      = $document->getDateAjout();
+            $dateExpiration = $document->getDateExpiration();
 
-                $categorie = $categorieRepo->findOneBy(['libelle' => $nomCategorie]);
+            if ($dateExpiration && $dateAjout && $dateExpiration <= $dateAjout) {
+                $form->get('dateExpiration')->addError(
+                    new \Symfony\Component\Form\FormError(
+                        "La date d'expiration doit être après la date d'ajout."
+                    )
+                );
+                return $this->render('document_crud/new.html.twig', [
+                    'document' => $document,
+                    'form'     => $form,
+                ]);
+            }
 
-                if (!$categorie) {
-                    $categorie = new CategorieDocument();
-                    $categorie->setLibelle($nomCategorie);
-                    $categorie->setDescription('Auto détectée par Gemini AI');
-                    $entityManager->persist($categorie);
-                }
-
-                $document->setCategorie($categorie);
+            // Gestion fichier — obligatoire en base donc on vérifie
+            $fichier = $form->get('fichier')->getData();
+            if ($fichier) {
+                $nomFichier = uniqid() . '.' . $fichier->guessExtension();
+                $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
+                $document->setCheminFichier($nomFichier);
+            } else {
+                // ← IMPORTANT : valeur par défaut si aucun fichier uploadé
+                $document->setCheminFichier('aucun_fichier');
             }
 
             $entityManager->persist($document);
             $entityManager->flush();
 
-            $this->addFlash('success', '✅ Document ajouté ! Catégorie : ' . $document->getCategorie()->getLibelle());
-            return $this->redirectToRoute('app_document_crud_index', [], Response::HTTP_SEE_OTHER);
+            $this->addFlash('success', '✅ Document ajouté avec succès !');
+            return $this->redirectToRoute('app_document_crud_index');
         }
 
         return $this->render('document_crud/new.html.twig', [
             'document' => $document,
-            'form' => $form,
+            'form'     => $form,
         ]);
     }
 
@@ -108,6 +119,9 @@ final class DocumentCrudController extends AbstractController
     }
 
     // ===== EXPORT PDF (avant show !) =====
+   // src/Controller/DocumentCrudController.php
+
+
     #[Route('/export/pdf', name: 'app_document_export_pdf', methods: ['GET'])]
     public function exportPdf(DocumentRepository $documentRepository): Response
     {
@@ -117,11 +131,28 @@ final class DocumentCrudController extends AbstractController
             'documents' => $documents,
         ]);
 
-        return new Response($html, 200, [
-            'Content-Type' => 'text/html',
-        ]);
-    }
+        // Configuration DomPDF
+        $options = new Options();
+        $options->set('defaultFont', 'Arial');
+        $options->set('isRemoteEnabled', true);
 
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $filename = 'documents_' . date('Y-m-d') . '.pdf';
+
+        // Force le téléchargement
+        return new Response(
+            $dompdf->output(),
+            200,
+            [
+                'Content-Type'        => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+            ]
+        );
+    }
     // ===== SHOW =====
     #[Route('/{idDocument}', name: 'app_document_crud_show', methods: ['GET'])]
     public function show(
@@ -154,14 +185,41 @@ final class DocumentCrudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // Validation dateExpiration > dateAjout
+            $dateAjout      = $document->getDateAjout();
+            $dateExpiration = $document->getDateExpiration();
+
+            if ($dateExpiration && $dateAjout && $dateExpiration <= $dateAjout) {
+                $form->get('dateExpiration')->addError(
+                    new \Symfony\Component\Form\FormError(
+                        "La date d'expiration doit être après la date d'ajout."
+                    )
+                );
+                return $this->render('document_crud/edit.html.twig', [
+                    'document' => $document,
+                    'form'     => $form,
+                ]);
+            }
+
+            // Gestion fichier — garder l'ancien si aucun nouveau uploadé
+            $fichier = $form->get('fichier')->getData();
+            if ($fichier) {
+                $nomFichier = uniqid() . '.' . $fichier->guessExtension();
+                $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
+                $document->setCheminFichier($nomFichier);
+            }
+            // Si pas de nouveau fichier → on garde l'ancien cheminFichier déjà en base
+
             $entityManager->flush();
-            $this->addFlash('success', '✅ Document modifié !');
-            return $this->redirectToRoute('app_document_crud_index', [], Response::HTTP_SEE_OTHER);
+
+            $this->addFlash('success', '✅ Document modifié avec succès !');
+            return $this->redirectToRoute('app_document_crud_index');
         }
 
         return $this->render('document_crud/edit.html.twig', [
             'document' => $document,
-            'form' => $form,
+            'form'     => $form,
         ]);
     }
 
@@ -204,6 +262,8 @@ final class DocumentCrudController extends AbstractController
 
 
     // ===== DELETE =====
+  // src/Controller/DocumentCrudController.php
+
     #[Route('/{idDocument}', name: 'app_document_crud_delete', methods: ['POST'])]
     public function delete(
         Request $request,
@@ -212,12 +272,22 @@ final class DocumentCrudController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         $document = $documentRepository->find($idDocument);
-        if ($document && $this->isCsrfTokenValid('delete' . $idDocument, $request->getPayload()->getString('_token'))) {
+
+        if ($document && $this->isCsrfTokenValid(
+            'delete' . $idDocument,
+            $request->getPayload()->getString('_token')
+        )) {
             $entityManager->remove($document);
             $entityManager->flush();
             $this->addFlash('success', '🗑 Document supprimé !');
         }
 
-        return $this->redirectToRoute('app_document_crud_index', [], Response::HTTP_SEE_OTHER);
+        // ← Vérifier si la requête vient du dashboard
+        $referer = $request->headers->get('referer');
+        if ($referer && str_contains($referer, '/admin/dashboard')) {
+            return $this->redirectToRoute('app_admin_dashboard');
+        }
+
+        return $this->redirectToRoute('app_document_crud_index');
     }
 }

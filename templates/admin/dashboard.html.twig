@@ -4,8 +4,17 @@
 {% block body %}
 
 <!-- Flash Messages -->
+{# Dans dashboard.html.twig — en haut du block body #}
+
 {% for message in app.flashes('success') %}
     <div style="background:#22c55e; color:white; padding:12px 20px; border-radius:8px; margin:10px 20px;">
+        {{ message }}
+    </div>
+{% endfor %}
+
+{# ← AJOUTEZ CECI #}
+{% for message in app.flashes('error') %}
+    <div style="background:#ef4444; color:white; padding:12px 20px; border-radius:8px; margin:10px 20px; font-weight:bold;">
         {{ message }}
     </div>
 {% endfor %}
@@ -91,16 +100,14 @@
     </div>
 
     <!-- Liste Catégories -->
-    <div style="border:2px solid #e2e8f0; border-radius:12px; overflow:hidden;">
-        {% for cat in categories %}
-        <div class="cat-item"
-            onclick="selectCategorie('{{ cat.idCategorie }}', '{{ cat.libelle|e('html_attr') }}')"
-            style="padding:12px 20px; border-bottom:1px solid #e2e8f0; cursor:pointer; color:#1a2744; font-weight:500; font-size:14px; background:white;"
-            onmouseover="this.style.background='#dbeafe'; this.style.color='#2563eb';"
-            onmouseout="this.style.background='white'; this.style.color='#1a2744';">
-            {{ cat.libelle }}
-        </div>
-        {% endfor %}
+    {# Dans dashboard.html.twig — la liste des catégories #}
+    {% for cat in categories %}
+    <div class="cat-item"
+        onclick="selectCategorie({{ cat.idCategorie }}, '{{ cat.libelle|e('html_attr') }}', '{{ csrf_token('delete' ~ cat.idCategorie) }}')"
+        style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; background: white; color: #1a2744;">
+        {{ cat.libelle }}
+    </div>
+    {% endfor %}
     </div>
 
     <!-- Bouton Supprimer Expirés -->
@@ -162,48 +169,67 @@
 {% endif %}
 
 {% endblock %}
-
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{{ parent() }}
 <script>
     // ===== Variables =====
-    let selectedCategorieId = null;
+    let selectedCategorieId  = null;
     let selectedCategorieNom = null;
+    let selectedToken        = null;
 
-    function selectCategorie(id, nom) {
-        selectedCategorieId = id;
+    function selectCategorie(id, nom, token) {
+        selectedCategorieId  = id;
         selectedCategorieNom = nom;
+        selectedToken        = token;
         document.getElementById('categorieInput').value = nom;
-        document.querySelectorAll('.cat-item').forEach(el => el.style.background = 'white');
+
+        document.querySelectorAll('.cat-item').forEach(el => {
+            el.style.background = 'white';
+            el.style.color      = '#1a2744';
+        });
         event.currentTarget.style.background = '#dbeafe';
+        event.currentTarget.style.color      = '#2563eb';
     }
 
     function modifierCategorie() {
-        if (!selectedCategorieId) { alert('Sélectionnez une catégorie !'); return; }
+        if (!selectedCategorieId) {
+            alert('⚠️ Sélectionnez une catégorie !');
+            return;
+        }
         window.location.href = '/categorie/document/' + selectedCategorieId + '/edit';
     }
 
     function supprimerCategorie() {
-        if (!selectedCategorieId) { alert('Sélectionnez une catégorie !'); return; }
+        if (!selectedCategorieId) {
+            alert('⚠️ Sélectionnez d\'abord une catégorie !');
+            return;
+        }
         if (!confirm('Supprimer "' + selectedCategorieNom + '" ?')) return;
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '/categorie/document/' + selectedCategorieId;
-        const token = document.createElement('input');
-        token.type = 'hidden';
-        token.name = '_token';
-        token.value = '{{ csrf_token("delete_cat") }}';
-        form.appendChild(token);
+
+        const form        = document.createElement('form');
+        form.method       = 'POST';
+        form.action       = '/categorie/document/' + selectedCategorieId;
+
+        const tokenInput  = document.createElement('input');
+        tokenInput.type   = 'hidden';
+        tokenInput.name   = '_token';
+        tokenInput.value  = selectedToken; // ← token dynamique correct
+        form.appendChild(tokenInput);
+
         document.body.appendChild(form);
         form.submit();
     }
+
+    // Auto-refresh 30s
+    setTimeout(() => window.location.reload(), 30000);
 
     // ===== PieChart =====
     const pieCtx = document.getElementById('pieChart').getContext('2d');
     new Chart(pieCtx, {
         type: 'pie',
         data: {
-           labels: [{% for row in parCategorie %}'{{ row.libelle|e('js') }}',{% endfor %}],
+            labels: [{% for row in parCategorie %}'{{ row.libelle|e('js') }}',{% endfor %}],
             datasets: [{
                 data: [{% for row in parCategorie %}{{ row.total }},{% endfor %}],
                 backgroundColor: [
@@ -216,9 +242,7 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            }
+            plugins: { legend: { position: 'bottom' } }
         }
     });
 
@@ -237,12 +261,8 @@
         },
         options: {
             responsive: true,
-            plugins: {
-                legend: { position: 'bottom' }
-            },
-            scales: {
-                y: { beginAtZero: true }
-            }
+            plugins: { legend: { position: 'bottom' } },
+            scales: { y: { beginAtZero: true } }
         }
     });
 </script>

@@ -81,6 +81,15 @@
     </div>
 
     <script src="{{ asset('admin/js/templatemo-crypto-script.js') }}"></script>
-    {% block javascripts %}{% endblock %}
-</body>
+    {% block javascripts %}
+           
+    <script>
+        // Auto-refresh toutes les 30 secondes
+        {% if app.request.get('_route') == 'app_admin_dashboard' %}
+        setTimeout(function() {
+            window.location.reload();
+        }, 30000);
+        {% endif %}
+    </script>
+    {% endblock %}</body>
 </html>

@@ -6,9 +6,10 @@ use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class GeminiService
 {
-    private string $apiKey = 'AIzaSyAK-TbfIO1XovUD6ha9WCDBOWUKgSfDL6g';
-    
-    public function __construct(private HttpClientInterface $httpClient) {}
+    public function __construct(
+        private HttpClientInterface $httpClient,
+        private string $apiKey
+    ) {}
 
     public function detectCategorie(string $nomDocument): string
     {
@@ -21,9 +22,9 @@ class GeminiService
                             [
                                 'parts' => [
                                     [
-                                        'text' => "Tu es un classificateur de documents de voyage. 
-                                        Classifie ce document : '$nomDocument' 
-                                        dans UNE SEULE catégorie parmi : 
+                                        'text' => "Tu es un classificateur de documents de voyage.
+                                        Classifie ce document : '$nomDocument'
+                                        dans UNE SEULE catégorie parmi :
                                         PASSEPORT, VISA, BILLET, ASSURANCE, HÉBERGEMENT, DOCUMENT IDENTITÉ, Autorisation d'entrée, Autre.
                                         Réponds avec SEULEMENT le nom de la catégorie, rien d'autre."
                                     ]

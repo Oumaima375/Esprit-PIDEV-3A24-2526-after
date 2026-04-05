@@ -3,22 +3,13 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}AFTER Travel - Gestion Document{% endblock %}</title>
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="{{ asset('img/favicon.ico') }}">
-
-    <!-- Google Fonts -->
+    <title>{% block title %}AFTER Travel{% endblock %}</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;500;600&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
-
-    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="{{ asset('lib/animate/animate.min.css') }}">
     <link rel="stylesheet" href="{{ asset('lib/owlcarousel/assets/owl.carousel.min.css') }}">
-    <link rel="stylesheet" href="{{ asset('lib/tempusdominus/css/tempusdominus-bootstrap-4.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{ asset('css/style.css') }}">
-
     {% block stylesheets %}{% endblock %}
 </head>
 <body>
@@ -35,7 +26,6 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarCollapse">
             <div class="navbar-nav ms-auto p-4 p-lg-0">
-                <a href="/" class="nav-item nav-link">Accueil</a>
                 <a href="{{ path('app_document_crud_index') }}" class="nav-item nav-link">Documents</a>
                 <a href="{{ path('app_categorie_document_index') }}" class="nav-item nav-link">Catégories</a>
             </div>
@@ -48,37 +38,33 @@
     </div>
 
     <!-- Footer -->
-    <div class="container-fluid bg-dark text-light footer pt-5 mt-5">
+    <div class="container-fluid py-5" style="background-color: #1a2744;">
         <div class="container py-5">
             <div class="row g-5">
                 <div class="col-md-6">
                     <h4 class="text-white mb-3">AFTER Travel</h4>
-                    <p>Gestion complète de vos documents de voyage.</p>
+                    <p class="text-white-50">Gestion complète de vos documents de voyage.</p>
                 </div>
                 <div class="col-md-6">
                     <h4 class="text-white mb-3">Liens rapides</h4>
-                    <a class="btn btn-link" href="{{ path('app_document_crud_index') }}">Documents</a>
-                    <a class="btn btn-link" href="{{ path('app_categorie_document_index') }}">Catégories</a>
+                    <a class="btn btn-link text-white-50" href="{{ path('app_document_crud_index') }}">Documents</a>
+                    <a class="btn btn-link text-white-50" href="{{ path('app_categorie_document_index') }}">Catégories</a>
                 </div>
             </div>
         </div>
         <div class="container">
-            <div class="copyright">
-                <div class="row">
-                    <div class="col-12 text-center mb-3">
-                        <p class="mb-0">© 2026 AFTER Travel - Gestion Documents Voyage</p>
-                    </div>
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="text-white-50 mb-0">© 2026 AFTER Travel - Gestion Documents Voyage</p>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- JS -->
     <script src="{{ asset('js/jquery-3.4.1.min.js') }}"></script>
     <script src="{{ asset('js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ asset('lib/owlcarousel/owl.carousel.min.js') }}"></script>
     <script src="{{ asset('js/main.js') }}"></script>
-
     {% block javascripts %}{% endblock %}
 </body>
 </html>
