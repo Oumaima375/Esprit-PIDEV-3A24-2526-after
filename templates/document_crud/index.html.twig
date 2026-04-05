@@ -1,13 +1,15 @@
 {% extends 'base.html.twig' %}
 {% block title %}Documents - AFTER Travel{% endblock %}
+
 {% block body %}
 
-<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+<!-- Header -->
+<div class="container-fluid py-5 mb-5" style="background: linear-gradient(135deg, #1a2744, #2563eb);">
     <div class="container py-5">
         <div class="row justify-content-center py-5">
             <div class="col-lg-10 text-center">
-                <h1 class="display-3 text-white">📄 Mes Documents</h1>
-                <p class="text-white">Gérez vos documents de voyage</p>
+                <h1 class="display-3 text-white">✈ Mes Documents</h1>
+                <p class="text-white fs-5">Gérez vos documents de voyage</p>
             </div>
         </div>
     </div>
@@ -15,138 +17,221 @@
 
 <div class="container py-5">
 
-    {# Flash messages #}
     {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
+        <div class="alert alert-success alert-dismissible fade show rounded-3">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
     {% endfor %}
 
-    {# Stats Cards #}
-    <div class="row mb-4">
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-5">
         <div class="col-md-4">
-            <div class="card text-white bg-primary mb-3">
-                <div class="card-body text-center">
-                    <h2>{{ total }}</h2>
-                    <p>📄 Total Documents</p>
-                </div>
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4"
+                 style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                <div style="font-size:36px;">📄</div>
+                <h2 class="text-white fw-bold mb-0">{{ total }}</h2>
+                <p class="text-white-50 mb-0">Total Documents</p>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-success mb-3">
-                <div class="card-body text-center">
-                    <h2>{{ valides }}</h2>
-                    <p>✅ Documents Valides</p>
-                </div>
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4"
+                 style="background: linear-gradient(135deg, #22c55e, #16a34a);">
+                <div style="font-size:36px;">✅</div>
+                <h2 class="text-white fw-bold mb-0">{{ valides }}</h2>
+                <p class="text-white-50 mb-0">Documents Valides</p>
             </div>
         </div>
         <div class="col-md-4">
-            <div class="card text-white bg-danger mb-3">
-                <div class="card-body text-center">
-                    <h2>{{ expires }}</h2>
-                    <p>❌ Documents Expirés</p>
-                </div>
+            <div class="card border-0 shadow-sm rounded-4 text-center p-4"
+                 style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <div style="font-size:36px;">❌</div>
+                <h2 class="text-white fw-bold mb-0">{{ expires }}</h2>
+                <p class="text-white-50 mb-0">Documents Expirés</p>
             </div>
         </div>
     </div>
 
-    {# Recherche + Filtres + Tri #}
-    <form method="get" class="row g-3 mb-4">
-        <div class="col-md-4">
-            <input type="text" name="search" value="{{ search }}"
-                   class="form-control" placeholder="🔍 Rechercher par nom...">
-        </div>
-        <div class="col-md-3">
-            <select name="filtre" class="form-select">
-                <option value="tous" {{ filtre == 'tous' ? 'selected' : '' }}>Tous</option>
-                <option value="valides" {{ filtre == 'valides' ? 'selected' : '' }}>✅ Valides</option>
-                <option value="expires" {{ filtre == 'expires' ? 'selected' : '' }}>❌ Expirés</option>
-                <option value="bientot" {{ filtre == 'bientot' ? 'selected' : '' }}>⚠️ Expirent bientôt</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <select name="tri" class="form-select">
-                <option value="dateAjout" {{ tri == 'dateAjout' ? 'selected' : '' }}>Date ajout</option>
-                <option value="nomDocument" {{ tri == 'nomDocument' ? 'selected' : '' }}>Nom</option>
-                <option value="dateExpiration" {{ tri == 'dateExpiration' ? 'selected' : '' }}>Date expiration</option>
-            </select>
-        </div>
-        <div class="col-md-1">
-            <select name="ordre" class="form-select">
-                <option value="DESC" {{ ordre == 'DESC' ? 'selected' : '' }}>↓</option>
-                <option value="ASC" {{ ordre == 'ASC' ? 'selected' : '' }}>↑</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">🔍 Filtrer</button>
-        </div>
-    </form>
-
-    {# Actions #}
-    <div class="d-flex justify-content-between mb-3">
-        <h5>{{ documents|length }} résultat(s)</h5>
-        <div>
-            <a href="{{ path('app_document_stats') }}" class="btn btn-info me-2">📊 Statistiques</a>
-            <a href="{{ path('app_document_export_pdf') }}" class="btn btn-secondary me-2">📄 Export PDF</a>
-            <a href="{{ path('app_document_crud_new') }}" class="btn btn-primary">➕ Ajouter</a>
+   <!-- Recherche AJAX + Filtres -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0 border-2">🔍</span>
+                    <input type="text"
+                        id="searchInput"
+                        class="form-control border-start-0 border-2 ps-0"
+                        placeholder="Rechercher un document..."
+                        autocomplete="off"
+                        value="{{ search }}">
+                </div>
+            </div>
+            <div class="col-md-2">
+                <select id="filtreSelect" class="form-select border-2">
+                    <option value="tous">Tous</option>
+                    <option value="valides">✅ Valides</option>
+                    <option value="expires">❌ Expirés</option>
+                    <option value="bientot">⚠️ Bientôt</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select id="triSelect" class="form-select border-2">
+                    <option value="dateAjout">Date ajout</option>
+                    <option value="nomDocument">Nom</option>
+                    <option value="dateExpiration">Expiration</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                {# ← NOUVEAU : ordre ASC/DESC #}
+                <select id="ordreSelect" class="form-select border-2">
+                    <option value="ASC">⬆ Croissant</option>
+                    <option value="DESC">⬇ Décroissant</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <a href="{{ path('app_document_crud_new') }}"
+                class="btn btn-primary w-100 rounded-3 fw-bold">
+                    ➕ Ajouter
+                </a>
+            </div>
         </div>
     </div>
 
-    {# Tableau #}
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover">
-            <thead class="table-primary">
-                <tr>
-                    <th>ID</th>
-                    <th>Nom Document</th>
-                    <th>Catégorie</th>
-                    <th>Date Ajout</th>
-                    <th>Date Expiration</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for document in documents %}
-                <tr>
-                    <td>{{ document.idDocument }}</td>
-                    <td>{{ document.nomDocument }}</td>
-                    <td>
-                        <span class="badge bg-info text-dark">
+    <!-- Actions + Résultats -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="text-muted mb-0" id="resultsCount">{{ documents|length }} résultat(s)</h5>
+        <div class="d-flex gap-2">
+            <a href="{{ path('app_document_stats') }}"
+               class="btn btn-outline-info rounded-pill">📊 Statistiques</a>
+            <a href="{{ path('app_document_export_pdf') }}"
+               class="btn btn-outline-secondary rounded-pill">📄 Export PDF</a>
+        </div>
+    </div>
+
+    <!-- Cards Documents -->
+    <div id="documentsContainer" class="row g-4">
+        {% for document in documents %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100"
+                 style="transition: transform 0.2s, box-shadow 0.2s;"
+                 onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)';"
+                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+
+                <!-- Card Header -->
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">
                             {{ document.categorie ? document.categorie.libelle : 'N/A' }}
                         </span>
-                    </td>
-                    <td>{{ document.dateAjout ? document.dateAjout|date('d/m/Y') : '' }}</td>
-                    <td>
                         {% if document.dateExpiration %}
                             {% if document.dateExpiration < date() %}
-                                <span class="text-danger fw-bold">❌ {{ document.dateExpiration|date('d/m/Y') }}</span>
+                                <span class="badge bg-danger rounded-pill px-3">❌ Expiré</span>
                             {% else %}
-                                <span class="text-success">✅ {{ document.dateExpiration|date('d/m/Y') }}</span>
+                                <span class="badge bg-success rounded-pill px-3">✅ Valide</span>
                             {% endif %}
-                        {% else %}
-                            <span class="text-muted">N/A</span>
                         {% endif %}
-                    </td>
-                    <td>
+                    </div>
+                </div>
+
+                <!-- Card Body -->
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3">✈ {{ document.nomDocument }}</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <div>
+                            <small class="text-muted">📅 Ajouté :</small>
+                            <small class="fw-medium ms-1">
+                                {{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}
+                            </small>
+                        </div>
+                        <div>
+                            <small class="text-muted">⏳ Expire :</small>
+                            <small class="fw-medium ms-1 {{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger' : 'text-success' }}">
+                                {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
+                            </small>
+                        </div>
+                        {% if document.cheminFichier starts with 'http' %}
+                        <a href="{{ document.cheminFichier }}" target="_blank"
+                           class="btn btn-outline-primary btn-sm rounded-pill mt-1">
+                            🔗 Voir le fichier
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Card Footer -->
+                <div class="card-footer bg-transparent border-0 px-4 pb-4">
+                    <div class="d-flex gap-2">
                         <a href="{{ path('app_document_crud_show', {'idDocument': document.idDocument}) }}"
-                           class="btn btn-sm btn-info">👁</a>
+                           class="btn btn-outline-primary btn-sm rounded-pill flex-fill">👁 Voir</a>
                         <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}"
-                           class="btn btn-sm btn-warning">✏️</a>
+                           class="btn btn-warning btn-sm rounded-pill flex-fill">✏️</a>
                         <form method="post"
                               action="{{ path('app_document_crud_delete', {'idDocument': document.idDocument}) }}"
-                              style="display:inline-block"
-                              onsubmit="return confirm('Supprimer ?')">
+                              onsubmit="return confirm('Supprimer ce document ?')"
+                              style="flex:1">
                             <input type="hidden" name="_token"
                                    value="{{ csrf_token('delete' ~ document.idDocument) }}">
-                            <button class="btn btn-sm btn-danger">🗑</button>
+                            <button class="btn btn-danger btn-sm rounded-pill w-100">🗑</button>
                         </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-center text-muted">Aucun document trouvé</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div style="font-size:64px;">📭</div>
+            <h4 class="text-muted">Aucun document trouvé</h4>
+            <a href="{{ path('app_document_crud_new') }}"
+               class="btn btn-primary rounded-pill mt-3 px-4">
+                ➕ Ajouter votre premier document
+            </a>
+        </div>
+        {% endfor %}
     </div>
+
 </div>
+
+{% endblock %}
+{% block javascripts %}
+<script>
+const searchInput  = document.getElementById('searchInput');
+const filtreSelect = document.getElementById('filtreSelect');
+const triSelect    = document.getElementById('triSelect');
+const ordreSelect  = document.getElementById('ordreSelect'); // ← NOUVEAU
+const container    = document.getElementById('documentsContainer');
+const resultsCount = document.getElementById('resultsCount');
+
+let searchTimeout;
+
+function doSearch() {
+    const search = searchInput.value;
+    const filtre = filtreSelect.value;
+    const tri    = triSelect.value;
+    const ordre  = ordreSelect.value; // ← NOUVEAU
+
+    fetch(`/document/crud/search?search=${encodeURIComponent(search)}&filtre=${filtre}&tri=${tri}&ordre=${ordre}`)
+        .then(r => r.json())
+        .then(data => {
+            resultsCount.textContent = data.count + ' résultat(s)';
+            container.innerHTML = data.html;
+        })
+        .catch(err => console.error('Erreur AJAX:', err));
+}
+
+searchInput.addEventListener('keyup', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 300);
+});
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(doSearch, 300);
+});
+
+filtreSelect.addEventListener('change', doSearch);
+triSelect.addEventListener('change', doSearch);
+ordreSelect.addEventListener('change', doSearch); // ← NOUVEAU
+
+resultsCount.textContent = '{{ documents|length }} résultat(s)';
+</script>
 {% endblock %}

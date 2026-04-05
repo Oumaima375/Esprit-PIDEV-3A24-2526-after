@@ -18,31 +18,28 @@ class DocumentRepository extends ServiceEntityRepository
         $qb = $this->createQueryBuilder('d')
             ->leftJoin('d.categorie', 'c');
 
-        // Recherche par nom
         if (!empty($search)) {
             $qb->andWhere('d.nomDocument LIKE :search')
-               ->setParameter('search', '%' . $search . '%');
+            ->setParameter('search', '%' . $search . '%');
         }
 
-        // Filtre expirés/valides
         $today = new \DateTime();
         if ($filtre === 'expires') {
             $qb->andWhere('d.dateExpiration < :today')
-               ->setParameter('today', $today);
+            ->setParameter('today', $today);
         } elseif ($filtre === 'valides') {
             $qb->andWhere('d.dateExpiration >= :today OR d.dateExpiration IS NULL')
-               ->setParameter('today', $today);
+            ->setParameter('today', $today);
         } elseif ($filtre === 'bientot') {
             $soon = new \DateTime('+30 days');
             $qb->andWhere('d.dateExpiration BETWEEN :today AND :soon')
-               ->setParameter('today', $today)
-               ->setParameter('soon', $soon);
+            ->setParameter('today', $today)
+            ->setParameter('soon', $soon);
         }
 
-        // Tri
         $allowedTri = ['nomDocument', 'dateAjout', 'dateExpiration'];
         if (in_array($tri, $allowedTri)) {
-            $qb->orderBy('d.' . $tri, $ordre === 'ASC' ? 'ASC' : 'DESC');
+            $qb->orderBy('d.' . $tri, $ordre === 'DESC' ? 'DESC' : 'ASC'); // ← sécurisé
         }
 
         return $qb->getQuery()->getResult();

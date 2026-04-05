@@ -153,6 +153,26 @@ final class DocumentCrudController extends AbstractController
             ]
         );
     }
+        // ===== AJAX SEARCH =====
+    #[Route('/search', name: 'app_document_crud_search', methods: ['GET'])]
+    public function search(Request $request, DocumentRepository $documentRepository): Response
+    {
+        $search = $request->query->get('search', '');
+        $filtre = $request->query->get('filtre', 'tous');
+        $tri    = $request->query->get('tri', 'dateAjout');
+        $ordre  = $request->query->get('ordre', 'ASC'); // ← vérifiez que c'est bien là
+
+        $documents = $documentRepository->findByFilters($search, $filtre, $tri, $ordre);
+
+        $html = $this->renderView('document_crud/_cards.html.twig', [
+            'documents' => $documents,
+        ]);
+
+        return $this->json([
+            'html'  => $html,
+            'count' => count($documents),
+        ]);
+    }
     // ===== SHOW =====
     #[Route('/{idDocument}', name: 'app_document_crud_show', methods: ['GET'])]
     public function show(
@@ -238,27 +258,7 @@ final class DocumentCrudController extends AbstractController
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
-    // ===== AJAX SEARCH =====
-    #[Route('/search', name: 'app_document_search', methods: ['GET'])]
-    public function search(
-        Request $request,
-        DocumentRepository $documentRepository
-    ): Response {
-        $search = $request->query->get('search', '');
-        $filtre = $request->query->get('filtre', 'tous');
-        $tri = $request->query->get('tri', 'dateAjout');
 
-        $documents = $documentRepository->findByFilters($search, $filtre, $tri, 'DESC');
-
-        $html = $this->renderView('document_crud/_cards.html.twig', [
-            'documents' => $documents,
-        ]);
-
-        return $this->json([
-            'html' => $html,
-            'count' => count($documents),
-        ]);
-    }
 
 
     // ===== DELETE =====

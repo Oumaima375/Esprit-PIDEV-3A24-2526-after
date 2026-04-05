@@ -187,7 +187,6 @@
 </div>
 
 {% endblock %}
-
 {% block javascripts %}
 <script>
 const searchInput = document.getElementById('searchInput');
@@ -208,9 +207,11 @@ function doSearch() {
         .then(data => {
             resultsCount.textContent = data.count + ' résultat(s)';
             container.innerHTML = data.html;
-        });
+        })
+        .catch(err => console.error('Erreur AJAX:', err));
 }
 
+// Recherche en temps réel
 searchInput.addEventListener('input', () => {
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(doSearch, 300);
@@ -218,5 +219,8 @@ searchInput.addEventListener('input', () => {
 
 filtreSelect.addEventListener('change', doSearch);
 triSelect.addEventListener('change', doSearch);
+
+// Initialiser le compteur
+resultsCount.textContent = '{{ documents|length }} résultat(s)';
 </script>
 {% endblock %}
