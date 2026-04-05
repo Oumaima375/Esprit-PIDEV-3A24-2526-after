@@ -96,6 +96,23 @@
                         <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage_voyage}) }}" class="btn btn-outline-danger rounded-pill py-1 px-3">
                             <i class="fa fa-heart"></i>
                         </a>
+<<<<<<< Updated upstream
+=======
+                        <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage}) }}"
+   class="btn btn-outline-secondary rounded-pill py-1 px-3">
+    <i class="fa fa-eye"></i>
+</a>
+                        <a href="{{ path('app_voyage_edit', {'id': voyage.id_voyage}) }}"
+                        
+   class="btn btn-outline-primary rounded-pill py-1 px-3">
+    <i class="fa fa-edit"></i>
+</a>
+<a href="{{ path('app_voyage_delete', {'id': voyage.id_voyage}) }}"
+   class="btn btn-outline-danger rounded-pill py-1 px-3"
+   onclick="return confirm('Supprimer ce voyage ?')">
+    <i class="fa fa-trash"></i>
+</a>
+>>>>>>> Stashed changes
                     </div>
                 </div>
             </div>
