@@ -27,7 +27,11 @@
                              style="height: 220px; object-fit: cover;"
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                              src="{{ destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
+=======
+                             src="{{ destination.image and destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
+>>>>>>> Stashed changes
 =======
                              src="{{ destination.image and destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
 >>>>>>> Stashed changes
@@ -49,11 +53,16 @@
                     </div>
                 </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
 <<<<<<< Updated upstream
                     <h4 class="mb-2">{{ destination.pays }} — {{ destination.ville }}</h4>
                     <p class="text-muted mb-3">{{ destination.description ? destination.description|slice(0,100) ~ '...' : 'Aucune description.' }}</p>
 =======
+=======
+
+                <div class="blog-content border border-top-0 rounded-bottom p-4">
+>>>>>>> Stashed changes
 =======
 
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
@@ -66,14 +75,20 @@
                     </div>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes
                     <div class="d-flex gap-2 flex-wrap">
 =======
+=======
+>>>>>>> Stashed changes
                     <div class="d-flex gap-2 flex-wrap">
                     <a href="{{ path('app_destination_show', {'id': destination.id_destination}) }}"
  class="btn btn-outline-secondary rounded-pill py-1 px-3">
  <i class="fa fa-eye"></i>
 </a>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                         <a href="{{ path('app_destination_edit', {'id': destination.id_destination}) }}"
                            class="btn btn-outline-primary rounded-pill py-1 px-3">
@@ -117,7 +132,13 @@
                 <h4 class="mb-4 text-white">Contact</h4>
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 <a class="text-white mb-2 d-block"><i class="fas fa-envelope me-2"></i>contact@aftertravel.com</a>
+=======
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+>>>>>>> Stashed changes
 =======
                 <a class="text-white mb-2 d-block">
                     <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
@@ -133,6 +154,7 @@
     </div>
 </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <div class="container-fluid copyright text-body py-4">
     <div class="container text-center">
         <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
@@ -142,6 +164,8 @@
 <<<<<<< Updated upstream
 =======
 =======
+=======
+>>>>>>> Stashed changes
 
 <div class="container-fluid copyright text-body py-4">
     <div class="container text-center">
@@ -151,13 +175,20 @@
 </div>
 
 <!-- ✅ UPDATED SCRIPT -->
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const countries = [
         {% for destination in destinations %}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         { index: {{ loop.index }}, pays: "{{ destination.pays }}" },
+=======
+        { index: {{ loop.index }}, pays: "{{ destination.pays|e('js') }}" },
+>>>>>>> Stashed changes
 =======
         { index: {{ loop.index }}, pays: "{{ destination.pays|e('js') }}" },
 >>>>>>> Stashed changes
@@ -165,6 +196,7 @@ document.addEventListener('DOMContentLoaded', function() {
     ];
 
     countries.forEach(function(c) {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
         fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(c.pays) + '?fields=name,capital,currencies,languages')
             .then(r => r.json())
@@ -189,6 +221,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     '<p class="text-muted small mb-0">Infos non disponibles</p>';
             });
 =======
+=======
+>>>>>>> Stashed changes
         fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(c.pays) + '?fields=name,capital,currencies,languages,flags')
         .then(r => r.json())
         .then(data => {
@@ -221,12 +255,18 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('country-info-' + c.index).innerHTML =
                 '<p class="text-muted small mb-0">Infos non disponibles</p>';
         });
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     });
 });
 </script>
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes

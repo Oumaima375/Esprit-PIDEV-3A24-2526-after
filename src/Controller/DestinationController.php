@@ -74,7 +74,10 @@ class DestinationController extends AbstractController
         return $this->redirectToRoute('app_destination');
     }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
     #[Route('/destination/{id}', name: 'app_destination_show', requirements: ['id' => '\d+'])]
 public function show(int $id, DestinationRepository $repo): Response
 {
@@ -105,5 +108,8 @@ public function show(int $id, DestinationRepository $repo): Response
  ]);
 }
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }

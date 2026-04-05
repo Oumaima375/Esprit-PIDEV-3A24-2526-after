@@ -9,6 +9,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\HttpFoundation\Request;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 
 class VoyageController extends AbstractController
 {
@@ -27,6 +28,49 @@ public function index(VoyageRepository $voyageRepository, Request $request): Res
         'voyages' => $voyages,
     ]);
 }
+=======
+use App\Form\VoyageType;
+use Doctrine\ORM\EntityManagerInterface;
+use App\Service\PdfService;
+use Knp\Component\Pager\PaginatorInterface;
+
+class VoyageController extends AbstractController
+{
+    #[Route('/voyage/{id}/pdf', name: 'app_voyage_pdf', requirements: ['id' => '\d+'])]
+public function exportPdf(int $id, VoyageRepository $repo, PdfService $pdfService): Response
+{
+ $voyage = $repo->findOneBy(['id_voyage' => $id]);
+ if (!$voyage) throw $this->createNotFoundException('Voyage non trouve');
+ $dest = $voyage->getIdDestination();
+ $data = [
+ 'titre' => $voyage->getTitre(),
+ 'description' => $voyage->getDescription(),
+ 'date_debut' => $voyage->getDate_debut()?->format('d/m/Y') ?? 'N/A',
+ 'date_fin' => $voyage->getDate_fin()?->format('d/m/Y') ?? 'N/A',
+ 'prix' => $voyage->getPrix(),
+ 'nb_places' => $voyage->getNb_places(),
+ 'destination' => $dest ? $dest->getPays() . ' - ' . $dest->getVille() : 'N/A',
+ ];
+ $pdfContent = $pdfService->generateVoyagePdf($data);
+ return new Response($pdfContent, 200, [
+ 'Content-Type' => 'application/pdf',
+ 'Content-Disposition' => 'attachment; filename="voyage.pdf"',
+ ]);
+}
+
+   #[Route('/voyage', name: 'app_voyage')]
+public function index(VoyageRepository $repo, Request $request, PaginatorInterface $paginator): Response
+{
+ $search = $request->query->get('search');
+ $prixMin = $request->query->get('prix_min');
+ $prixMax = $request->query->get('prix_max');
+ $placesMin = $request->query->get('places_min');
+ $query = $repo->findWithFiltersQuery($search, $prixMin, $prixMax, $placesMin);
+ $voyages = $paginator->paginate($query, $request->query->getInt('page', 1), 3);
+ return $this->render('voyage/index.html.twig', ['voyages' => $voyages]);
+}
+
+>>>>>>> Stashed changes
 =======
 use App\Form\VoyageType;
 use Doctrine\ORM\EntityManagerInterface;
@@ -304,7 +348,11 @@ public function recommandationsIA(Request $request, VoyageRepository $voyageRepo
             $client = \Symfony\Component\HttpClient\HttpClient::create();
             $response = $client->request('POST', 'https://api.groq.com/openai/v1/chat/completions', [
                 'headers' => [
+<<<<<<< Updated upstream
                     'Authorization' => 'apikey',
+=======
+                    'Authorization' => 'key',
+>>>>>>> Stashed changes
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [
@@ -330,6 +378,9 @@ public function recommandationsIA(Request $request, VoyageRepository $voyageRepo
         'type' => $type,
         'duree' => $duree,
     ]);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }
 }

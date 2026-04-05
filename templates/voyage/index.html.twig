@@ -85,6 +85,7 @@
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
                     <h4 class="mb-2">{{ voyage.titre }}</h4>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     <p class="text-muted mb-3">{{ voyage.description|slice(0,100) }}...</p>
                     <div class="d-flex gap-2 flex-wrap">
                         <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage_voyage}) }}" class="btn btn-primary rounded-pill py-1 px-3">
@@ -108,6 +109,8 @@
 =======
 >>>>>>> Stashed changes
 =======
+=======
+>>>>>>> Stashed changes
                     <p class="text-muted mb-2" id="desc-{{ loop.index }}">
  {{ voyage.description|slice(0,100) }}...
 </p>
@@ -130,6 +133,9 @@
  class="btn btn-success rounded-pill py-1 px-3" target="_blank">
  <i class="fa fa-file-pdf me-1"></i>PDF
 </a>
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                         <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage}) }}"
    class="btn btn-outline-secondary rounded-pill py-1 px-3">
@@ -159,8 +165,11 @@
     </div>
 </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     <!-- Footer -->
 =======
+=======
+>>>>>>> Stashed changes
 <div class="container mb-4">
  <div class="d-flex justify-content-center">
  {{ knp_pagination_render(voyages) }}
@@ -197,7 +206,10 @@
     </div>
 </div>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 <script>
 function translateDesc(index, text) {
  const btn = event.target.closest('button');
@@ -219,5 +231,8 @@ function translateDesc(index, text) {
  .catch(() => { btn.innerHTML = 'FR - EN'; btn.disabled = false; });
 }
 </script>s
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 {% endblock %}
