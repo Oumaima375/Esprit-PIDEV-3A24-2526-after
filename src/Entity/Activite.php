@@ -2,13 +2,16 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Voyage;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Planning;
+use App\Repository\ActiviteRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\ActiviteRepository::class)]
 class Activite
 {
 
@@ -108,6 +111,11 @@ class Activite
     #[ORM\OneToMany(mappedBy: "id_activite", targetEntity: Planning::class)]
     private Collection $plannings;
 
+    public function __construct()
+    {
+        $this->plannings = new ArrayCollection();
+    }
+
         public function getPlannings(): Collection
         {
             return $this->plannings;
@@ -132,6 +140,23 @@ class Activite
                 }
             }
     
+            return $this;
+        }
+
+        public function getIdActivite(): ?int
+        {
+            return $this->id_activite;
+        }
+
+        public function getIdVoyage(): ?Voyage
+        {
+            return $this->id_voyage;
+        }
+
+        public function setIdVoyage(?Voyage $id_voyage): static
+        {
+            $this->id_voyage = $id_voyage;
+
             return $this;
         }
 }

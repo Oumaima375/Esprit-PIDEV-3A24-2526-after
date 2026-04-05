@@ -2,18 +2,24 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Reservation;
+// use App\Entity\App\Repository\UsersRepository;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity]
-class Users
+#[UniqueEntity(fields: ['email'], message: 'Un utilisateur existe déjà avec cette adresse email.', errorPath: 'email')]
+class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
-    #[ORM\Id]
-    #[ORM\Column(type: "integer")]
-    private int $id;
+#[ORM\Id]
+#[ORM\GeneratedValue]
+#[ORM\Column]
+private ?int $id = null;
 
     #[ORM\Column(type: "string", length: 100)]
     private string $nom;
@@ -28,10 +34,10 @@ class Users
     private string $password;
 
     #[ORM\Column(type: "string", length: 20)]
-    private string $telephone;
+private ?string $telephone = null;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $photo_profil;
+private ?string $photo_profil = null;
 
     #[ORM\Column(type: "string", length: 20)]
     private string $type_utilisateur;
@@ -44,6 +50,35 @@ class Users
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $verification_expiry;
+
+    public function __construct()
+    {
+        $this->documents   = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
+    }
+
+    // =========================================================
+    // Méthodes requises par UserInterface
+    // =========================================================
+
+    public function getRoles(): array
+    {
+        return ['ROLE_' . strtoupper($this->type_utilisateur)];
+    }
+
+    public function eraseCredentials(): void
+    {
+        // Rien à effacer (pas de mot de passe en clair stocké)
+    }
+
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
+
+    // =========================================================
+    // Getters / Setters existants — inchangés
+    // =========================================================
 
     public function getId()
     {
@@ -85,7 +120,7 @@ class Users
         $this->email = $value;
     }
 
-    public function getPassword()
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -155,36 +190,124 @@ class Users
         $this->verification_expiry = $value;
     }
 
+    // =========================================================
+    // Getters / Setters Symfony-style (camelCase)
+    // =========================================================
+
+    public function getPhotoProfil(): ?string
+    {
+        return $this->photo_profil;
+    }
+
+    public function setPhotoProfil(string $photo_profil): static
+    {
+        $this->photo_profil = $photo_profil;
+        return $this;
+    }
+
+    public function getTypeUtilisateur(): ?string
+    {
+        return $this->type_utilisateur;
+    }
+
+    public function setTypeUtilisateur(string $type_utilisateur): static
+    {
+        $this->type_utilisateur = $type_utilisateur;
+        return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->is_verified;
+    }
+
+    public function setIsVerified(bool $is_verified): static
+    {
+        $this->is_verified = $is_verified;
+        return $this;
+    }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verification_token;
+    }
+
+    public function setVerificationToken(string $verification_token): static
+    {
+        $this->verification_token = $verification_token;
+        return $this;
+    }
+
+    public function getVerificationExpiry(): ?\DateTime
+    {
+        return $this->verification_expiry;
+    }
+
+    public function setVerificationExpiry(\DateTime $verification_expiry): static
+    {
+        $this->verification_expiry = $verification_expiry;
+        return $this;
+    }
+
+    // =========================================================
+    // Relation Documents
+    // =========================================================
+
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Document::class)]
     private Collection $documents;
 
-        public function getDocuments(): Collection
-        {
-            return $this->documents;
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): self
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents[] = $document;
+            $document->setId_user($this);
         }
-    
-        public function addDocument(Document $document): self
-        {
-            if (!$this->documents->contains($document)) {
-                $this->documents[] = $document;
-                $document->setId_user($this);
+        return $this;
+    }
+
+    public function removeDocument(Document $document): self
+    {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getId_user() === $this) {
+                $document->setId_user(null);
             }
-    
-            return $this;
         }
-    
-        public function removeDocument(Document $document): self
-        {
-            if ($this->documents->removeElement($document)) {
-                // set the owning side to null (unless already changed)
-                if ($document->getId_user() === $this) {
-                    $document->setId_user(null);
-                }
-            }
-    
-            return $this;
-        }
+        return $this;
+    }
+
+    // =========================================================
+    // Relation Reservations
+    // =========================================================
 
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Reservation::class)]
     private Collection $reservations;
+
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setIdUser($this);
+        }
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            if ($reservation->getIdUser() === $this) {
+                $reservation->setIdUser(null);
+            }
+        }
+        return $this;
+    }
 }

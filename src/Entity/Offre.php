@@ -5,8 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Service;
+use App\Repository\OffreRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\OffreRepository::class)]
 class Offre
 {
 
@@ -75,5 +76,22 @@ class Offre
     public function setId_service($value)
     {
         $this->id_service = $value;
+    }
+
+    public function getIdOffre(): ?int
+    {
+        return $this->id_offre;
+    }
+
+    public function getIdService(): ?Service
+    {
+        return $this->id_service;
+    }
+
+    public function setIdService(?Service $id_service): static
+    {
+        $this->id_service = $id_service;
+
+        return $this;
     }
 }

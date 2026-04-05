@@ -5,8 +5,9 @@ namespace App\Entity;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Reservation;
+use App\Repository\PaiementRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\PaiementRepository::class)]
 class Paiement
 {
 
@@ -114,5 +115,29 @@ class Paiement
     public function setDate_paiement($value)
     {
         $this->date_paiement = $value;
+    }
+
+    public function getDatePaiement(): ?\DateTime
+    {
+        return $this->date_paiement;
+    }
+
+    public function setDatePaiement(\DateTime $date_paiement): static
+    {
+        $this->date_paiement = $date_paiement;
+
+        return $this;
+    }
+
+    public function getIdReservation(): ?Reservation
+    {
+        return $this->id_reservation;
+    }
+
+    public function setIdReservation(?Reservation $id_reservation): static
+    {
+        $this->id_reservation = $id_reservation;
+
+        return $this;
     }
 }

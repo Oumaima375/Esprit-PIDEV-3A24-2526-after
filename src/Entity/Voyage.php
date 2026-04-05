@@ -2,13 +2,16 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Destination;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Activite;
 
-#[ORM\Entity]
+
+#[ORM\Entity(repositoryClass: App\Repository\VoyageRepository::class)]
 class Voyage
 {
 
@@ -139,4 +142,154 @@ class Voyage
 
     #[ORM\OneToMany(mappedBy: "id_voyage", targetEntity: Reservation::class)]
     private Collection $reservations;
+
+    public function __construct()
+    {
+        $this->activites = new ArrayCollection();
+        $this->depenses = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
+    }
+
+    public function getIdVoyage(): ?int
+    {
+        return $this->id_voyage;
+    }
+
+    public function getDateDebut(): ?\DateTime
+    {
+        return $this->date_debut;
+    }
+
+    public function setDateDebut(\DateTime $date_debut): static
+    {
+        $this->date_debut = $date_debut;
+
+        return $this;
+    }
+
+    public function getDateFin(): ?\DateTime
+    {
+        return $this->date_fin;
+    }
+
+    public function setDateFin(\DateTime $date_fin): static
+    {
+        $this->date_fin = $date_fin;
+
+        return $this;
+    }
+
+    public function getNbPlaces(): ?int
+    {
+        return $this->nb_places;
+    }
+
+    public function setNbPlaces(int $nb_places): static
+    {
+        $this->nb_places = $nb_places;
+
+        return $this;
+    }
+
+    public function getIdDestination(): ?Destination
+    {
+        return $this->id_destination;
+    }
+
+    public function setIdDestination(?Destination $id_destination): static
+    {
+        $this->id_destination = $id_destination;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Activite>
+     */
+    public function getActivites(): Collection
+    {
+        return $this->activites;
+    }
+
+    public function addActivite(Activite $activite): static
+    {
+        if (!$this->activites->contains($activite)) {
+            $this->activites->add($activite);
+            $activite->setIdVoyage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeActivite(Activite $activite): static
+    {
+        if ($this->activites->removeElement($activite)) {
+            // set the owning side to null (unless already changed)
+            if ($activite->getIdVoyage() === $this) {
+                $activite->setIdVoyage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Depense>
+     */
+    public function getDepenses(): Collection
+    {
+        return $this->depenses;
+    }
+
+    public function addDepense(Depense $depense): static
+    {
+        if (!$this->depenses->contains($depense)) {
+            $this->depenses->add($depense);
+            $depense->setIdVoyage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeDepense(Depense $depense): static
+    {
+        if ($this->depenses->removeElement($depense)) {
+            // set the owning side to null (unless already changed)
+            if ($depense->getIdVoyage() === $this) {
+                $depense->setIdVoyage(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reservation>
+     */
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setIdVoyage($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            // set the owning side to null (unless already changed)
+            if ($reservation->getIdVoyage() === $this) {
+                $reservation->setIdVoyage(null);
+            }
+        }
+
+        return $this;
+    }
 }

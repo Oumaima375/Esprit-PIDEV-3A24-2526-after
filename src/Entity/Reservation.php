@@ -2,13 +2,16 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Voyage;
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Paiement;
+use App\Repository\ReservationRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\ReservationRepository::class)]
 class Reservation
 {
 
@@ -160,4 +163,111 @@ class Reservation
 
     #[ORM\OneToMany(mappedBy: "id_reservation", targetEntity: Paiement::class)]
     private Collection $paiements;
+
+    public function __construct()
+    {
+        $this->paiements = new ArrayCollection();
+    }
+
+    public function getDateReservation(): ?\DateTime
+    {
+        return $this->date_reservation;
+    }
+
+    public function setDateReservation(\DateTime $date_reservation): static
+    {
+        $this->date_reservation = $date_reservation;
+
+        return $this;
+    }
+
+    public function getNbPersonnes(): ?int
+    {
+        return $this->nb_personnes;
+    }
+
+    public function setNbPersonnes(int $nb_personnes): static
+    {
+        $this->nb_personnes = $nb_personnes;
+
+        return $this;
+    }
+
+    public function getIdUtilisateur(): ?int
+    {
+        return $this->id_utilisateur;
+    }
+
+    public function setIdUtilisateur(int $id_utilisateur): static
+    {
+        $this->id_utilisateur = $id_utilisateur;
+
+        return $this;
+    }
+
+    public function getPrixTotal(): ?float
+    {
+        return $this->prix_total;
+    }
+
+    public function setPrixTotal(float $prix_total): static
+    {
+        $this->prix_total = $prix_total;
+
+        return $this;
+    }
+
+    public function getIdUser(): ?Users
+    {
+        return $this->id_user;
+    }
+
+    public function setIdUser(?Users $id_user): static
+    {
+        $this->id_user = $id_user;
+
+        return $this;
+    }
+
+    public function getIdVoyage(): ?Voyage
+    {
+        return $this->id_voyage;
+    }
+
+    public function setIdVoyage(?Voyage $id_voyage): static
+    {
+        $this->id_voyage = $id_voyage;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Paiement>
+     */
+    public function getPaiements(): Collection
+    {
+        return $this->paiements;
+    }
+
+    public function addPaiement(Paiement $paiement): static
+    {
+        if (!$this->paiements->contains($paiement)) {
+            $this->paiements->add($paiement);
+            $paiement->setIdReservation($this);
+        }
+
+        return $this;
+    }
+
+    public function removePaiement(Paiement $paiement): static
+    {
+        if ($this->paiements->removeElement($paiement)) {
+            // set the owning side to null (unless already changed)
+            if ($paiement->getIdReservation() === $this) {
+                $paiement->setIdReservation(null);
+            }
+        }
+
+        return $this;
+    }
 }

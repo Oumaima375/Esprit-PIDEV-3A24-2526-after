@@ -354,6 +354,78 @@ https://templatemo.com/tm-609-crypto-vault
     }
 
     /* ========================================
+   AJAX - Ajout utilisateur via Modal
+======================================== */
+/* ========================================
+   AJAX - Ajout utilisateur via Modal
+======================================== */
+/* ========================================
+   AJAX Ajout Utilisateur - Rester sur la page principale
+======================================== */
+function initAddUserModal() {
+    const form = document.getElementById('addUserForm');
+    if (!form) return;
+
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const submitBtn = document.getElementById('addUserSubmitBtn');
+        const originalText = submitBtn.innerHTML;
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Création en cours...';
+
+        const formData = new FormData(this);
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                alert(result.message);
+                closeModal('addModal');
+                form.reset();
+                
+                // Recharge la page actuelle[](http://localhost:8000/)
+                setTimeout(() => {
+                    location.reload();
+                }, 700);
+            } else {
+                alert('Erreur : ' + (result.message || 'Impossible de créer l\'utilisateur'));
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Erreur de connexion. Veuillez réessayer.');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        }
+    });
+}
+function initDeleteModal() {
+    const form = document.getElementById('deleteForm');
+    if (!form) return;
+
+    form.addEventListener('submit', function(e) {
+        if (!confirm('Confirmez-vous la suppression définitive ?')) {
+            e.preventDefault();
+            return;
+        }
+        // On laisse le formulaire faire une soumission normale (plus simple et fiable)
+    });
+}
+
+// Dans ta fonction init() ajoute :
+initDeleteModal();
+
+    /* ========================================
        Form Submissions
     ======================================== */
     function initFormSubmissions() {
@@ -362,6 +434,10 @@ https://templatemo.com/tm-609-crypto-vault
 
         if (loginForm) {
             loginForm.addEventListener('submit', function(e) {
+                if (window.AppFormValidation && !AppFormValidation.validateLoginForm(loginForm)) {
+                    e.preventDefault();
+                    return;
+                }
                 e.preventDefault();
                 window.location.href = 'index.html';
             });
@@ -370,7 +446,10 @@ https://templatemo.com/tm-609-crypto-vault
         if (registerForm) {
             registerForm.addEventListener('submit', function(e) {
                 e.preventDefault();
-                
+                if (window.AppFormValidation && !AppFormValidation.validateRegisterForm(registerForm)) {
+                    return;
+                }
+
                 const successMessage = document.getElementById('successMessage');
                 const formHeader = document.querySelector('.form-header');
                 const authTabs = document.querySelector('.auth-tabs');
@@ -406,6 +485,8 @@ https://templatemo.com/tm-609-crypto-vault
         initPasswordStrength();
         initAuthTabs();
         initFormSubmissions();
+        initAddUserModal();
+        initDeleteModal();
     }
 
     // Run on DOM ready

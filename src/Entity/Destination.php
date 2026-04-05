@@ -2,12 +2,15 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Voyage;
+use App\Repository\DestinationRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\DestinationRepository::class)]
 class Destination
 {
 
@@ -93,6 +96,11 @@ class Destination
     #[ORM\OneToMany(mappedBy: "id_destination", targetEntity: Voyage::class)]
     private Collection $voyages;
 
+    public function __construct()
+    {
+        $this->voyages = new ArrayCollection();
+    }
+
         public function getVoyages(): Collection
         {
             return $this->voyages;
@@ -118,5 +126,10 @@ class Destination
             }
     
             return $this;
+        }
+
+        public function getIdDestination(): ?int
+        {
+            return $this->id_destination;
         }
 }

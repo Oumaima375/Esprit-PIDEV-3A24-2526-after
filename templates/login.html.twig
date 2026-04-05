@@ -91,26 +91,26 @@ https://templatemo.com/tm-609-crypto-vault
             </div>
 
             <!-- Login Form -->
-            <form class="auth-form active" id="loginForm">
-                <div class="form-group">
+            <form class="auth-form active" id="loginForm" novalidate>
+                <div class="form-group" data-field-wrap>
                     <label class="form-label">Email Address</label>
                     <div class="form-input-wrapper">
                         <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                             <polyline points="22,6 12,13 2,6"/>
                         </svg>
-                        <input type="email" class="form-input" placeholder="Enter your email" required>
+                        <input type="email" name="login_email" class="form-input" placeholder="Enter your email" autocomplete="username">
                     </div>
                 </div>
 
-                <div class="form-group">
+                <div class="form-group" data-field-wrap>
                     <label class="form-label">Password</label>
                     <div class="form-input-wrapper">
                         <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                             <path d="M7 11V7a5 5 0 0110 0v4"/>
                         </svg>
-                        <input type="password" class="form-input" id="loginPassword" placeholder="Enter your password" required>
+                        <input type="password" name="login_password" class="form-input" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
                         <button type="button" class="password-toggle" data-target="loginPassword">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -164,33 +164,33 @@ https://templatemo.com/tm-609-crypto-vault
             </form>
 
             <!-- Register Form -->
-<form class="auth-form" id="registerForm">
+<form class="auth-form" id="registerForm" novalidate>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Prénom *</label>
         <div class="form-input-wrapper">
-            <input type="text" class="form-input" placeholder="Sophie" required style="padding-left:18px;">
+            <input type="text" name="register_prenom" class="form-input" placeholder="Sophie" style="padding-left:18px;">
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Nom *</label>
         <div class="form-input-wrapper">
-            <input type="text" class="form-input" placeholder="Martin" required style="padding-left:18px;">
+            <input type="text" name="register_nom" class="form-input" placeholder="Martin" style="padding-left:18px;">
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Email *</label>
         <div class="form-input-wrapper">
-            <input type="email" class="form-input" placeholder="votre@email.com" required style="padding-left:18px;">
+            <input type="email" name="register_email" class="form-input" placeholder="votre@email.com" style="padding-left:18px;">
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Mot de passe *</label>
         <div class="form-input-wrapper">
-            <input type="password" class="form-input" id="registerPassword" placeholder="Au moins 8 caractères..." required style="padding-left:18px;">
+            <input type="password" name="register_password" class="form-input" id="registerPassword" placeholder="Au moins 8 caractères..." style="padding-left:18px;">
             <button type="button" class="password-toggle" data-target="registerPassword">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -200,21 +200,21 @@ https://templatemo.com/tm-609-crypto-vault
         </div>
     </div>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Téléphone (optionnel)</label>
         <div class="form-input-wrapper">
-            <input type="tel" class="form-input" placeholder="+216 ..." style="padding-left:18px;">
+            <input type="tel" name="register_telephone" class="form-input" placeholder="+216 ..." style="padding-left:18px;">
         </div>
     </div>
 
     <p class="account-type-info">Type de compte : Voyageur (automatique)</p>
 
-    <div class="form-group">
+    <div class="form-group" data-field-wrap>
         <label class="form-label">Photo de profil (optionnelle)</label>
         <div class="photo-upload-row">
             <button type="button" class="photo-upload-btn" onclick="document.getElementById('profilePhoto').click()">Choisir une photo</button>
             <span class="photo-upload-label" id="photoLabel">Aucune sélectionnée</span>
-            <input type="file" id="profilePhoto" accept="image/*" style="display:none;" onchange="document.getElementById('photoLabel').textContent = this.files[0]?.name || 'Aucune sélectionnée'">
+            <input type="file" name="register_photo" id="profilePhoto" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;" onchange="document.getElementById('photoLabel').textContent = this.files[0]?.name || 'Aucune sélectionnée'">
         </div>
     </div>
 
@@ -243,6 +243,17 @@ https://templatemo.com/tm-609-crypto-vault
         </p>
     </div>
 
+    <script src="js/form-validation.js"></script>
     <script src="js/templatemo-crypto-script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var lf = document.getElementById('loginForm');
+            var rf = document.getElementById('registerForm');
+            if (window.AppFormValidation) {
+                if (lf) AppFormValidation.attachClearOnInput(lf);
+                if (rf) AppFormValidation.attachClearOnInput(rf);
+            }
+        });
+    </script>
 </body>
 </html>

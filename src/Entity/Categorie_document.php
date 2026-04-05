@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Document;
+use App\Repository\Categorie_documentRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\Categorie_documentRepository::class)]
 class Categorie_document
 {
 
@@ -54,6 +56,11 @@ class Categorie_document
     #[ORM\OneToMany(mappedBy: "id_categorie", targetEntity: Document::class)]
     private Collection $documents;
 
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
+
         public function getDocuments(): Collection
         {
             return $this->documents;
@@ -79,5 +86,10 @@ class Categorie_document
             }
     
             return $this;
+        }
+
+        public function getIdCategorie(): ?int
+        {
+            return $this->id_categorie;
         }
 }
