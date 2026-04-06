@@ -1,0 +1,267 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Recu Paiement {{ payment.reference }}{% endblock %}
+
+{% block stylesheets %}
+<style>
+body {
+    background: #eef3f7;
+}
+.receipt-page {
+    max-width: 860px;
+    margin: 24px auto;
+    padding: 28px;
+}
+.receipt-card {
+    background: #ffffff;
+    border: 1px solid #dbe5ef;
+    box-shadow: 0 24px 60px -30px rgba(15, 23, 42, 0.22);
+    padding: 46px 50px 54px;
+}
+.receipt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+.receipt-brand {
+    color: #0f5b8d;
+    font-size: 3rem;
+    font-weight: 800;
+    margin: 0;
+}
+.receipt-title {
+    margin: 8px 0 0;
+    color: #b79f7a;
+    font-size: 1.9rem;
+    font-weight: 700;
+    text-align: right;
+}
+.receipt-ref {
+    margin: 24px 0 0;
+    color: #64748b;
+    text-align: right;
+    font-size: 1.1rem;
+}
+.receipt-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 30px;
+    margin-top: 48px;
+}
+.receipt-block h3 {
+    margin: 0 0 14px;
+    color: #0f5b8d;
+    font-size: 1.25rem;
+}
+.receipt-block p {
+    margin: 8px 0;
+    font-size: 1.05rem;
+}
+.receipt-table {
+    width: 100%;
+    margin-top: 36px;
+    border-collapse: collapse;
+}
+.receipt-table thead th {
+    padding: 14px 16px;
+    background: #b79f7a;
+    color: #ffffff;
+    text-align: left;
+    font-size: 1.05rem;
+}
+.receipt-table tbody td {
+    padding: 18px 12px;
+    border-bottom: 1px solid #edf2f7;
+    font-size: 1.1rem;
+}
+.receipt-table thead th:nth-child(2),
+.receipt-table tbody td:nth-child(2),
+.receipt-table thead th:nth-child(3),
+.receipt-table tbody td:nth-child(3) {
+    text-align: center;
+}
+.receipt-total {
+    margin-top: 28px;
+    display: flex;
+    justify-content: flex-end;
+}
+.receipt-total-box {
+    background: #0f5b8d;
+    color: #ffffff;
+    padding: 18px 24px;
+    font-size: 1.55rem;
+    font-weight: 800;
+    border: 2px solid #0c3e62;
+}
+.receipt-verify {
+    margin-top: 44px;
+    text-align: center;
+    color: #b68656;
+}
+.receipt-qr {
+    width: 144px;
+    height: 144px;
+    margin: 18px auto 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    background: #ffffff;
+    border: 1px solid #111827;
+}
+.receipt-qr img {
+    display: block;
+    width: 124px;
+    height: 124px;
+}
+.receipt-code {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: #eff6ff;
+    color: #0f5b8d;
+    font-weight: 700;
+}
+.receipt-footer {
+    margin-top: 42px;
+    text-align: center;
+    font-size: 1.1rem;
+    line-height: 1.7;
+}
+.receipt-actions {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 18px;
+}
+.receipt-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    border: 0;
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 800;
+}
+.receipt-button--print {
+    background: #0f5b8d;
+    color: #ffffff;
+}
+.receipt-button--back {
+    background: #e2e8f0;
+    color: #334155;
+}
+@media print {
+    body {
+        background: #ffffff;
+    }
+    .flash-stack,
+    .receipt-actions {
+        display: none !important;
+    }
+    .receipt-page {
+        max-width: none;
+        margin: 0;
+        padding: 0;
+    }
+    .receipt-card {
+        box-shadow: none;
+        border: 0;
+        padding: 24px 28px;
+    }
+}
+@media (max-width: 720px) {
+    .receipt-page {
+        padding: 14px;
+    }
+    .receipt-card {
+        padding: 24px 18px 28px;
+    }
+    .receipt-top,
+    .receipt-grid {
+        grid-template-columns: 1fr;
+        display: grid;
+    }
+    .receipt-title,
+    .receipt-ref {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="receipt-page">
+    <div class="receipt-actions">
+        <button class="receipt-button receipt-button--print" type="button" onclick="window.print()">Imprimer / PDF</button>
+        <a class="receipt-button receipt-button--back" href="{{ path('app_dashboard', {view: 'payments'}) }}">Retour Paiements</a>
+    </div>
+
+    <div class="receipt-card">
+        <div class="receipt-top">
+            <div>
+                <h1 class="receipt-brand">AFTER TRAVEL</h1>
+            </div>
+            <div>
+                <h2 class="receipt-title">RECU OFFICIEL</h2>
+                <p class="receipt-ref">Ref: {{ payment.reference }}</p>
+            </div>
+        </div>
+
+        <div class="receipt-grid">
+            <section class="receipt-block">
+                <h3>DETAILS DU VOYAGE</h3>
+                <p><strong>Type:</strong> {{ reservation ? (reservation.type ?: 'Voyage') : 'Voyage' }}</p>
+                <p><strong>Lieu:</strong> {{ reservation ? (reservation.lieu ?: 'Non renseigne') : (payment.reservationLieu ?: 'Non renseigne') }}</p>
+                <p><strong>Date:</strong> {{ reservation ? reservation.dateReservation : 'Non renseignee' }}</p>
+            </section>
+
+            <section class="receipt-block">
+                <h3>DETAILS DU PAIEMENT</h3>
+                <p><strong>Methode:</strong> {{ payment.methode }}</p>
+                <p><strong>Date:</strong> {{ payment.datePaiement ?: 'Non renseignee' }}</p>
+                <p><strong>Statut:</strong> {{ payment.status|upper }}</p>
+            </section>
+        </div>
+
+        <table class="receipt-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Qte</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Reservation Voyage #{{ payment.reservationId }}{% if reservation and reservation.type %} ({{ reservation.type }}){% endif %}</td>
+                    <td>1</td>
+                    <td>{{ payment.amount }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="receipt-total">
+            <div class="receipt-total-box">TOTAL PAYE: {{ payment.amount }}</div>
+        </div>
+
+        <div class="receipt-verify">
+            <div>Scannez pour verifier votre recu</div>
+            <div class="receipt-qr">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=124x124&data={{ qrPayload|url_encode }}" alt="QR code du recu {{ payment.reference }}">
+            </div>
+            <div class="receipt-code">{{ verificationCode }}</div>
+        </div>
+
+        <div class="receipt-footer">
+            <div>Merci pour votre confiance !</div>
+            <div>Bon voyage avec After Travel.</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

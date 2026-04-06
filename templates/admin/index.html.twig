@@ -1,0 +1,389 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}AFTER Admin{% endblock %}
+
+{% block stylesheets %}
+<style>
+.admin-shell { min-height: 100vh; display: grid; grid-template-columns: 280px 1fr; background: linear-gradient(180deg, #fbfdff 0%, #eef4f9 100%); }
+.admin-sidebar { background: linear-gradient(180deg, #1177b3 0%, #0f5b8d 100%); color: #fff; padding: 28px 18px; display: flex; flex-direction: column; gap: 20px; }
+.admin-brand { font-size: 2rem; font-weight: 800; margin: 0; }
+.admin-sub { margin: 0; opacity: .75; letter-spacing: .2em; text-transform: uppercase; font-size: .74rem; }
+.admin-nav { display: flex; flex-direction: column; gap: 10px; margin-top: 14px; }
+.admin-link { display: flex; align-items: center; gap: 10px; padding: 16px 18px; border-radius: 18px; color: #fff; text-decoration: none; background: transparent; border: 1px solid transparent; font-weight: 700; }
+.admin-link.is-active { background: rgba(255,255,255,.14); }
+.admin-side-bottom { margin-top: auto; }
+.admin-main { padding: 28px; }
+.admin-topbar { background: linear-gradient(135deg, #0f5b8d 0%, #0c4d78 100%); color: #fff; border-radius: 28px; padding: 22px 28px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 24px 60px -30px rgba(0, 86, 137, 0.35); }
+.admin-grid { display: grid; gap: 24px; margin-top: 24px; }
+.admin-card { background: #fff; border-radius: 28px; box-shadow: 0 24px 60px -30px rgba(0, 86, 137, 0.18); padding: 26px; }
+.admin-heading { display: flex; justify-content: space-between; align-items: flex-start; gap: 18px; margin-bottom: 18px; }
+.admin-heading h1, .section-title { margin: 0; color: #0f5b8d; font-size: 2rem; }
+.admin-heading p, .section-sub { margin: 8px 0 0; color: #b68656; font-size: 1.05rem; }
+.admin-toolbar { display: flex; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+.admin-input, .admin-select { padding: 14px 18px; border-radius: 16px; border: 1px solid #d9e2ec; background: #fff; min-width: 160px; }
+.admin-input { width: min(420px, 100%); }
+.admin-button { display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 14px 18px; border-radius: 16px; border: 0; background: #0ea5e9; color: #fff; font-weight: 800; cursor: pointer; text-decoration: none; }
+.admin-button.secondary { background: #eef5fb; color: #0f5b8d; border: 1px solid #d9e2ec; }
+.admin-table-wrap { overflow: auto; border-radius: 18px; border: 1px solid #e8eef5; }
+.admin-table { width: 100%; border-collapse: collapse; min-width: 980px; }
+.admin-table th, .admin-table td { padding: 14px 16px; border-bottom: 1px solid #eef3f7; text-align: left; }
+.admin-table th { background: linear-gradient(180deg, #f5f7fa 0%, #e6ebf0 100%); font-weight: 800; }
+.admin-table tr:nth-child(even) td { background: #fbfdff; }
+.badge { display: inline-flex; align-items: center; justify-content: center; padding: 8px 14px; border-radius: 999px; font-size: .9rem; font-weight: 800; }
+.badge.success { background: #22c55e; color: #fff; }
+.badge.warning { background: #ea580c; color: #fff; }
+.badge.muted { background: #7c3aed; color: #fff; }
+.badge.info { background: #2563eb; color: #fff; }
+.actions { display: flex; gap: 10px; align-items: center; }
+.actions form { margin: 0; }
+.actions button { border: 0; cursor: pointer; }
+.action-btn { display: inline-flex; align-items: center; justify-content: center; padding: 10px 16px; border-radius: 12px; color: #fff; text-decoration: none; font-weight: 800; }
+.action-btn.edit { background: #0ea5e9; }
+.action-btn.delete { background: #dc2626; }
+.kpi-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.kpi-card { background: #fff; border-radius: 24px; padding: 24px; box-shadow: 0 24px 60px -30px rgba(0, 86, 137, 0.16); }
+.kpi-card__value { font-size: 2rem; font-weight: 800; color: #0f5b8d; }
+.kpi-card__value.success { color: #16a34a; }
+.kpi-card__value.warning { color: #ea580c; }
+.kpi-card__value.info { color: #2563eb; }
+.kpi-card__label { margin-top: 8px; color: #b68656; font-weight: 600; }
+.stats-layout { display: grid; grid-template-columns: 1.1fr 1.1fr; gap: 24px; }
+.chart-card { background: #fff; border-radius: 28px; box-shadow: 0 24px 60px -30px rgba(0, 86, 137, 0.18); padding: 26px; }
+.chart-title { margin: 0; color: #0f5b8d; font-size: 1.25rem; }
+.chart-subtitle { margin: 8px 0 20px; color: #b68656; }
+.donut-legend, .bar-list { display: flex; flex-direction: column; gap: 12px; }
+.legend-row, .bar-row { display: grid; grid-template-columns: 130px 1fr auto; align-items: center; gap: 12px; }
+.legend-color { width: 16px; height: 16px; border-radius: 999px; display: inline-block; margin-right: 8px; }
+.bar-track { height: 14px; border-radius: 999px; background: #eef4f9; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #0ea5e9 0%, #0f5b8d 100%); }
+.sparkline { width: 100%; height: 280px; border-radius: 18px; background: linear-gradient(180deg, #f8fbff 0%, #eef5fb 100%); border: 1px solid #e2e8f0; }
+.axis-labels { display: flex; justify-content: space-between; gap: 8px; margin-top: 10px; color: #64748b; font-size: .85rem; }
+.insights-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
+.insight-card { background: #fff; border-radius: 28px; box-shadow: 0 24px 60px -30px rgba(0, 86, 137, 0.18); padding: 26px; }
+.insight-list { margin: 0; padding-left: 20px; color: #334155; display: flex; flex-direction: column; gap: 10px; }
+.empty-hint { padding: 18px; border-radius: 18px; background: #f8fbff; color: #64748b; border: 1px dashed #cbd5e1; }
+@media (max-width: 1180px) {
+    .admin-shell { grid-template-columns: 1fr; }
+    .kpi-grid, .stats-layout, .insights-grid { grid-template-columns: 1fr; }
+    .admin-heading { flex-direction: column; }
+    .admin-toolbar { justify-content: flex-start; }
+}
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="admin-shell">
+    <aside class="admin-sidebar">
+        <div>
+            <p class="admin-sub">Administration</p>
+            <h1 class="admin-brand">AFTER Admin</h1>
+        </div>
+
+        <nav class="admin-nav">
+            <a class="admin-link {{ tab == 'reservations' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'reservations'}) }}">Reservations</a>
+            <a class="admin-link {{ tab == 'payments' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'payments'}) }}">Paiements</a>
+            <a class="admin-link {{ tab == 'statistics' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'statistics'}) }}">Statistiques</a>
+        </nav>
+
+        <div class="admin-side-bottom">
+            <a class="admin-link is-active" href="{{ path('app_dashboard') }}">Vue Utilisateur</a>
+        </div>
+    </aside>
+
+    <main class="admin-main">
+        <div class="admin-topbar">
+            <strong>AFTER Administration</strong>
+            <span>Administrateur</span>
+        </div>
+
+        {% if tab == 'statistics' %}
+            {% set typeMax = 0 %}
+            {% for item in stats.typeBreakdown %}
+                {% set typeMax = item.count > typeMax ? item.count : typeMax %}
+            {% endfor %}
+            {% set revenueMax = 0 %}
+            {% for item in stats.monthlyRevenue %}
+                {% set revenueMax = item.value > revenueMax ? item.value : revenueMax %}
+            {% endfor %}
+            {% set timelineMax = 0 %}
+            {% for item in stats.reservationTimeline %}
+                {% set timelineMax = item.value > timelineMax ? item.value : timelineMax %}
+            {% endfor %}
+            {% set pointCount = stats.reservationTimeline|length %}
+            {% set points = '' %}
+            {% for item in stats.reservationTimeline %}
+                {% set x = pointCount > 1 ? 40 + ((loop.index0 * 520) / (pointCount - 1)) : 300 %}
+                {% set y = timelineMax > 0 ? 230 - ((item.value * 180) / timelineMax) : 230 %}
+                {% set points = points ~ x ~ ',' ~ y ~ ' ' %}
+            {% endfor %}
+
+            <div class="admin-grid">
+                <div class="admin-heading">
+                    <div>
+                        <h1>Tableau de Bord Statistiques</h1>
+                        <p>Apercu analytique des activites de voyage</p>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <article class="kpi-card">
+                        <div class="kpi-card__value">{{ stats.reservationCount }}</div>
+                        <div class="kpi-card__label">Reservations</div>
+                    </article>
+                    <article class="kpi-card">
+                        <div class="kpi-card__value success">{{ stats.totalRevenue|number_format(2, ',', ' ') }} TND</div>
+                        <div class="kpi-card__label">Revenu total</div>
+                    </article>
+                    <article class="kpi-card">
+                        <div class="kpi-card__value warning">{{ stats.pendingReservations }}</div>
+                        <div class="kpi-card__label">Reservations en attente</div>
+                    </article>
+                    <article class="kpi-card">
+                        <div class="kpi-card__value info">{{ stats.averageTicket|number_format(2, ',', ' ') }} TND</div>
+                        <div class="kpi-card__label">Panier moyen</div>
+                    </article>
+                </div>
+
+                <div class="stats-layout">
+                    <section class="chart-card">
+                        <h2 class="chart-title">Repartition par Type</h2>
+                        <p class="chart-subtitle">Vue metier des reservations par categorie</p>
+                        {% if stats.typeBreakdown is not empty %}
+                            <div class="bar-list">
+                                {% for item in stats.typeBreakdown %}
+                                    <div class="bar-row">
+                                        <div><span class="legend-color" style="background: {{ item.color }}"></span>{{ item.label }}</div>
+                                        <div class="bar-track"><div class="bar-fill" style="width: {{ typeMax > 0 ? (item.count * 100 / typeMax) : 0 }}%; background: {{ item.color }}"></div></div>
+                                        <strong>{{ item.count }}</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-hint">Aucune donnee statistique disponible.</div>
+                        {% endif %}
+                    </section>
+
+                    <section class="chart-card">
+                        <h2 class="chart-title">Croissance des Reservations</h2>
+                        <p class="chart-subtitle">Evolution cumulative des reservations</p>
+                        {% if stats.reservationTimeline is not empty %}
+                            <svg class="sparkline" viewBox="0 0 600 280" preserveAspectRatio="none">
+                                <line x1="40" y1="230" x2="560" y2="230" stroke="#cbd5e1" stroke-width="2" />
+                                <line x1="40" y1="40" x2="40" y2="230" stroke="#cbd5e1" stroke-width="2" />
+                                <polyline fill="none" stroke="#f97316" stroke-width="4" points="{{ points|trim }}" />
+                                {% for item in stats.reservationTimeline %}
+                                    {% set x = pointCount > 1 ? 40 + ((loop.index0 * 520) / (pointCount - 1)) : 300 %}
+                                    {% set y = timelineMax > 0 ? 230 - ((item.value * 180) / timelineMax) : 230 %}
+                                    <circle cx="{{ x }}" cy="{{ y }}" r="5" fill="#ffffff" stroke="#f97316" stroke-width="3" />
+                                {% endfor %}
+                            </svg>
+                            <div class="axis-labels">
+                                {% for item in stats.reservationTimeline %}
+                                    <span>{{ item.label }}</span>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-hint">Aucune evolution a afficher.</div>
+                        {% endif %}
+                    </section>
+                </div>
+
+                <div class="insights-grid">
+                    <section class="insight-card">
+                        <h2 class="chart-title">Revenus Mensuels</h2>
+                        <p class="chart-subtitle">Simulation financiere basee sur les paiements saisis</p>
+                        {% if stats.monthlyRevenue is not empty %}
+                            <div class="bar-list">
+                                {% for item in stats.monthlyRevenue %}
+                                    <div class="bar-row">
+                                        <div>{{ item.label }}</div>
+                                        <div class="bar-track"><div class="bar-fill" style="width: {{ revenueMax > 0 ? (item.value * 100 / revenueMax) : 0 }}%; background: linear-gradient(90deg, #fb923c 0%, #f97316 100%);"></div></div>
+                                        <strong>{{ item.value|number_format(2, ',', ' ') }} TND</strong>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="empty-hint">Aucun revenu mensuel a afficher.</div>
+                        {% endif %}
+                    </section>
+
+                    <section class="insight-card">
+                        <h2 class="chart-title">Tableau de Bord des Performances</h2>
+                        <p class="chart-subtitle">Alertes &amp; Opportunites</p>
+                        <ul class="insight-list">
+                            <li>{{ stats.pendingReservations }} reservation(s) en attente a traiter rapidement.</li>
+                            <li>{{ stats.pendingPayments }} paiement(s) en attente de validation.</li>
+                            <li>{{ stats.paymentCount }} paiement(s) enregistres pour {{ stats.reservationCount }} reservation(s).</li>
+                            {% if stats.topDestinations is not empty %}
+                                <li>Destination la plus rentable: {{ stats.topDestinations|first.label }} avec {{ stats.topDestinations|first.value|number_format(2, ',', ' ') }} TND.</li>
+                            {% else %}
+                                <li>Aucune destination rentable detectee pour le moment.</li>
+                            {% endif %}
+                        </ul>
+                    </section>
+                </div>
+            </div>
+        {% elseif tab == 'reservations' %}
+            <section class="admin-card">
+                <div class="admin-heading">
+                    <div>
+                        <h1>Gestion des Reservations</h1>
+                        <p>{{ reservationCount }} resultat(s) sur {{ reservationTotalCount }} reservation(s)</p>
+                    </div>
+                    <form method="get" class="admin-toolbar">
+                        <input type="hidden" name="tab" value="reservations">
+                        <input class="admin-input" type="text" name="reservation_q" value="{{ reservationFilters.q }}" placeholder="Recherche par lieu, type, date, client...">
+                        <select class="admin-select" name="reservation_status">
+                            <option value="">Tous statuts</option>
+                            <option value="confirmed" {{ reservationFilters.status == 'confirmed' ? 'selected' : '' }}>Confirmee</option>
+                            <option value="pending" {{ reservationFilters.status == 'pending' ? 'selected' : '' }}>En attente</option>
+                            <option value="cancelled" {{ reservationFilters.status == 'cancelled' ? 'selected' : '' }}>Annulee</option>
+                        </select>
+                        <select class="admin-select" name="reservation_sort">
+                            <option value="date" {{ reservationFilters.sort == 'date' ? 'selected' : '' }}>Trier par date</option>
+                            <option value="price" {{ reservationFilters.sort == 'price' ? 'selected' : '' }}>Trier par prix</option>
+                            <option value="lieu" {{ reservationFilters.sort == 'lieu' ? 'selected' : '' }}>Trier par lieu</option>
+                            <option value="type" {{ reservationFilters.sort == 'type' ? 'selected' : '' }}>Trier par type</option>
+                            <option value="status" {{ reservationFilters.sort == 'status' ? 'selected' : '' }}>Trier par statut</option>
+                        </select>
+                        <select class="admin-select" name="reservation_dir">
+                            <option value="desc" {{ reservationFilters.dir == 'desc' ? 'selected' : '' }}>Descendant</option>
+                            <option value="asc" {{ reservationFilters.dir == 'asc' ? 'selected' : '' }}>Ascendant</option>
+                        </select>
+                        <button class="admin-button" type="submit">Appliquer</button>
+                        <a class="admin-button secondary" href="{{ path('app_admin', {tab: 'reservations'}) }}">Reinitialiser</a>
+                    </form>
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Type</th>
+                                <th>Lieu</th>
+                                <th>Voyage</th>
+                                <th>Client</th>
+                                <th>Date</th>
+                                <th>Statut</th>
+                                <th>Pers.</th>
+                                <th>Prix</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                                <tr>
+                                    <td>{{ reservation.id }}</td>
+                                    <td>{{ reservation.type }}</td>
+                                    <td>{{ reservation.lieu }}</td>
+                                    <td>{{ reservation.voyageId }}</td>
+                                    <td>{{ reservation.utilisateurId }}</td>
+                                    <td>{{ reservation.dateReservation }}</td>
+                                    <td><span class="badge {{ reservation.status == 'En attente' ? 'warning' : 'success' }}">{{ reservation.status }}</span></td>
+                                    <td>{{ reservation.nbPersonnes }}</td>
+                                    <td>{{ reservation.prixTotal }}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <a class="action-btn edit" href="{{ path('app_admin_reservation_edit', {id: reservation.id}) }}">Modifier</a>
+                                            <form method="post" action="{{ path('app_admin_reservation_delete', {id: reservation.id}) }}" onsubmit="return confirm('Supprimer cette reservation ?');">
+                                                <button class="action-btn delete" type="submit">Supprimer</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="10"><div class="empty-hint">Aucune reservation ne correspond a ces criteres.</div></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% else %}
+            <section class="admin-card">
+                <div class="admin-heading">
+                    <div>
+                        <h1>Gestion des Paiements</h1>
+                        <p>{{ paymentCount }} resultat(s) sur {{ paymentTotalCount }} paiement(s)</p>
+                    </div>
+                    <form method="get" class="admin-toolbar">
+                        <input type="hidden" name="tab" value="payments">
+                        <input class="admin-input" type="text" name="payment_q" value="{{ paymentFilters.q }}" placeholder="Recherche par reference, lieu, reservation, statut...">
+                        <select class="admin-select" name="payment_status">
+                            <option value="">Tous statuts</option>
+                            <option value="paid" {{ paymentFilters.status == 'paid' ? 'selected' : '' }}>Paye</option>
+                            <option value="pending" {{ paymentFilters.status == 'pending' ? 'selected' : '' }}>En attente</option>
+                            <option value="refunded" {{ paymentFilters.status == 'refunded' ? 'selected' : '' }}>Rembourse</option>
+                        </select>
+                        <select class="admin-select" name="payment_method">
+                            <option value="">Toutes methodes</option>
+                            <option value="card" {{ paymentFilters.method == 'card' ? 'selected' : '' }}>Carte</option>
+                            <option value="transfer" {{ paymentFilters.method == 'transfer' ? 'selected' : '' }}>Virement</option>
+                            <option value="cash" {{ paymentFilters.method == 'cash' ? 'selected' : '' }}>Especes</option>
+                        </select>
+                        <select class="admin-select" name="payment_sort">
+                            <option value="date" {{ paymentFilters.sort == 'date' ? 'selected' : '' }}>Trier par date</option>
+                            <option value="amount" {{ paymentFilters.sort == 'amount' ? 'selected' : '' }}>Trier par montant</option>
+                            <option value="reference" {{ paymentFilters.sort == 'reference' ? 'selected' : '' }}>Trier par reference</option>
+                            <option value="method" {{ paymentFilters.sort == 'method' ? 'selected' : '' }}>Trier par methode</option>
+                            <option value="status" {{ paymentFilters.sort == 'status' ? 'selected' : '' }}>Trier par statut</option>
+                        </select>
+                        <select class="admin-select" name="payment_dir">
+                            <option value="desc" {{ paymentFilters.dir == 'desc' ? 'selected' : '' }}>Descendant</option>
+                            <option value="asc" {{ paymentFilters.dir == 'asc' ? 'selected' : '' }}>Ascendant</option>
+                        </select>
+                        <button class="admin-button" type="submit">Appliquer</button>
+                        <a class="admin-button secondary" href="{{ path('app_admin', {tab: 'payments'}) }}">Reinitialiser</a>
+                    </form>
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Reference</th>
+                                <th>Montant</th>
+                                <th>Devise</th>
+                                <th>Methode</th>
+                                <th>Statut</th>
+                                <th>Date</th>
+                                <th>Res #</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.id }}</td>
+                                    <td>{{ payment.reference }}</td>
+                                    <td>{{ payment.montant|number_format(2, ',', ' ') }}</td>
+                                    <td>{{ payment.devise }}</td>
+                                    <td><span class="badge info">{{ payment.methode }}</span></td>
+                                    <td><span class="badge {{ payment.status == 'En attente' ? 'warning' : ((payment.status|lower starts with 'remb') ? 'muted' : 'success') }}">{{ payment.status }}</span></td>
+                                    <td>{{ payment.datePaiement }}</td>
+                                    <td>{{ payment.reservationId }}</td>
+                                    <td>
+                                        <div class="actions">
+                                            <a class="action-btn edit" href="{{ path('app_admin_payment_edit', {id: payment.id}) }}">Modifier</a>
+                                            <form method="post" action="{{ path('app_admin_payment_delete', {id: payment.id}) }}" onsubmit="return confirm('Supprimer ce paiement ?');">
+                                                <button class="action-btn delete" type="submit">Supprimer</button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% else %}
+                                <tr>
+                                    <td colspan="9"><div class="empty-hint">Aucun paiement ne correspond a ces criteres.</div></td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        {% endif %}
+    </main>
+</div>
+{% endblock %}

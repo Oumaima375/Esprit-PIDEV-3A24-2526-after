@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AFTER Travel{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('assets/styles/app.css') }}">
+    <style>
+        .flash-stack {
+            position: fixed;
+            top: 18px;
+            right: 18px;
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            width: min(420px, calc(100vw - 32px));
+        }
+        .flash-message {
+            border-radius: 18px;
+            padding: 14px 16px;
+            color: #0f172a;
+            background: #ffffff;
+            border: 1px solid #dbe5ef;
+            box-shadow: 0 20px 45px -28px rgba(15, 23, 42, 0.45);
+            font-weight: 700;
+        }
+        .flash-message--success {
+            background: #ecfdf3;
+            border-color: #86efac;
+            color: #166534;
+        }
+        .flash-message--error {
+            background: #fef2f2;
+            border-color: #fca5a5;
+            color: #991b1b;
+        }
+        .flash-message--warning {
+            background: #fff7ed;
+            border-color: #fdba74;
+            color: #9a3412;
+        }
+        .flash-message--info {
+            background: #eff6ff;
+            border-color: #93c5fd;
+            color: #1d4ed8;
+        }
+    </style>
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+{% set flashSuccess = app.flashes('success') %}
+{% set flashError = app.flashes('error') %}
+{% set flashWarning = app.flashes('warning') %}
+{% set flashInfo = app.flashes('info') %}
+{% if flashSuccess or flashError or flashWarning or flashInfo %}
+    <div class="flash-stack">
+        {% for message in flashSuccess %}
+            <div class="flash-message flash-message--success">{{ message }}</div>
+        {% endfor %}
+        {% for message in flashError %}
+            <div class="flash-message flash-message--error">{{ message }}</div>
+        {% endfor %}
+        {% for message in flashWarning %}
+            <div class="flash-message flash-message--warning">{{ message }}</div>
+        {% endfor %}
+        {% for message in flashInfo %}
+            <div class="flash-message flash-message--info">{{ message }}</div>
+        {% endfor %}
+    </div>
+{% endif %}
+{% block body %}{% endblock %}
+{% block javascripts %}{% endblock %}
+<script>
+setTimeout(() => {
+    document.querySelectorAll('.flash-message').forEach((element) => {
+        element.style.transition = 'opacity .3s ease, transform .3s ease';
+        element.style.opacity = '0';
+        element.style.transform = 'translateY(-8px)';
+        setTimeout(() => element.remove(), 320);
+    });
+}, 3200);
+</script>
+</body>
+</html>
