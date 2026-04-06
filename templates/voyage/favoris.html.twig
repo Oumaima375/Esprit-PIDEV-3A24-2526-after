@@ -43,9 +43,9 @@
                     <h4 class="mb-2">{{ voyage.titre }}</h4>
                     <p class="text-muted mb-3">{{ voyage.description|slice(0,100) }}...</p>
                     <div class="d-flex gap-2">
-                        <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill py-1 px-3">
-                            <i class="fa fa-eye me-1"></i>Voir
-                        </a>
+                        <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage}) }}" class="btn btn-primary rounded-pill py-1 px-3">
+    <i class="fa fa-eye me-1"></i>Voir
+</a>
                         <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage}) }}" class="btn btn-danger rounded-pill py-1 px-3">
                             <i class="fa fa-heart-broken me-1"></i>Retirer
                         </a>

@@ -1,0 +1,75 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Destinations — Admin{% endblock %}
+{% block body %}
+<div class="header">
+    <div class="header-left">
+        <h1>Gestion des Destinations</h1>
+        <p class="header-subtitle">{{ destinations|length }} destination(s)</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('admin_destination_new') }}"
+           style="background:var(--accent-gradient);color:var(--text-primary);padding:10px 20px;
+                  border-radius:8px;text-decoration:none;font-weight:600;font-size:14px">
+            <i class="fas fa-plus"></i> Nouvelle Destination
+        </a>
+    </div>
+</div>
+<div class="card">
+    <div class="card-header"><h2 class="card-title">Toutes les Destinations</h2></div>
+    <table style="width:100%;border-collapse:collapse;font-size:13px">
+        <thead>
+            <tr style="border-bottom:2px solid var(--border)">
+                <th style="padding:12px;text-align:left;color:var(--text-secondary)">#</th>
+                <th style="padding:12px;text-align:left;color:var(--text-secondary)">Pays</th>
+                <th style="padding:12px;text-align:left;color:var(--text-secondary)">Ville</th>
+                <th style="padding:12px;text-align:left;color:var(--text-secondary)">Continent</th>
+                <th style="padding:12px;text-align:center;color:var(--text-secondary)">Voyages</th>
+                <th style="padding:12px;text-align:center;color:var(--text-secondary)">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for d in destinations %}
+            <tr style="border-bottom:1px solid var(--border);transition:background 0.2s"
+                onmouseover="this.style.background='var(--bg-card-hover)'"
+                onmouseout="this.style.background='transparent'">
+                <td style="padding:12px;color:var(--text-muted)">{{ loop.index }}</td>
+                <td style="padding:12px">
+                    <div style="display:flex;align-items:center;gap:10px">
+                        {% if d.image and d.image starts with 'http' %}
+                            <img src="{{ d.image }}" style="width:36px;height:36px;border-radius:6px;object-fit:cover">
+                        {% endif %}
+                        <span style="color:var(--text-primary);font-weight:600">{{ d.pays }}</span>
+                    </div>
+                </td>
+                <td style="padding:12px;color:var(--text-secondary)">{{ d.ville }}</td>
+                <td style="padding:12px;color:var(--text-secondary)">{{ d.continent }}</td>
+                <td style="padding:12px;text-align:center">
+                    <span style="background:var(--accent-copper);color:white;
+                                 padding:2px 10px;border-radius:20px;font-size:11px">
+                        {{ d.voyages|length }}
+                    </span>
+                </td>
+                <td style="padding:12px;text-align:center">
+                    <a href="{{ path('admin_destination_edit', {id: d.id_destination}) }}"
+                       style="background:var(--bg-card-hover);color:var(--accent-copper);
+                              padding:5px 12px;border-radius:6px;text-decoration:none;
+                              font-size:12px;border:1px solid var(--accent-copper);margin-right:4px">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    <a href="{{ path('admin_destination_delete', {id: d.id_destination}) }}"
+                       onclick="return confirm('Supprimer cette destination ?')"
+                       style="background:var(--bg-card-hover);color:var(--loss);
+                              padding:5px 12px;border-radius:6px;text-decoration:none;
+                              font-size:12px;border:1px solid var(--loss)">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" style="padding:40px;text-align:center;color:var(--text-muted)">
+                Aucune destination.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

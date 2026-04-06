@@ -42,72 +42,67 @@
                 }) }}
 
                 {# Titre #}
-<div class="mb-4">
-    {{ form_label(form.titre) }}
-    {{ form_widget(form.titre) }}
-    <div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
-</div>
+                <div class="mb-4">
+                    {{ form_label(form.titre) }}
+                    {{ form_widget(form.titre) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.titre) }}</div>
+                </div>
 
-{# Description #}
-<div class="mb-4">
-    {{ form_label(form.description) }}
-    {{ form_widget(form.description) }}
-    <div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
-</div>
+                {# Description #}
+                <div class="mb-4">
+                    {{ form_label(form.description) }}
+                    {{ form_widget(form.description) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.description) }}</div>
+                </div>
 
-{# Dates #}
-<div class="row mb-4">
-    <div class="col-md-6">
-        {{ form_label(form.date_debut) }}
-        {{ form_widget(form.date_debut) }}
-        <div class="text-danger small mt-1">{{ form_errors(form.date_debut) }}</div>
-    </div>
-    <div class="col-md-6">
-        {{ form_label(form.date_fin) }}
-        {{ form_widget(form.date_fin) }}
-        <div class="text-danger small mt-1">{{ form_errors(form.date_fin) }}</div>
-    </div>
-</div>
+                {# Dates #}
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form_label(form.dateDebut) }}
+                        {{ form_widget(form.dateDebut) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.dateDebut) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.dateFin) }}
+                        {{ form_widget(form.dateFin) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.dateFin) }}</div>
+                    </div>
+                </div>
 
-{# Prix & Places #}
-<div class="row mb-4">
-    <div class="col-md-6">
-        {{ form_label(form.prix) }}
-        {{ form_widget(form.prix) }}
-        <div class="text-danger small mt-1">{{ form_errors(form.prix) }}</div>
-    </div>
-    <div class="col-md-6">
-        {{ form_label(form.nb_places) }}
-        {{ form_widget(form.nb_places) }}
-        <div class="text-danger small mt-1">{{ form_errors(form.nb_places) }}</div>
-    </div>
-</div>
+                {# Prix & Places #}
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form_label(form.prix) }}
+                        {{ form_widget(form.prix) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.prix) }}</div>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form_label(form.nbPlaces) }}
+                        {{ form_widget(form.nbPlaces) }}
+                        <div class="text-danger small mt-1">{{ form_errors(form.nbPlaces) }}</div>
+                    </div>
+                </div>
 
-{# Image #}
+                {# Image #}
+                {# Image #}
 <div class="mb-4">
     <label class="form-label fw-bold">Image</label>
     <div class="input-group">
-        <input type="text" name="voyage_type[image]"
-               class="form-control rounded-start-pill"
-               placeholder="https://images.unsplash.com/..."
-               value="">
+        {{ form_widget(form.image, {'attr': {'class': 'form-control rounded-start-pill', 'placeholder': 'https://images.unsplash.com/...'}}) }}
         <label class="btn btn-primary rounded-end-pill mb-0" style="cursor:pointer;">
             <i class="fa fa-folder-open me-1"></i> Choisir
-            <input type="file" name="voyage_type[imageFile]"
-                   accept="image/*"
-                   style="display:none;"
-                   onchange="document.querySelector('input[name=\'voyage_type[image]\']').value = this.files[0].name">
+            {{ form_widget(form.imageFile, {'attr': {'accept': 'image/*', 'style': 'display:none;', 'onchange': "document.querySelector('input[name=\"voyage_type[image]\"]').value = this.files[0].name"}}) }}
         </label>
     </div>
     <small class="text-muted">Collez une URL ou choisissez depuis votre PC</small>
 </div>
+                {# Destination #}
+                <div class="mb-4">
+                    {{ form_label(form.idDestination) }}
+                    {{ form_widget(form.idDestination) }}
+                    <div class="text-danger small mt-1">{{ form_errors(form.idDestination) }}</div>
+                </div>
 
-{# Destination #}
-<div class="mb-4">
-    {{ form_label(form.id_destination) }}
-    {{ form_widget(form.id_destination) }}
-    <div class="text-danger small mt-1">{{ form_errors(form.id_destination) }}</div>
-</div>
                 {# Buttons #}
                 <div class="d-flex gap-3 mt-4">
                     <button type="submit" class="btn btn-primary rounded-pill py-2 px-5">

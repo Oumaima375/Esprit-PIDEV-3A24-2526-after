@@ -1,20 +1,147 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Hello DestinationController!{% endblock %}
+{% block title %}After Travel - Destinations{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
-
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code>C:/Users/omach/after/src/Controller/DestinationController.php</code></li>
-        <li>Your template at <code>C:/Users/omach/after/templates/destination/index.html.twig</code></li>
-    </ul>
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">Nos Destinations</h1>
+            <p class="text-white fs-5">Découvrez toutes nos destinations à travers le monde</p>
+        </div>
+    </div>
 </div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+        {% for destination in destinations %}
+        <div class="col-lg-4 col-md-6">
+            <div class="blog-item h-100">
+                <div class="blog-img">
+                    <div class="blog-img-inner">
+                        <img class="img-fluid w-100 rounded-top"
+                             style="height: 220px; object-fit: cover;"
+                             src="{{ destination.image and destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
+                             alt="{{ destination.pays }}">
+                    </div>
+                    <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
+                        <small class="flex-fill text-center border-end py-2">
+                            <i class="fa fa-globe text-primary me-1"></i>{{ destination.pays }}
+                        </small>
+                        <small class="flex-fill text-center border-end py-2">
+                            <i class="fa fa-city text-primary me-1"></i>{{ destination.ville }}
+                        </small>
+                        <small class="flex-fill text-center py-2">
+                            <i class="fa fa-map text-primary me-1"></i>{{ destination.continent }}
+                        </small>
+                    </div>
+                </div>
+
+                <div class="blog-content border border-top-0 rounded-bottom p-4">
+                    <h4 class="mb-3">{{ destination.pays }} — {{ destination.ville }}</h4>
+
+                    <div id="country-info-{{ loop.index }}" class="mb-3" style="min-height: 60px;">
+                        <span class="spinner-border spinner-border-sm text-primary me-1"></span>
+                        <span class="text-muted small">Chargement des infos...</span>
+                    </div>
+
+                    <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ path('app_destination_show', {'id': destination.id_destination}) }}"
+ class="btn btn-outline-secondary rounded-pill py-1 px-3">
+ <i class="fa fa-eye"></i>
+</a>
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <h4 class="text-muted">Aucune destination trouvée</h4>
+            <a href="{{ path('app_destination_new') }}" class="btn btn-primary rounded-pill mt-3">Ajouter une destination</a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">After Travel</h4>
+                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Liens Rapides</h4>
+                <div class="d-flex flex-column">
+                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
+                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
+                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
+                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i>
+        <span class="text-white">After Travel</span>, All rights reserved.
+    </div>
+</div>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const countries = [
+        {% for destination in destinations %}
+        { index: {{ loop.index }}, pays: "{{ destination.pays|e('js') }}" },
+        {% endfor %}
+    ];
+
+    countries.forEach(function(c) {
+        fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(c.pays) + '?fields=name,capital,currencies,languages,flags')
+        .then(r => r.json())
+        .then(data => {
+            if (data && data[0]) {
+                const country = data[0];
+
+                const capital = country.capital ? country.capital[0] : 'N/A';
+
+                const currencies = country.currencies
+                    ? Object.values(country.currencies).map(cur => cur.name).join(', ')
+                    : 'N/A';
+
+                const languages = country.languages
+                    ? Object.values(country.languages).join(', ')
+                    : 'N/A';
+
+                const flag = country.flags ? country.flags.png : '';
+
+                document.getElementById('country-info-' + c.index).innerHTML =
+                    (flag ? '<img src="'+flag+'" style="height:25px;border-radius:3px;" class="mb-2"> ' : '') +
+                    '<p class="mb-1 small"><b>Capitale:</b> ' + capital + '</p>' +
+                    '<p class="mb-1 small"><b>Devise:</b> ' + currencies + '</p>' +
+                    '<p class="mb-0 small"><b>Langue:</b> ' + languages + '</p>';
+            } else {
+                document.getElementById('country-info-' + c.index).innerHTML =
+                    '<p class="text-muted small mb-0">Infos non disponibles</p>';
+            }
+        })
+        .catch(() => {
+            document.getElementById('country-info-' + c.index).innerHTML =
+                '<p class="text-muted small mb-0">Infos non disponibles</p>';
+        });
+    });
+});
+</script>
+
 {% endblock %}
