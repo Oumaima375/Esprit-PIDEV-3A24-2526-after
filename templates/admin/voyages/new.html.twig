@@ -1,0 +1,92 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Ajouter Voyage — Admin{% endblock %}
+{% block body %}
+<div class="header">
+    <div class="header-left">
+        <h1>Ajouter un Voyage</h1>
+        <p class="header-subtitle">Creer un nouveau voyage</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('admin_voyage_index') }}"
+           style="background:var(--bg-card-hover);color:var(--text-primary);padding:10px 20px;
+                  border-radius:8px;text-decoration:none;font-size:14px;border:1px solid var(--border)">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+<div class="card" style="max-width:800px">
+    <div class="card-header"><h2 class="card-title">Informations du Voyage</h2></div>
+    <div style="padding:20px">
+        {{ form_start(form, {'attr': {'novalidate':'novalidate','enctype':'multipart/form-data'}}) }}
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+                {{ form_label(form.titre, 'Titre', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+                {{ form_widget(form.titre, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+                <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.titre) }}</div>
+            </div>
+            <div>
+                {{ form_label(form.prix, 'Prix (TND)', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+                {{ form_widget(form.prix, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+                <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.prix) }}</div>
+            </div>
+        </div>
+        <div style="margin-bottom:16px">
+            {{ form_label(form.description, 'Description', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.description, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px','rows':4}}) }}
+            <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.description) }}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+            <div>
+                {{ form_label(form.dateDebut, 'Date debut', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+                {{ form_widget(form.dateDebut, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            </div>
+            <div>
+                {{ form_label(form.dateFin, 'Date fin', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+                {{ form_widget(form.dateFin, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            </div>
+            <div>
+                {{ form_label(form.nbPlaces, 'Nb Places', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+                {{ form_widget(form.nbPlaces, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            </div>
+        </div>
+        <div style="margin-bottom:16px">
+    <label style="color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px">Image</label>
+    <div style="display:flex;gap:8px">
+        <input type="text" name="voyage_type[image]" value=""
+               placeholder="https://images.unsplash.com/..."
+               style="background:var(--bg-primary);border:1px solid var(--border);
+                      color:var(--text-primary);padding:8px 12px;border-radius:6px;
+                      flex:1;font-size:13px">
+        <label style="background:var(--accent-gradient);color:white;padding:8px 16px;
+                      border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap">
+            <i class="fas fa-folder-open"></i> Choisir
+            <input type="file" name="voyage_type[imageFile]" accept="image/*"
+                   style="display:none"
+                   onchange="this.previousElementSibling.previousElementSibling.value=this.files[0].name">
+        </label>
+    </div>
+</div>  
+        <div style="margin-bottom:24px">
+            {{ form_label(form.idDestination, 'Destination', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.idDestination, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+        </div>
+        <div style="display:none">
+            {{ form_widget(form.image) }}
+            {{ form_widget(form.imageFile) }}
+        </div>
+        <div style="display:flex;gap:12px">
+            <button type="submit"
+                    style="background:var(--accent-gradient);color:var(--text-primary);padding:10px 24px;
+                           border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+            <a href="{{ path('admin_voyage_index') }}"
+               style="background:var(--bg-card-hover);color:var(--text-primary);padding:10px 24px;
+                      border-radius:8px;text-decoration:none;font-size:14px;border:1px solid var(--border)">
+                Annuler
+            </a>
+        </div>
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

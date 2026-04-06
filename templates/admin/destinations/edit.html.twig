@@ -1,0 +1,83 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Modifier — {{ destination.pays }}{% endblock %}
+{% block body %}
+<div class="header">
+    <div class="header-left">
+        <h1>Modifier : {{ destination.pays }}</h1>
+        <p class="header-subtitle">{{ destination.ville }} — {{ destination.continent }}</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('admin_destination_index') }}"
+           style="background:var(--bg-card-hover);color:var(--text-primary);padding:10px 20px;
+                  border-radius:8px;text-decoration:none;font-size:14px;border:1px solid var(--border)">
+            <i class="fas fa-arrow-left"></i> Retour
+        </a>
+    </div>
+</div>
+<div class="card" style="max-width:600px">
+    <div class="card-header"><h2 class="card-title">Modifier la Destination</h2></div>
+    <div style="padding:20px">
+        {{ form_start(form, {'attr': {'novalidate':'novalidate','enctype':'multipart/form-data'}}) }}
+
+        <div style="margin-bottom:16px">
+            {{ form_label(form.pays, 'Pays', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.pays, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.pays) }}</div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            {{ form_label(form.ville, 'Ville', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.ville, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.ville) }}</div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            {{ form_label(form.continent, 'Continent', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.continent, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px'}}) }}
+            <div style="color:var(--loss);font-size:11px;margin-top:3px">{{ form_errors(form.continent) }}</div>
+        </div>
+
+        <div style="margin-bottom:16px">
+            {{ form_label(form.description, 'Description', {'label_attr': {'style':'color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px'}}) }}
+            {{ form_widget(form.description, {'attr': {'style':'background:var(--bg-primary);border:1px solid var(--border);color:var(--text-primary);padding:8px 12px;border-radius:6px;width:100%;font-size:13px','rows':3}}) }}
+        </div>
+
+        <div style="margin-bottom:24px">
+            <label style="color:var(--text-secondary);font-size:12px;display:block;margin-bottom:6px">Image actuelle</label>
+            {% if destination.image and destination.image starts with 'http' %}
+                <img src="{{ destination.image }}"
+                     style="height:60px;border-radius:6px;object-fit:cover;margin-bottom:8px;display:block">
+            {% endif %}
+            <div style="display:flex;gap:8px">
+                <input type="text" name="destination_type[image]"
+                       value="{{ destination.image }}"
+                       placeholder="https://images.unsplash.com/..."
+                       style="background:var(--bg-primary);border:1px solid var(--border);
+                              color:var(--text-primary);padding:8px 12px;border-radius:6px;flex:1;font-size:13px">
+                <label style="background:var(--accent-gradient);color:white;padding:8px 16px;
+                              border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap">
+                    <i class="fas fa-folder-open"></i> Choisir
+                    <input type="file" name="destination_type[imageFile]" accept="image/*" style="display:none">
+                </label>
+            </div>
+        </div>
+
+        
+
+        <div style="display:flex;gap:12px">
+            <button type="submit"
+                    style="background:var(--accent-gradient);color:var(--text-primary);padding:10px 24px;
+                           border:none;border-radius:8px;font-weight:600;cursor:pointer;font-size:14px">
+                <i class="fas fa-save"></i> Enregistrer
+            </button>
+            <a href="{{ path('admin_destination_index') }}"
+               style="background:var(--bg-card-hover);color:var(--text-primary);padding:10px 24px;
+                      border-radius:8px;text-decoration:none;font-size:14px;border:1px solid var(--border)">
+                Annuler
+            </a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+</div>
+{% endblock %}

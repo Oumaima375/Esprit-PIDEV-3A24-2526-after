@@ -1,0 +1,75 @@
+
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>{% block title %}AfterTravel Admin{% endblock %}</title>
+ <script>
+ (function() {
+ const t = localStorage.getItem('theme') || 'dark';
+ document.documentElement.setAttribute('data-theme', t);
+ })();
+ </script>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="styles <link rel="stylesheet" href="/css/templatemo-crypto-style.css">
+ <link rel="stylesheet" href="/css/templatemo-crypto-dashboard.css">
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+ {% block stylesheets %}{% endblock %}
+</head>
+<body>
+ <button class="mobile-menu-toggle" id="mobileMenuToggle">
+ <div class="hamburger"><span></span><span></span><span></span></div>
+ </button>
+ <div class="sidebar-overlay" id="sidebarOverlay"></div>
+ <div class="dashboard">
+ <aside class="sidebar" id="sidebar">
+ <div class="logo">
+ <div class="logo-icon">AT</div>
+ <span class="logo-text">AfterTravel</span>
+ </div>
+ <nav class="nav-section">
+ <div class="nav-label">Principal</div>
+ <a href="{{ path('admin_dashboard') }}"
+ class="nav-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' }}">
+ <i class="fas fa-tachometer-alt nav-icon"></i> Dashboard
+ </a>
+ <div class="nav-label" style="margin-top:16px">Gestion</div>
+ <a href="{{ path('admin_voyage_index') }}"
+ class="nav-item {{ app.request.get('_route') starts with 'admin_voyage' ? 'active' }}">
+ <i class="fas fa-plane nav-icon"></i> Voyages
+ </a>
+ <a href="{{ path('admin_destination_index') }}"
+ class="nav-item {{ app.request.get('_route') starts with 'admin_destination' ? 'active' }}">
+ <i class="fas fa-map-marker-alt nav-icon"></i> Destinations
+ </a>
+ </nav>
+ <div class="sidebar-footer">
+ <a href="{{ path('app_home') }}"
+ style="color:var(--text-secondary);font-size:13px;display:flex;
+ align-items:center;gap:8px;text-decoration:none;margin-bottom:12px">
+ <i class="fas fa-arrow-left"></i> Retour au site
+ </a>
+ <div class="theme-toggle">
+ <div class="theme-toggle-label">
+ <i class="fas fa-sun"></i> Light Mode
+ </div>
+ <div class="theme-switch" id="themeSwitch"></div>
+ </div>
+ </div>
+ </aside>
+ <main class="main-content">
+ {% for msg in app.flashes('success') %}
+ <div style="background:#2a4a2a;border:1px solid var(--gain);color:var(--gain);
+ padding:12px 16px;border-radius:8px;margin-bottom:16px">
+ <i class="fas fa-check-circle"></i> {{ msg }}
+ </div>
+ {% endfor %}
+ {% block body %}{% endblock %}
+ <footer class="copyright">Copyright 2026 AfterTravel Admin Panel</footer>
+ </main>
+ </div>
+ <script src="/js/templatemo-crypto-script.js"></script>
+{% block javascripts %}{% endblock %}
+</body>
+</html>
