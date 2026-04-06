@@ -100,14 +100,18 @@
     </div>
 
     <!-- Liste Catégories -->
-    {# Dans dashboard.html.twig — la liste des catégories #}
-    {% for cat in categories %}
-    <div class="cat-item"
-        onclick="selectCategorie({{ cat.idCategorie }}, '{{ cat.libelle|e('html_attr') }}', '{{ csrf_token('delete' ~ cat.idCategorie) }}')"
-        style="padding: 10px 15px; cursor: pointer; border-bottom: 1px solid #f0f0f0; background: white; color: #1a2744;">
-        {{ cat.libelle }}
-    </div>
-    {% endfor %}
+    <div style="border:2px solid #e2e8f0; border-radius:12px; overflow:hidden;">
+        {% for cat in categories %}
+        <div class="cat-item"
+            data-id="{{ cat.idCategorie }}"
+            data-nom="{{ cat.libelle|e('html_attr') }}"
+            data-token="{{ csrf_token('delete' ~ cat.idCategorie) }}"
+            style="padding:12px 20px; border-bottom:1px solid #e2e8f0; cursor:pointer; color:#1a2744; font-weight:500; font-size:14px; background:white;"
+            onmouseover="this.style.background='#dbeafe'; this.style.color='#2563eb';"
+            onmouseout="if(!this.classList.contains('selected')){this.style.background='white'; this.style.color='#1a2744';}">
+            {{ cat.libelle }}
+        </div>
+        {% endfor %}
     </div>
 
     <!-- Bouton Supprimer Expirés -->
@@ -174,56 +178,54 @@
 {{ parent() }}
 <script>
     // ===== Variables =====
+// ===== Variables =====
     let selectedCategorieId  = null;
     let selectedCategorieNom = null;
     let selectedToken        = null;
 
-    function selectCategorie(id, nom, token) {
-        selectedCategorieId  = id;
-        selectedCategorieNom = nom;
-        selectedToken        = token;
-        document.getElementById('categorieInput').value = nom;
+    // ===== Sélection via data attributes =====
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.cat-item').forEach(item => {
+            item.addEventListener('click', function() {
+                selectedCategorieId  = this.dataset.id;
+                selectedCategorieNom = this.dataset.nom;
+                selectedToken        = this.dataset.token;
+                document.getElementById('categorieInput').value = selectedCategorieNom;
 
-        document.querySelectorAll('.cat-item').forEach(el => {
-            el.style.background = 'white';
-            el.style.color      = '#1a2744';
+                document.querySelectorAll('.cat-item').forEach(el => {
+                    el.style.background = 'white';
+                    el.style.color = '#1a2744';
+                    el.classList.remove('selected');
+                });
+                this.style.background = '#dbeafe';
+                this.style.color = '#2563eb';
+                this.classList.add('selected');
+            });
         });
-        event.currentTarget.style.background = '#dbeafe';
-        event.currentTarget.style.color      = '#2563eb';
-    }
+    });
 
     function modifierCategorie() {
-        if (!selectedCategorieId) {
-            alert('⚠️ Sélectionnez une catégorie !');
-            return;
-        }
+        if (!selectedCategorieId) { alert('⚠️ Sélectionnez une catégorie !'); return; }
         window.location.href = '/categorie/document/' + selectedCategorieId + '/edit';
     }
 
     function supprimerCategorie() {
-        if (!selectedCategorieId) {
-            alert('⚠️ Sélectionnez d\'abord une catégorie !');
-            return;
-        }
+        if (!selectedCategorieId) { alert('⚠️ Sélectionnez une catégorie !'); return; }
         if (!confirm('Supprimer "' + selectedCategorieNom + '" ?')) return;
-
-        const form        = document.createElement('form');
-        form.method       = 'POST';
-        form.action       = '/categorie/document/' + selectedCategorieId;
-
-        const tokenInput  = document.createElement('input');
-        tokenInput.type   = 'hidden';
-        tokenInput.name   = '_token';
-        tokenInput.value  = selectedToken; // ← token dynamique correct
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/categorie/document/' + selectedCategorieId;
+        const tokenInput = document.createElement('input');
+        tokenInput.type = 'hidden';
+        tokenInput.name = '_token';
+        tokenInput.value = selectedToken;
         form.appendChild(tokenInput);
-
         document.body.appendChild(form);
         form.submit();
     }
 
     // Auto-refresh 30s
     setTimeout(() => window.location.reload(), 30000);
-
     // ===== PieChart =====
     const pieCtx = document.getElementById('pieChart').getContext('2d');
     new Chart(pieCtx, {
