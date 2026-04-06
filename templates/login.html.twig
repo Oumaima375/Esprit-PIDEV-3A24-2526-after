@@ -1,118 +1,189 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="fr" data-theme="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - CryptoVault</title>
+    <title>Connexion — After Travel</title>
     <script>
-        // Load theme immediately to prevent flash
         (function() {
-            const savedTheme = localStorage.getItem('theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', savedTheme);
+            const t = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', t);
         })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/templatemo-crypto-style.css">
-    <link rel="stylesheet" href="css/templatemo-crypto-login.css">
-    <!--
+    <link rel="stylesheet" href="{{ asset('css/templatemo-crypto-style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/templatemo-crypto-login.css') }}">
+    <style>
+        /* ── Flash messages ── */
+        .auth-flash {
+            padding: 12px 16px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            font-size: 13.5px;
+            border: 1px solid transparent;
+            line-height: 1.5;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        .auth-flash::before {
+            content: '';
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            margin-top: 1px;
+        }
+        [data-theme="dark"] .auth-flash.error   { background: rgba(194,120,120,.15); color: #fecaca; border-color: rgba(248,113,113,.35); }
+        [data-theme="dark"] .auth-flash.success  { background: rgba(107,142,107,.15); color: #bbf7d0; border-color: rgba(74,222,128,.30); }
+        [data-theme="dark"] .auth-flash.info     { background: rgba(184,115,51,.12);  color: #e8b88a;  border-color: rgba(184,115,51,.32); }
+        [data-theme="light"] .auth-flash.error   { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        [data-theme="light"] .auth-flash.success { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+        [data-theme="light"] .auth-flash.info    { background: #fffbeb; color: #92400e; border-color: #fde68a; }
 
-TemplateMo 609 Crypto Vault
+        /* ── Account-type info strip ── */
+        .account-type-info {
+            font-size: 12.5px;
+            line-height: 1.55;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin-bottom: 14px;
+        }
+        [data-theme="dark"]  .account-type-info { background: rgba(255,255,255,.05); color: var(--text-muted, #8a9ab5); border: 1px solid rgba(255,255,255,.08); }
+        [data-theme="light"] .account-type-info { background: rgba(0,0,0,.03);       color: #64748b;                    border: 1px solid rgba(0,0,0,.08); }
 
-https://templatemo.com/tm-609-crypto-vault
-
--->
+        /* ── Photo upload button row ── */
+        .photo-upload-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+        }
+        .photo-label-text {
+            font-size: 13px;
+            color: var(--text-muted, #8a9ab5);
+            font-style: italic;
+        }
+    </style>
 </head>
 <body class="auth-page">
-    <!-- Left Side - Branding -->
+
+    <!-- ════════════════════════════════════
+         LEFT BRANDING PANEL
+    ════════════════════════════════════ -->
     <div class="auth-branding">
         <div class="branding-content">
-            <div class="branding-logo">CV</div>
-            <h1 class="branding-title">CryptoVault</h1>
-            <p class="branding-subtitle">Your secure gateway to the world of cryptocurrency trading and portfolio management</p>
-            
-            <div class="branding-features">
-                <div class="branding-feature">
-                    <div class="feature-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2">
-                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
-                    </div>
-                    Bank-grade security with 2FA protection
+            <div class="logo-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                    <path d="M2 17l10 5 10-5"/>
+                    <path d="M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <h1>After Travel</h1>
+            <p class="tagline">Centralisez vos voyages, réservations et documents au même endroit.</p>
+            <div class="features-list">
+                <div class="feature-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                    </svg>
                 </div>
-                <div class="branding-feature">
-                    <div class="feature-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2">
-                            <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
-                        </svg>
-                    </div>
-                    Real-time market data and analytics
+                <div class="feature-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="11" width="18" height="11" rx="2"/>
+                        <path d="M7 11V7a5 5 0 0110 0v4"/>
+                    </svg>
+                    <span>Réinitialisation du mot de passe par e-mail.</span>
                 </div>
-                <div class="branding-feature">
-                    <div class="feature-icon">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2">
-                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
-                            <line x1="1" y1="10" x2="23" y2="10"/>
-                        </svg>
-                    </div>
-                    Multi-wallet support with staking rewards
+                <div class="feature-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <span>Espace dédié voyageurs et administrateurs.</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Side - Form -->
+    <!-- ════════════════════════════════════
+         RIGHT FORM PANEL
+    ════════════════════════════════════ -->
     <div class="auth-form-container">
-        <button class="theme-toggle-btn" id="themeToggle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+
+        <!-- Theme toggle -->
+        <button type="button" class="theme-toggle-btn" id="themeToggle" aria-label="Changer le thème">
+            <svg class="sun-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                <line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+            </svg>
+            <svg class="moon-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/>
             </svg>
         </button>
 
         <div class="auth-form-wrapper">
+
+            <!-- Flash messages -->
+            {% for label, messages in app.flashes %}
+                {% for message in messages %}
+                    <div class="auth-flash {{ label }}">{{ message }}</div>
+                {% endfor %}
+            {% endfor %}
+            {% if error is defined and error %}
+                <div class="auth-flash error" role="alert">
+                    {{ error.messageKey|trans(error.messageData, 'security') }}
+                </div>
+            {% endif %}
+
+            <!-- Header -->
             <div class="form-header">
-                <h1>Welcome Back</h1>
-                <p>Enter your credentials to access your account</p>
+                <h1>Connexion</h1>
+                <p>Accédez à votre espace After Travel</p>
             </div>
 
-            <!-- Tab Switcher -->
+            <!-- Tabs -->
             <div class="auth-tabs">
-                <button class="auth-tab active" data-form="login">Sign In</button>
-                <button class="auth-tab" data-form="register">Sign Up</button>
+                <button type="button" class="auth-tab active" data-form="login">Connexion</button>
+                <button type="button" class="auth-tab" data-form="register">Inscription</button>
             </div>
 
-            <!-- Login Form -->
-            <form class="auth-form active" id="loginForm" novalidate>
+            <!-- ── LOGIN FORM ── -->
+            <form id="loginForm" class="auth-form active" method="post" action="{{ path('app_login') }}" novalidate>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+
                 <div class="form-group" data-field-wrap>
-                    <label class="form-label">Email Address</label>
+                    <label class="form-label" for="inputUsername">Email</label>
                     <div class="form-input-wrapper">
-                        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
                             <polyline points="22,6 12,13 2,6"/>
                         </svg>
-                        <input type="email" name="login_email" class="form-input" placeholder="Enter your email" autocomplete="username">
+                        <input class="form-input" type="email" name="_username" id="inputUsername"
+                               value="{{ last_username|default('') }}"
+                               placeholder="vous@exemple.com"
+                               autocomplete="username" required>
                     </div>
                 </div>
 
                 <div class="form-group" data-field-wrap>
-                    <label class="form-label">Password</label>
+                    <label class="form-label" for="loginPassword">Mot de passe</label>
                     <div class="form-input-wrapper">
-                        <svg class="input-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <svg class="input-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                             <path d="M7 11V7a5 5 0 0110 0v4"/>
                         </svg>
-                        <input type="password" name="login_password" class="form-input" id="loginPassword" placeholder="Enter your password" autocomplete="current-password">
-                        <button type="button" class="password-toggle" data-target="loginPassword">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <input class="form-input" type="password" name="_password" id="loginPassword"
+                               placeholder="••••••••" autocomplete="current-password" required>
+                        <button type="button" class="password-toggle" data-target="loginPassword"
+                                tabindex="-1" aria-label="Afficher le mot de passe">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                                 <circle cx="12" cy="12" r="3"/>
                             </svg>
@@ -120,29 +191,21 @@ https://templatemo.com/tm-609-crypto-vault
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="checkbox-wrapper" id="rememberMe">
-                        <div class="checkbox">
-                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="3">
-                                <polyline points="20 6 9 17 4 12"/>
-                            </svg>
-                        </div>
-                        <span class="checkbox-label">Remember me</span>
-                    </div>
-                    <a href="#" class="forgot-link">Forgot password?</a>
+                <div class="form-options">
+                    <a href="{{ path('app_forgot_password_request') }}" class="forgot-password">Mot de passe oublié ?</a>
                 </div>
 
-                <button type="submit" class="submit-btn">Sign In</button>
+                <button type="submit" class="btn primary btn-full">Se connecter</button>
 
                 <div class="divider">
-                    <div class="divider-line"></div>
-                    <span class="divider-text">or continue with</span>
-                    <div class="divider-line"></div>
+                    <span class="divider-line"></span>
+                    <span class="divider-text">ou avec</span>
+                    <span class="divider-line"></span>
                 </div>
 
                 <div class="social-buttons">
-                    <button type="button" class="social-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24">
+                    <button type="button" class="social-btn" title="Connexion Google (bientôt disponible)" aria-disabled="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
                             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
                             <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
                             <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
@@ -150,110 +213,105 @@ https://templatemo.com/tm-609-crypto-vault
                         </svg>
                         Google
                     </button>
-                    <button type="button" class="social-btn">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                            <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                    <button type="button" class="social-btn" title="Connexion Apple (bientôt disponible)" aria-disabled="true">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                            <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
                         </svg>
                         Apple
                     </button>
                 </div>
 
-                <p class="form-footer">
-                    Don't have an account? <a href="#" id="switchToRegister">Sign up for free</a>
-                </p>
+                <div class="auth-switch">
+                    <h5 class="form-label">Pas encore de compte ? <a href="#" id="switchToRegister">S'inscrire</a></h5>
+                </div>
             </form>
 
-            <!-- Register Form -->
-<form class="auth-form" id="registerForm" novalidate>
+            <!-- ── REGISTER FORM ── -->
+            <form id="registerForm" class="auth-form" method="post"
+                  action="{{ path('app_register') }}" enctype="multipart/form-data" novalidate>
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('register') }}">
 
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Prénom *</label>
-        <div class="form-input-wrapper">
-            <input type="text" name="register_prenom" class="form-input" placeholder="Sophie" style="padding-left:18px;">
-        </div>
-    </div>
-
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Nom *</label>
-        <div class="form-input-wrapper">
-            <input type="text" name="register_nom" class="form-input" placeholder="Martin" style="padding-left:18px;">
-        </div>
-    </div>
-
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Email *</label>
-        <div class="form-input-wrapper">
-            <input type="email" name="register_email" class="form-input" placeholder="votre@email.com" style="padding-left:18px;">
-        </div>
-    </div>
-
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Mot de passe *</label>
-        <div class="form-input-wrapper">
-            <input type="password" name="register_password" class="form-input" id="registerPassword" placeholder="Au moins 8 caractères..." style="padding-left:18px;">
-            <button type="button" class="password-toggle" data-target="registerPassword">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                </svg>
-            </button>
-        </div>
-    </div>
-
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Téléphone (optionnel)</label>
-        <div class="form-input-wrapper">
-            <input type="tel" name="register_telephone" class="form-input" placeholder="+216 ..." style="padding-left:18px;">
-        </div>
-    </div>
-
-    <p class="account-type-info">Type de compte : Voyageur (automatique)</p>
-
-    <div class="form-group" data-field-wrap>
-        <label class="form-label">Photo de profil (optionnelle)</label>
-        <div class="photo-upload-row">
-            <button type="button" class="photo-upload-btn" onclick="document.getElementById('profilePhoto').click()">Choisir une photo</button>
-            <span class="photo-upload-label" id="photoLabel">Aucune sélectionnée</span>
-            <input type="file" name="register_photo" id="profilePhoto" accept="image/jpeg,image/png,image/webp,image/gif" style="display:none;" onchange="document.getElementById('photoLabel').textContent = this.files[0]?.name || 'Aucune sélectionnée'">
-        </div>
-    </div>
-
-    <button type="submit" class="submit-btn">Créer mon compte</button>
-
-    <p class="form-footer">
-        Déjà un compte ? <a href="#" id="switchToLogin">Se connecter</a>
-    </p>
-</form>
-
-            <!-- Success Message -->
-            <div class="success-message" id="successMessage">
-                <div class="success-icon">
-                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#1c1c1e" stroke-width="2">
-                        <polyline points="20 6 9 17 4 12"/>
-                    </svg>
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Prénom *</label>
+                    <div class="form-input-wrapper">
+                        <input class="form-input" type="text" name="register_prenom"
+                               placeholder="Prénom" autocomplete="given-name" required>
+                    </div>
                 </div>
-                <h2>Account Created!</h2>
-                <p>Check your email to verify your account and get started with CryptoVault.</p>
-                <button class="submit-btn" onclick="window.location.href='index.html'">Go to Dashboard</button>
-            </div>
-        </div>
 
-        <p class="copyright">
-            Copyright &copy; 2026 CryptoVault. Designed by <a href="https://templatemo.com" target="_blank" rel="nofollow">TemplateMo</a>
-        </p>
-    </div>
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Nom *</label>
+                    <div class="form-input-wrapper">
+                        <input class="form-input" type="text" name="register_nom"
+                               placeholder="Nom" autocomplete="family-name" required>
+                    </div>
+                </div>
 
-    <script src="js/form-validation.js"></script>
-    <script src="js/templatemo-crypto-script.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            var lf = document.getElementById('loginForm');
-            var rf = document.getElementById('registerForm');
-            if (window.AppFormValidation) {
-                if (lf) AppFormValidation.attachClearOnInput(lf);
-                if (rf) AppFormValidation.attachClearOnInput(rf);
-            }
-        });
-    </script>
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Email *</label>
+                    <div class="form-input-wrapper">
+                        <input class="form-input" type="email" name="register_email"
+                               placeholder="email@exemple.com" autocomplete="email" required>
+                    </div>
+                </div>
+
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Mot de passe *</label>
+                    <div class="form-input-wrapper">
+                        <input class="form-input" type="password" name="register_password"
+                               id="registerPassword" placeholder="Au moins 8 caractères"
+                               autocomplete="new-password" required>
+                        <button type="button" class="password-toggle" data-target="registerPassword"
+                                tabindex="-1" aria-label="Afficher le mot de passe">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Téléphone <span style="opacity:.6;font-weight:400">(optionnel)</span></label>
+                    <div class="form-input-wrapper">
+                        <input class="form-input" type="tel" name="register_telephone"
+                               placeholder="+33 6 00 00 00 00" autocomplete="tel">
+                    </div>
+                </div>
+
+                <p class="account-type-info">
+                    ℹ️ Inscription en tant que <strong>voyageur</strong> — vous pourrez vous connecter immédiatement après la création de votre compte.
+                </p>
+
+                <div class="form-group" data-field-wrap>
+                    <label class="form-label">Photo de profil <span style="opacity:.6;font-weight:400">(optionnel)</span></label>
+                    <div class="photo-upload-row">
+                        <button type="button" class="btn secondary"
+                                style="padding:8px 14px;font-size:13px;"
+                                onclick="document.getElementById('profilePhoto').click()">
+                            Choisir un fichier
+                        </button>
+                        <span id="photoLabel" class="photo-label-text">Aucune photo sélectionnée</span>
+                        <input type="file" name="register_photo" id="profilePhoto"
+                               accept="image/jpeg,image/png,image/webp,image/gif"
+                               style="display:none;"
+                               onchange="document.getElementById('photoLabel').textContent = this.files[0] ? this.files[0].name : 'Aucune photo sélectionnée'">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn primary btn-full">Créer mon compte</button>
+
+                <div class="auth-switch">
+                    <p>Déjà inscrit ? <a href="#" id="switchToLogin">Se connecter</a></p>
+                </div>
+            </form>
+
+        </div><!-- /.auth-form-wrapper -->
+
+        <p class="copyright">© 2026 After Travel · Gabarit <a href="https://templatemo.com" target="_blank" rel="nofollow">TemplateMo</a></p>
+    </div><!-- /.auth-form-container -->
+
+    <script src="{{ asset('js/form-validation.js') }}"></script>
+    <script src="{{ asset('js/templatemo-crypto-script.js') }}"></script>
 </body>
 </html>

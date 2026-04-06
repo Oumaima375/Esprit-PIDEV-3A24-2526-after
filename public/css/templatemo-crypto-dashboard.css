@@ -128,6 +128,103 @@ body {
 .logout-btn:hover { background: #2f4ac9 !important; }
 .logout-btn svg   { stroke: #ffffff !important; }
 
+.sidebar-user-block {
+    padding: 8px 16px 14px;
+}
+
+.sidebar-user-panel {
+    padding: 14px 16px 16px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.07);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.14);
+}
+
+.sidebar-user-label {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.48);
+    margin-bottom: 10px;
+}
+
+.sidebar-user-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+    margin-bottom: 6px;
+    letter-spacing: -0.02em;
+}
+
+.sidebar-user-email {
+    font-size: 12.5px;
+    line-height: 1.45;
+    color: rgba(199, 215, 255, 0.95);
+    overflow-wrap: anywhere;
+    word-break: normal;
+    max-height: 3.6em;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.sidebar-role-pill {
+    display: inline-block;
+    margin-top: 12px;
+    padding: 5px 11px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+}
+
+.sidebar-role-pill--admin {
+    background: rgba(147, 197, 253, 0.22);
+    color: #e8f0ff;
+    border: 1px solid rgba(147, 197, 253, 0.35);
+}
+
+.sidebar-role-pill--voyageur {
+    background: rgba(167, 243, 208, 0.16);
+    color: #d1fae5;
+    border: 1px solid rgba(167, 243, 208, 0.28);
+}
+
+.sidebar-logout-wrap {
+    padding: 0 20px 16px;
+}
+
+.sidebar-logout-link {
+    width: 100%;
+    box-sizing: border-box;
+    background: rgba(239, 68, 68, 0.18);
+    color: #fecaca;
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-weight: 600;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    transition: background 0.2s, color 0.2s;
+}
+
+.sidebar-logout-link:hover {
+    background: rgba(239, 68, 68, 0.28);
+    color: #ffffff;
+}
+
+.sidebar-logout-link .nav-icon {
+    stroke: currentColor;
+}
+
 /* ========================================
    MAIN CONTENT — push right by sidebar width
 ======================================== */
@@ -140,6 +237,21 @@ body {
     box-sizing: border-box;
     width: calc(100% - 230px) !important;
     overflow-x: hidden;
+}
+
+.main-content .copyright {
+    color: #6b7280 !important;
+    border-top: 1px solid rgba(26, 43, 94, 0.1) !important;
+    margin-top: 48px !important;
+}
+
+.main-content .copyright a {
+    color: #3b5bdb !important;
+    font-weight: 600;
+}
+
+.main-content .copyright a:hover {
+    color: #2f4ac9 !important;
 }
 
 /* ========================================

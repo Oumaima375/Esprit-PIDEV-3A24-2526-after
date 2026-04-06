@@ -320,15 +320,15 @@ https://templatemo.com/tm-609-crypto-vault
                     if (loginForm) loginForm.classList.add('active');
                     if (registerForm) registerForm.classList.remove('active');
                     if (formHeader) {
-                        formHeader.querySelector('h1').textContent = 'Welcome Back';
-                        formHeader.querySelector('p').textContent = 'Enter your credentials to access your account';
+                        formHeader.querySelector('h1').textContent = 'Connexion';
+                        formHeader.querySelector('p').textContent = 'Accédez à votre espace After Travel';
                     }
                 } else {
                     if (registerForm) registerForm.classList.add('active');
                     if (loginForm) loginForm.classList.remove('active');
                     if (formHeader) {
-                        formHeader.querySelector('h1').textContent = 'Create Account';
-                        formHeader.querySelector('p').textContent = 'Start your crypto journey today';
+                        formHeader.querySelector('h1').textContent = 'Inscription';
+                        formHeader.querySelector('p').textContent = 'Créez votre compte voyageur After Travel';
                     }
                 }
             });
@@ -436,32 +436,14 @@ initDeleteModal();
             loginForm.addEventListener('submit', function(e) {
                 if (window.AppFormValidation && !AppFormValidation.validateLoginForm(loginForm)) {
                     e.preventDefault();
-                    return;
                 }
-                e.preventDefault();
-                window.location.href = 'index.html';
             });
         }
 
         if (registerForm) {
             registerForm.addEventListener('submit', function(e) {
-                e.preventDefault();
                 if (window.AppFormValidation && !AppFormValidation.validateRegisterForm(registerForm)) {
-                    return;
-                }
-
-                const successMessage = document.getElementById('successMessage');
-                const formHeader = document.querySelector('.form-header');
-                const authTabs = document.querySelector('.auth-tabs');
-                
-                if (successMessage) {
-                    registerForm.style.display = 'none';
-                    if (authTabs) authTabs.style.display = 'none';
-                    successMessage.classList.add('active');
-                    if (formHeader) {
-                        formHeader.querySelector('h1').textContent = 'Success!';
-                        formHeader.querySelector('p').textContent = '';
-                    }
+                    e.preventDefault();
                 }
             });
         }

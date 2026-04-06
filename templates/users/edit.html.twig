@@ -1,91 +1,108 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Modifier l'utilisateur{% endblock %}
+{% block title %}Modifier l’utilisateur — After Travel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .standalone-flash { margin: 0 0 20px; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 14px; border: 1px solid transparent; max-width: 640px; }
+        .standalone-flash.flash-success { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+        .standalone-flash.flash-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .standalone-flash.flash-info, .standalone-flash.flash-notice { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+        .standalone-form-card { background: #ffffff; border-radius: 16px; padding: 32px 36px; max-width: 640px; box-shadow: 0 2px 16px rgba(26, 43, 94, 0.07); border: 1px solid rgba(26, 43, 94, 0.08); }
+        .standalone-form-card .modal-form-group { margin-bottom: 0; }
+        .standalone-form-card .modal-label { display: block; font-weight: 600; font-size: 14px; color: #374151; margin-bottom: 6px; }
+        .standalone-form-card .modal-input, .standalone-form-card .modal-select { width: 100%; padding: 10px 12px; border: 1.5px solid #e2e5f0; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1a2b5e; background: #f8f9fc; box-sizing: border-box; }
+        .standalone-form-card .modal-input:focus, .standalone-form-card .modal-select:focus { outline: none; border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12); }
+        .standalone-form-actions { display: flex; gap: 12px; margin-top: 28px; justify-content: flex-end; flex-wrap: wrap; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+        .standalone-form-actions .modal-btn-cancel { text-decoration: none; padding: 10px 22px; border-radius: 10px; font-weight: 600; font-size: 15px; font-family: inherit; background: #6b7280; color: #ffffff; display: inline-flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .standalone-form-actions .modal-btn-cancel:hover { background: #4b5563; color: #ffffff; }
+        .standalone-form-actions .modal-btn-confirm { padding: 10px 22px; border-radius: 10px; font-weight: 600; font-size: 15px; font-family: inherit; background: #3b5bdb; color: #ffffff; border: none; cursor: pointer; transition: background 0.2s; }
+        .standalone-form-actions .modal-btn-confirm:hover { background: #2f4ac9; }
+        .standalone-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        @media (max-width: 600px) {
+            .standalone-form-grid { grid-template-columns: 1fr; }
+            .standalone-form-grid .modal-form-group[style*="span 2"] { grid-column: span 1 !important; }
+        }
+    </style>
+{% endblock %}
 
 {% block body %}
 {% for label, messages in app.flashes %}
     {% for message in messages %}
-        <div class="flash flash-{{ label }}" style="margin:12px auto; max-width:600px; padding:12px 16px; border-radius:8px; font-weight:600; {% if label == 'success' %}background:#d4edda;color:#155724;{% elseif label == 'error' %}background:#f8d7da;color:#721c24;{% else %}background:#e2e3e5;color:#383d41;{% endif %}">
-            {{ message }}
-        </div>
+        <div class="standalone-flash flash-{{ label }}">{{ message }}</div>
     {% endfor %}
 {% endfor %}
 
 <div class="page-header">
-    <h1>Modifier l'utilisateur</h1>
-    <p>Modifiez les informations de <strong>{{ user.nom }} {{ user.prenom }}</strong></p>
+    <h1>Modifier l’utilisateur</h1>
+    <p>Fiche de <strong>{{ user.prenom }} {{ user.nom }}</strong> — {{ user.email }}</p>
 </div>
 
 <div class="toolbar" style="margin-bottom: 24px;">
-    <a href="{{ path('app_home') }}" class="toolbar-btn reset" style="text-decoration:none;">
+    <a href="{{ path('app_dashboard') }}" class="toolbar-btn reset" style="text-decoration:none; display:inline-flex; align-items:center; gap:8px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Retour
+        Retour au tableau de bord
     </a>
 </div>
 
-<div style="background:#fff; border-radius:16px; padding:32px; max-width:600px; box-shadow:0 2px 16px rgba(26,43,94,0.07);">
-
+<div class="standalone-form-card">
     <form id="standaloneEditForm" action="{{ path('user_edit', {id: user.id}) }}" method="POST" enctype="multipart/form-data" novalidate>
         <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_edit_' ~ user.id) }}">
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:20px;">
-
+        <div class="standalone-form-grid">
             <div class="modal-form-group" data-field-wrap>
-                <label class="modal-label">Nom *</label>
-                <input type="text" name="nom" class="modal-input" value="{{ user.nom }}">
+                <label class="modal-label" for="edit_nom_standalone">Nom *</label>
+                <input type="text" id="edit_nom_standalone" name="nom" class="modal-input" value="{{ user.nom }}">
             </div>
 
             <div class="modal-form-group" data-field-wrap>
-                <label class="modal-label">Prénom *</label>
-                <input type="text" name="prenom" class="modal-input" value="{{ user.prenom }}">
+                <label class="modal-label" for="edit_prenom_standalone">Prénom *</label>
+                <input type="text" id="edit_prenom_standalone" name="prenom" class="modal-input" value="{{ user.prenom }}">
             </div>
 
             <div class="modal-form-group" style="grid-column: span 2;" data-field-wrap>
-                <label class="modal-label">Email *</label>
-                <input type="email" name="email" class="modal-input" value="{{ user.email }}">
+                <label class="modal-label" for="edit_email_standalone">Email *</label>
+                <input type="email" id="edit_email_standalone" name="email" class="modal-input" value="{{ user.email }}">
             </div>
 
             <div class="modal-form-group" data-field-wrap>
-                <label class="modal-label">Téléphone</label>
-                <input type="tel" name="telephone" class="modal-input" value="{{ user.telephone is defined and user.telephone ? user.telephone : '' }}" placeholder="Numéro de téléphone">
+                <label class="modal-label" for="edit_tel_standalone">Téléphone</label>
+                <input type="tel" id="edit_tel_standalone" name="telephone" class="modal-input" value="{{ user.telephone is defined and user.telephone ? user.telephone : '' }}" placeholder="Numéro de téléphone">
             </div>
 
             <div class="modal-form-group" data-field-wrap>
-                <label class="modal-label">Rôle</label>
-                <select name="type_utilisateur" class="modal-select">
+                <label class="modal-label" for="edit_type_standalone">Rôle</label>
+                <select id="edit_type_standalone" name="type_utilisateur" class="modal-select">
                     <option value="voyageur" {{ user.type_utilisateur|upper != 'ADMIN' ? 'selected' : '' }}>Voyageur</option>
                     <option value="admin" {{ user.type_utilisateur|upper == 'ADMIN' ? 'selected' : '' }}>Administrateur</option>
                 </select>
             </div>
 
             <div class="modal-form-group" style="grid-column: span 2;" data-field-wrap>
-                <label class="modal-label">Nouveau mot de passe <span style="color:#9ca3af; font-weight:400;">(laisser vide pour ne pas changer)</span></label>
-                <input type="password" name="password" class="modal-input" placeholder="Nouveau mot de passe" autocomplete="new-password">
+                <label class="modal-label" for="edit_pass_standalone">Nouveau mot de passe <span style="color:#9ca3af; font-weight:400;">(laisser vide pour ne pas changer)</span></label>
+                <input type="password" id="edit_pass_standalone" name="password" class="modal-input" placeholder="Nouveau mot de passe" autocomplete="new-password">
             </div>
 
             {% if user.photo_profil %}
             <div class="modal-form-group" style="grid-column: span 2;">
-                <label class="modal-label">Photo actuelle</label>
-                <img src="{{ asset('uploads/photos/' ~ user.photo_profil) }}" alt="Photo" style="width:80px; height:80px; border-radius:12px; object-fit:cover; display:block; margin-bottom:10px;" onerror="this.src='{{ asset('uploads/photos/default.png') }}'">
+                <span class="modal-label">Photo actuelle</span>
+                <img src="{{ asset('uploads/photos/' ~ user.photo_profil) }}" alt="Photo de profil" style="width:80px; height:80px; border-radius:12px; object-fit:cover; display:block; margin-top:8px; border:2px solid #e5e7eb;" onerror="this.src='{{ asset('uploads/photos/default.png') }}'">
             </div>
             {% endif %}
 
             <div class="modal-form-group" style="grid-column: span 2;" data-field-wrap>
-                <label class="modal-label">Changer la photo</label>
-                <input type="file" name="photo_profil" accept="image/jpeg,image/png,image/webp,image/gif" style="font-size:14px; color:#1a2b5e;">
+                <label class="modal-label" for="edit_photo_standalone">Changer la photo</label>
+                <input type="file" id="edit_photo_standalone" name="photo_profil" accept="image/jpeg,image/png,image/webp,image/gif" style="font-size:14px; color:#374151;">
             </div>
-
         </div>
 
-        <div style="display:flex; gap:12px; margin-top:28px; justify-content:flex-end;">
-            <a href="{{ path('app_home') }}" class="modal-btn cancel" style="text-decoration:none; padding:10px 22px;">Annuler</a>
-            <button type="submit" class="modal-btn confirm">Enregistrer les modifications</button>
+        <div class="standalone-form-actions">
+            <a href="{{ path('app_dashboard') }}" class="modal-btn-cancel">Annuler</a>
+            <button type="submit" class="modal-btn-confirm">Enregistrer les modifications</button>
         </div>
-
     </form>
-
 </div>
-
 {% endblock %}
 
 {% block javascripts %}

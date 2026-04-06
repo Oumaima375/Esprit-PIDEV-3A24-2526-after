@@ -137,6 +137,15 @@ class UsersRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function findByPasswordResetToken(string $token): ?Users
+    {
+        return $this->createQueryBuilder('u')
+            ->where('u.password_reset_token = :token')
+            ->setParameter('token', $token)
+            ->getQuery()
+            ->getOneOrNullResult();
+    }
+
     /**
      * Trouve les utilisateurs dont le token de vérification est expiré
      * et qui ne sont pas encore vérifiés.

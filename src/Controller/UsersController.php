@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\Users;
-use App\Form\UsersType;
 use App\Repository\UsersRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -14,8 +13,10 @@ use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/user')]
+#[IsGranted('ROLE_ADMIN')]
 class UsersController extends AbstractController
 {
     #[Route('/', name: 'user_index', methods: ['GET'])]
@@ -64,7 +65,7 @@ class UsersController extends AbstractController
         $user->setNom($request->request->get('nom'));
         $user->setPrenom($request->request->get('prenom'));
         $user->setEmail($request->request->get('email'));
-        $user->setTelephone($request->request->get('telephone'));
+        $user->setTelephone(trim((string) $request->request->get('telephone')) ?: '');
         $user->setTypeUtilisateur(strtoupper($request->request->get('type_utilisateur') ?? 'VOYAGEUR'));
 
         $plainPassword = $request->request->get('password');
@@ -90,7 +91,7 @@ class UsersController extends AbstractController
 
         $user->setVerificationToken(bin2hex(random_bytes(32)));
         $user->setVerificationExpiry(new \DateTime('+24 hours'));
-        $user->setIsVerified(false);
+        $user->setIsVerified(true);
 
         $em->persist($user);
         $em->flush();
@@ -151,7 +152,7 @@ class UsersController extends AbstractController
             $user->setNom($request->request->get('nom'));
             $user->setPrenom($request->request->get('prenom'));
             $user->setEmail($request->request->get('email'));
-            $user->setTelephone($request->request->get('telephone'));
+            $user->setTelephone(trim((string) $request->request->get('telephone')) ?: '');
             $user->setTypeUtilisateur(strtoupper($request->request->get('type_utilisateur') ?? 'VOYAGEUR'));
 
             $plainPassword = $request->request->get('password');
@@ -187,7 +188,7 @@ class UsersController extends AbstractController
             }
             $this->addFlash('success', 'Utilisateur modifié avec succès !');
 
-            return $this->redirectToRoute('app_home');
+            return $this->redirectToRoute('app_dashboard');
         }
 
         return $this->render('users/edit.html.twig', ['user' => $user]);
@@ -212,7 +213,7 @@ class UsersController extends AbstractController
             $this->addFlash('error', 'Token de sécurité invalide.');
         }
 
-        return $this->redirectToRoute('app_home');
+        return $this->redirectToRoute('app_dashboard');
     }
 
     private function wantsJson(Request $request): bool

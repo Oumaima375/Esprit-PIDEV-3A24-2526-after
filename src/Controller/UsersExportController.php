@@ -9,8 +9,10 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\Routing\Attribute\Route;
 use Dompdf\Dompdf;
 use Dompdf\Options;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 #[Route('/users')]
+#[IsGranted('ROLE_ADMIN')]
 class UsersExportController extends AbstractController
 {
     // ─── EXPORT CSV ──────────────────────────────────────────────────────────

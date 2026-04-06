@@ -51,6 +51,12 @@ private ?string $photo_profil = null;
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $verification_expiry;
 
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $password_reset_token = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $password_reset_expires_at = null;
+
     public function __construct()
     {
         $this->documents   = new ArrayCollection();
@@ -63,7 +69,10 @@ private ?string $photo_profil = null;
 
     public function getRoles(): array
     {
-        return ['ROLE_' . strtoupper($this->type_utilisateur)];
+        return array_unique([
+            'ROLE_USER',
+            'ROLE_' . strtoupper($this->type_utilisateur),
+        ]);
     }
 
     public function eraseCredentials(): void
@@ -246,6 +255,30 @@ private ?string $photo_profil = null;
     public function setVerificationExpiry(\DateTime $verification_expiry): static
     {
         $this->verification_expiry = $verification_expiry;
+        return $this;
+    }
+
+    public function getPasswordResetToken(): ?string
+    {
+        return $this->password_reset_token;
+    }
+
+    public function setPasswordResetToken(?string $password_reset_token): static
+    {
+        $this->password_reset_token = $password_reset_token;
+
+        return $this;
+    }
+
+    public function getPasswordResetExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->password_reset_expires_at;
+    }
+
+    public function setPasswordResetExpiresAt(?\DateTimeInterface $password_reset_expires_at): static
+    {
+        $this->password_reset_expires_at = $password_reset_expires_at;
+
         return $this;
     }
 

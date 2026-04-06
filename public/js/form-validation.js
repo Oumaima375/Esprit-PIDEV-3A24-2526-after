@@ -190,8 +190,8 @@
     function validateLoginForm(form) {
         clearFormErrors(form);
         var ok = true;
-        var email = form.querySelector('[name="login_email"]');
-        var password = form.querySelector('[name="login_password"]');
+        var email = form.querySelector('[name="_username"]');
+        var password = form.querySelector('[name="_password"]');
         if (!email || trimVal(email.value) === '') {
             showFieldError(email, 'L\'email est requis.');
             ok = false;
