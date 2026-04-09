@@ -143,6 +143,7 @@
 </a>
                         <a href="{{ path('app_voyage_edit', {'id': voyage.id_voyage}) }}"
                         
+<<<<<<< Updated upstream
    class="btn btn-outline-primary rounded-pill py-1 px-3">
     <i class="fa fa-edit"></i>
 </a>
@@ -151,6 +152,12 @@
    onclick="return confirm('Supprimer ce voyage ?')">
     <i class="fa fa-trash"></i>
 </a>
+>>>>>>> Stashed changes
+=======
+ <button class="btn btn-outline-primary rounded-pill py-1 px-3"
+            onclick="shareVoyage('{{ voyage.titre }}', '{{ voyage.description|slice(0,80) }}', '{{ voyage.prix }}')">
+        <i class="fa fa-share-alt"></i>
+    </button>
 >>>>>>> Stashed changes
                     </div>
                 </div>
@@ -230,9 +237,93 @@ function translateDesc(index, text) {
  })
  .catch(() => { btn.innerHTML = 'FR - EN'; btn.disabled = false; });
 }
+<<<<<<< Updated upstream
 </script>s
 <<<<<<< Updated upstream
 >>>>>>> Stashed changes
 =======
+>>>>>>> Stashed changes
+=======
+</script>
+<div id="shareModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;
+     background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center">
+    <div style="background:white;border-radius:16px;padding:30px;max-width:400px;width:90%;
+                box-shadow:0 20px 60px rgba(0,0,0,0.3)">
+        <h5 id="shareTitle" style="color:#13357B;margin-bottom:8px;font-size:18px">Partager</h5>
+        <p id="shareDesc" style="color:#666;font-size:13px;margin-bottom:20px"></p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+            <a id="shareFacebook" href="#" target="_blank"
+               style="background:#1877f2;color:white;padding:12px;border-radius:8px;
+                      text-align:center;text-decoration:none;font-weight:bold;font-size:13px">
+                <i class="fab fa-facebook-f me-2"></i>Facebook
+            </a>
+            <a id="shareTwitter" href="#" target="_blank"
+               style="background:#1da1f2;color:white;padding:12px;border-radius:8px;
+                      text-align:center;text-decoration:none;font-weight:bold;font-size:13px">
+                <i class="fab fa-twitter me-2"></i>Twitter
+            </a>
+            <a id="shareWhatsapp" href="#" target="_blank"
+               style="background:#25d366;color:white;padding:12px;border-radius:8px;
+                      text-align:center;text-decoration:none;font-weight:bold;font-size:13px">
+                <i class="fab fa-whatsapp me-2"></i>WhatsApp
+            </a>
+            <a id="shareLinkedin" href="#" target="_blank"
+               style="background:#0077b5;color:white;padding:12px;border-radius:8px;
+                      text-align:center;text-decoration:none;font-weight:bold;font-size:13px">
+                <i class="fab fa-linkedin-in me-2"></i>LinkedIn
+            </a>
+        </div>
+        <div style="display:flex;gap:8px;margin-bottom:16px">
+            <input id="shareUrl" type="text" readonly
+                   style="flex:1;padding:8px 12px;border:1px solid #ddd;border-radius:6px;
+                          font-size:12px;color:#666">
+            <button onclick="copyShareUrl()"
+                    style="background:#13357B;color:white;border:none;padding:8px 16px;
+                           border-radius:6px;cursor:pointer;font-size:12px">
+                Copier
+            </button>
+        </div>
+        <button onclick="closeShareModal()"
+                style="width:100%;background:#f0f0f0;border:none;padding:10px;
+                       border-radius:8px;cursor:pointer;font-size:14px;color:#666">
+            Fermer
+        </button>
+    </div>
+</div>
+<script>
+function shareVoyage(titre, description, prix) {
+    const url = window.location.origin + '/voyage';
+    const text = 'Decouvrez le voyage : ' + titre + ' - ' + prix + ' TND ! ' + description;
+    document.getElementById('shareTitle').textContent = 'Partager : ' + titre;
+    document.getElementById('shareDesc').textContent = description + ' - ' + prix + ' TND';
+    document.getElementById('shareUrl').value = url;
+    document.getElementById('shareFacebook').href =
+        'https://www.facebook.com/sharer/sharer.php?u=' + encodeURIComponent(url) +
+        '&quote=' + encodeURIComponent(text);
+    document.getElementById('shareTwitter').href =
+        'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text) +
+        '&url=' + encodeURIComponent(url);
+    document.getElementById('shareWhatsapp').href =
+        'https://wa.me/?text=' + encodeURIComponent(text + ' ' + url);
+    document.getElementById('shareLinkedin').href =
+        'https://www.linkedin.com/sharing/share-offsite/?url=' + encodeURIComponent(url);
+    const modal = document.getElementById('shareModal');
+    modal.style.display = 'flex';
+}
+function closeShareModal() {
+    document.getElementById('shareModal').style.display = 'none';
+}
+function copyShareUrl() {
+    const input = document.getElementById('shareUrl');
+    input.select();
+    document.execCommand('copy');
+    alert('Lien copie !');
+}
+// Fermer en cliquant dehors
+document.getElementById('shareModal').addEventListener('click', function(e) {
+    if (e.target === this) closeShareModal();
+});
+</script>
+
 >>>>>>> Stashed changes
 {% endblock %}
