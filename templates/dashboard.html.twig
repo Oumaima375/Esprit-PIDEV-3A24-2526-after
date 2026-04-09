@@ -1,0 +1,281 @@
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}After Travel{% endblock %}</title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('css/templatemo-crypto-style.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/templatemo-crypto-dashboard.css') }}">
+    {% block stylesheets %}{% endblock %}
+
+    <style>
+        /* ════════════════════════════════════════════
+           SIDEBAR USER CARD — polished redesign
+        ════════════════════════════════════════════ */
+        .sidebar-user-block {
+            padding: 0 14px 6px;
+        }
+
+        .sidebar-user-card {
+            border-radius: 14px;
+            padding: 14px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: background 0.2s;
+        }
+
+        [data-theme="dark"]  .sidebar-user-card { background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.08); }
+        [data-theme="light"] .sidebar-user-card { background: rgba(0,0,0,.04);       border: 1px solid rgba(0,0,0,.08); }
+
+        /* Avatar circle with initials */
+        .sidebar-user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: .5px;
+            flex-shrink: 0;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #c2855a 0%, #e0a876 100%);
+            color: #fff;
+        }
+
+        /* Admin avatar gets a distinct color */
+        .sidebar-user-avatar--admin {
+            background: linear-gradient(135deg, #5a7ec2 0%, #76a0e0 100%);
+        }
+
+        .sidebar-user-info {
+            flex: 1;
+            min-width: 0;        /* allow text-overflow to work */
+        }
+
+        .sidebar-user-name {
+            font-size: 14px;
+            font-weight: 600;
+            line-height: 1.3;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        [data-theme="dark"]  .sidebar-user-name { color: #e8eaf0; }
+        [data-theme="light"] .sidebar-user-name { color: #1a202c; }
+
+        .sidebar-user-email {
+            font-size: 11.5px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 2px;
+        }
+        [data-theme="dark"]  .sidebar-user-email { color: rgba(255,255,255,.42); }
+        [data-theme="light"] .sidebar-user-email { color: rgba(0,0,0,.45); }
+
+        /* Role badge */
+        .sidebar-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 5px;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .3px;
+            width: fit-content;
+        }
+
+        .sidebar-role-badge::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        /* Voyageur — warm amber/copper */
+        .sidebar-role-badge--voyageur {
+            background: rgba(194, 133, 90, 0.18);
+            color: #e0a876;
+            border: 1px solid rgba(194, 133, 90, 0.35);
+        }
+        .sidebar-role-badge--voyageur::before { background: #c2855a; }
+
+        /* Admin — cool blue */
+        .sidebar-role-badge--admin {
+            background: rgba(90, 126, 194, 0.18);
+            color: #76a0e0;
+            border: 1px solid rgba(90, 126, 194, 0.35);
+        }
+        .sidebar-role-badge--admin::before { background: #5a7ec2; }
+
+        [data-theme="light"] .sidebar-role-badge--voyageur {
+            background: rgba(194, 133, 90, 0.12);
+            color: #92400e;
+            border-color: rgba(194, 133, 90, 0.28);
+        }
+        [data-theme="light"] .sidebar-role-badge--admin {
+            background: rgba(90, 126, 194, 0.10);
+            color: #1e3a8a;
+            border-color: rgba(90, 126, 194, 0.28);
+        }
+    </style>
+</head>
+<body>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Ouvrir le menu">
+        <div class="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </button>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard">
+
+        <aside class="sidebar" id="sidebar">
+
+            <!-- Logo -->
+            <div class="logo">
+                <div class="logo-icon">AT</div>
+                <span class="logo-text">After Travel</span>
+            </div>
+
+            <!-- Navigation -->
+            <nav class="nav-section">
+                <div class="nav-label">Menu</div>
+
+                <a href="{{ path('app_dashboard') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_dashboard' ? 'active' }}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3"  y="3"  width="7" height="7" rx="1"/>
+                        <rect x="14" y="3"  width="7" height="7" rx="1"/>
+                        <rect x="3"  y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Tableau de bord
+                </a>
+
+                <a href="{{ path('app_profile') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_profile' ? 'active' }}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    Mon profil
+                </a>
+
+                {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('users_export_csv') }}" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="7 10 12 15 17 10"/>
+                        <line x1="12" y1="15" x2="12" y2="3"/>
+                    </svg>
+                    Export CSV
+                </a>
+                <a href="{{ path('users_export_pdf') }}" class="nav-item">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                    </svg>
+                    Export PDF
+                </a>
+                {% endif %}
+            </nav>
+
+            <!-- ── USER CARD ── -->
+            {% if app.user %}
+                {% set isAdmin = app.user.type_utilisateur|upper == 'ADMIN' %}
+                {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+
+                <div class="sidebar-user-block">
+                    <div class="sidebar-user-card">
+
+                        <div class="sidebar-user-avatar {{ isAdmin ? 'sidebar-user-avatar--admin' : '' }}">
+                            {{ initials }}
+                        </div>
+
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-name" title="{{ app.user.prenom }} {{ app.user.nom }}">
+                                {{ app.user.prenom }} {{ app.user.nom }}
+                            </div>
+                            <div class="sidebar-user-email" title="{{ app.user.userIdentifier }}">
+                                {{ app.user.userIdentifier }}
+                            </div>
+                            <span class="sidebar-role-badge sidebar-role-badge--{{ isAdmin ? 'admin' : 'voyageur' }}">
+                                {{ isAdmin ? 'Administrateur' : 'Voyageur' }}
+                            </span>
+                        </div>
+
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Logout -->
+            <div class="sidebar-logout-wrap">
+                <a href="{{ path('_logout_main') }}" class="sidebar-logout-link">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                        <polyline points="16 17 21 12 16 7"/>
+                        <line x1="21" y1="12" x2="9" y2="12"/>
+                    </svg>
+                    Déconnexion
+                </a>
+            </div>
+
+            <!-- Theme toggle -->
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <div class="theme-toggle-label">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/>
+                            <line x1="12" y1="1"  x2="12" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="23"/>
+                            <line x1="4.22"  y1="4.22"  x2="5.64"  y2="5.64"/>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                            <line x1="1"  y1="12" x2="3"  y2="12"/>
+                            <line x1="21" y1="12" x2="23" y2="12"/>
+                            <line x1="4.22"  y1="19.78" x2="5.64"  y2="18.36"/>
+                            <line x1="18.36" y1="5.64"  x2="19.78" y2="4.22"/>
+                        </svg>
+                        Mode clair
+                    </div>
+                    <div class="theme-switch" id="themeSwitch"></div>
+                </div>
+            </div>
+
+        </aside>
+
+        <main class="main-content">
+            {% block body %}{% endblock %}
+
+            <footer class="copyright">
+                © 2026 After Travel · Gabarit <a href="https://templatemo.com" target="_blank" rel="nofollow">TemplateMo</a>
+            </footer>
+        </main>
+
+    </div><!-- /.dashboard -->
+
+    <script src="{{ asset('js/templatemo-crypto-script.js') }}"></script>
+    {% block javascripts %}{% endblock %}
+</body>
+</html>
+>>>>>>> origin/gestion_utilisateurs
