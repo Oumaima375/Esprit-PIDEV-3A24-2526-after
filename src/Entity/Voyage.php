@@ -4,43 +4,45 @@ namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Destination;
+use App\Entity\Activite;
+use App\Entity\Depense;
+use App\Entity\Reservation;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\VoyageRepository::class)]
 class Voyage
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: "AUTO")]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private ?int $id_voyage = null;
 
     #[ORM\Column(type: "string", length: 150)]
     #[Assert\NotBlank(message: 'Le titre est obligatoire')]
-    #[Assert\Length(min: 3, max: 150, minMessage: 'Minimum 3 caractères')]
     private ?string $titre = null;
 
     #[ORM\Column(type: "text")]
     #[Assert\NotBlank(message: 'La description est obligatoire')]
     private ?string $description = null;
 
-    #[ORM\Column(type: "date", nullable: true)]
+    #[ORM\Column(type: "date")]
     #[Assert\NotBlank(message: 'La date de début est obligatoire')]
     private ?\DateTimeInterface $date_debut = null;
 
-    #[ORM\Column(type: "date", nullable: true)]
+    #[ORM\Column(type: "date")]
     #[Assert\NotBlank(message: 'La date de fin est obligatoire')]
     private ?\DateTimeInterface $date_fin = null;
 
     #[ORM\Column(type: "float")]
-    #[Assert\NotBlank(message: 'Le prix est obligatoire')]
-    #[Assert\Positive(message: 'Le prix doit être positif')]
+    #[Assert\NotBlank]
+    #[Assert\Positive]
     private ?float $prix = null;
 
     #[ORM\Column(type: "integer")]
-    #[Assert\NotBlank(message: 'Le nombre de places est obligatoire')]
-    #[Assert\Positive(message: 'Doit être un nombre positif')]
+    #[Assert\NotBlank]
+    #[Assert\Positive]
     private ?int $nb_places = null;
 
     #[ORM\Column(type: "string", length: 255, nullable: true)]
@@ -66,18 +68,11 @@ class Voyage
         $this->reservations = new ArrayCollection();
     }
 
-    // --- ID ---
     public function getId(): ?int
     {
         return $this->id_voyage;
     }
 
-    public function getId_voyage(): ?int
-    {
-        return $this->id_voyage;
-    }
-
-    // --- Titre ---
     public function getTitre(): ?string
     {
         return $this->titre;
@@ -89,7 +84,6 @@ class Voyage
         return $this;
     }
 
-    // --- Description ---
     public function getDescription(): ?string
     {
         return $this->description;
@@ -101,31 +95,28 @@ class Voyage
         return $this;
     }
 
-    // --- Date début (camelCase — used by Symfony Form) ---
     public function getDateDebut(): ?\DateTimeInterface
     {
         return $this->date_debut;
     }
 
-    public function setDateDebut(?\DateTimeInterface $date_debut): self
+    public function setDateDebut(\DateTimeInterface $date): self
     {
-        $this->date_debut = $date_debut;
+        $this->date_debut = $date;
         return $this;
     }
 
-    // --- Date fin (camelCase — used by Symfony Form) ---
     public function getDateFin(): ?\DateTimeInterface
     {
         return $this->date_fin;
     }
 
-    public function setDateFin(?\DateTimeInterface $date_fin): self
+    public function setDateFin(\DateTimeInterface $date): self
     {
-        $this->date_fin = $date_fin;
+        $this->date_fin = $date;
         return $this;
     }
 
-    // --- Prix ---
     public function getPrix(): ?float
     {
         return $this->prix;
@@ -137,60 +128,71 @@ class Voyage
         return $this;
     }
 
-    // --- Nb places (camelCase — used by Symfony Form) ---
     public function getNbPlaces(): ?int
     {
         return $this->nb_places;
     }
 
-    public function setNbPlaces(?int $nb_places): self
+    public function setNbPlaces(int $nb): self
     {
-        $this->nb_places = $nb_places;
+        $this->nb_places = $nb;
         return $this;
     }
 
-    // --- Image ---
     public function getImage(): ?string
     {
         return $this->image;
     }
 
-    public function setImage(?string $image): self
+    public function setImage(?string $img): self
     {
-        $this->image = $image;
+        $this->image = $img;
         return $this;
     }
 
-    // --- Destination (camelCase — used by Symfony Form) ---
     public function getIdDestination(): ?Destination
     {
         return $this->id_destination;
     }
 
-    public function setIdDestination(?Destination $id_destination): self
+    public function setIdDestination(?Destination $dest): self
     {
-        $this->id_destination = $id_destination;
+        $this->id_destination = $dest;
         return $this;
     }
 
-    // --- Twig templates still use snake_case accessors ---
-    public function getDate_debut(): ?\DateTimeInterface
+    // Relations
+    public function getActivites(): Collection
     {
-        return $this->date_debut;
+        return $this->activites;
     }
 
-    public function getDate_fin(): ?\DateTimeInterface
+    public function addActivite(Activite $activite): self
     {
-        return $this->date_fin;
+        if (!$this->activites->contains($activite)) {
+            $this->activites->add($activite);
+            $activite->setIdVoyage($this);
+        }
+        return $this;
     }
 
-    public function getNb_places(): ?int
+    public function removeActivite(Activite $activite): self
     {
-        return $this->nb_places;
+        if ($this->activites->removeElement($activite)) {
+            if ($activite->getIdVoyage() === $this) {
+                $activite->setIdVoyage(null);
+            }
+        }
+        return $this;
     }
 
-    public function getId_destination(): ?Destination
+    public function getDepenses(): Collection
     {
-        return $this->id_destination;
+        return $this->depenses;
+    }
+
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
     }
 }

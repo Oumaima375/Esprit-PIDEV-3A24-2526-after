@@ -2,18 +2,23 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Reservation;
+use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity]
-class Users
+#[UniqueEntity(fields: ['email'], message: 'Un utilisateur existe déjà avec cette adresse email.', errorPath: 'email')]
+class Users implements UserInterface, PasswordAuthenticatedUserInterface
 {
 
     #[ORM\Id]
-    #[ORM\Column(type: "integer")]
-    private int $id;
+    #[ORM\GeneratedValue]
+    #[ORM\Column]
+    private ?int $id = null;
 
     #[ORM\Column(type: "string", length: 100)]
     private string $nom;
@@ -28,10 +33,10 @@ class Users
     private string $password;
 
     #[ORM\Column(type: "string", length: 20)]
-    private string $telephone;
+    private ?string $telephone = null;
 
     #[ORM\Column(type: "string", length: 255)]
-    private string $photo_profil;
+    private ?string $photo_profil = null;
 
     #[ORM\Column(type: "string", length: 20)]
     private string $type_utilisateur;
@@ -44,6 +49,33 @@ class Users
 
     #[ORM\Column(type: "datetime")]
     private \DateTimeInterface $verification_expiry;
+
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $password_reset_token = null;
+
+    #[ORM\Column(type: 'datetime', nullable: true)]
+    private ?\DateTimeInterface $password_reset_expires_at = null;
+
+    public function __construct()
+    {
+        $this->documents    = new ArrayCollection();
+        $this->reservations = new ArrayCollection();
+    }
+
+    public function getRoles(): array
+    {
+        return array_unique([
+            'ROLE_USER',
+            'ROLE_' . strtoupper($this->type_utilisateur),
+        ]);
+    }
+
+    public function eraseCredentials(): void {}
+
+    public function getUserIdentifier(): string
+    {
+        return $this->email;
+    }
 
     public function getId()
     {
@@ -85,7 +117,7 @@ class Users
         $this->email = $value;
     }
 
-    public function getPassword()
+    public function getPassword(): string
     {
         return $this->password;
     }
@@ -155,36 +187,134 @@ class Users
         $this->verification_expiry = $value;
     }
 
+    public function getPhotoProfil(): ?string
+    {
+        return $this->photo_profil;
+    }
+
+    public function setPhotoProfil(string $photo_profil): static
+    {
+        $this->photo_profil = $photo_profil;
+        return $this;
+    }
+
+    public function getTypeUtilisateur(): ?string
+    {
+        return $this->type_utilisateur;
+    }
+
+    public function setTypeUtilisateur(string $type_utilisateur): static
+    {
+        $this->type_utilisateur = $type_utilisateur;
+        return $this;
+    }
+
+    public function isVerified(): ?bool
+    {
+        return $this->is_verified;
+    }
+
+    public function setIsVerified(bool $is_verified): static
+    {
+        $this->is_verified = $is_verified;
+        return $this;
+    }
+
+    public function getVerificationToken(): ?string
+    {
+        return $this->verification_token;
+    }
+
+    public function setVerificationToken(string $verification_token): static
+    {
+        $this->verification_token = $verification_token;
+        return $this;
+    }
+
+    public function getVerificationExpiry(): ?\DateTime
+    {
+        return $this->verification_expiry;
+    }
+
+    public function setVerificationExpiry(\DateTime $verification_expiry): static
+    {
+        $this->verification_expiry = $verification_expiry;
+        return $this;
+    }
+
+    public function getPasswordResetToken(): ?string
+    {
+        return $this->password_reset_token;
+    }
+
+    public function setPasswordResetToken(?string $password_reset_token): static
+    {
+        $this->password_reset_token = $password_reset_token;
+        return $this;
+    }
+
+    public function getPasswordResetExpiresAt(): ?\DateTimeInterface
+    {
+        return $this->password_reset_expires_at;
+    }
+
+    public function setPasswordResetExpiresAt(?\DateTimeInterface $password_reset_expires_at): static
+    {
+        $this->password_reset_expires_at = $password_reset_expires_at;
+        return $this;
+    }
+
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Document::class)]
     private Collection $documents;
 
-        public function getDocuments(): Collection
-        {
-            return $this->documents;
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): self
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents[] = $document;
+            $document->setId_user($this);
         }
-    
-        public function addDocument(Document $document): self
-        {
-            if (!$this->documents->contains($document)) {
-                $this->documents[] = $document;
-                $document->setId_user($this);
+        return $this;
+    }
+
+    public function removeDocument(Document $document): self
+    {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getId_user() === $this) {
+                $document->setId_user(null);
             }
-    
-            return $this;
         }
-    
-        public function removeDocument(Document $document): self
-        {
-            if ($this->documents->removeElement($document)) {
-                // set the owning side to null (unless already changed)
-                if ($document->getId_user() === $this) {
-                    $document->setId_user(null);
-                }
-            }
-    
-            return $this;
-        }
+        return $this;
+    }
 
     #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Reservation::class)]
     private Collection $reservations;
+
+    public function getReservations(): Collection
+    {
+        return $this->reservations;
+    }
+
+    public function addReservation(Reservation $reservation): static
+    {
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setIdUser($this);
+        }
+        return $this;
+    }
+
+    public function removeReservation(Reservation $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            if ($reservation->getIdUser() === $this) {
+                $reservation->setIdUser(null);
+            }
+        }
+        return $this;
+    }
 }

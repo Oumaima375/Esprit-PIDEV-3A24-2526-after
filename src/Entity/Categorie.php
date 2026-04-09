@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Depense;
+use App\Repository\CategorieRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\CategorieRepository::class)]
 class Categorie
 {
 
@@ -67,30 +69,63 @@ class Categorie
     #[ORM\OneToMany(mappedBy: "id_categorie", targetEntity: Depense::class)]
     private Collection $depenses;
 
-        public function getDepenses(): Collection
-        {
-            return $this->depenses;
+    public function __construct()
+    {
+        $this->depenses = new ArrayCollection();
+    }
+
+    public function getDepenses(): Collection
+    {
+        return $this->depenses;
+    }
+
+    public function addDepense(Depense $depense): self
+    {
+        if (!$this->depenses->contains($depense)) {
+            $this->depenses[] = $depense;
+            $depense->setId_categorie($this);
         }
-    
-        public function addDepense(Depense $depense): self
-        {
-            if (!$this->depenses->contains($depense)) {
-                $this->depenses[] = $depense;
-                $depense->setId_categorie($this);
+
+        return $this;
+    }
+
+    public function removeDepense(Depense $depense): self
+    {
+        if ($this->depenses->removeElement($depense)) {
+            if ($depense->getId_categorie() === $this) {
+                $depense->setId_categorie(null);
             }
-    
-            return $this;
         }
-    
-        public function removeDepense(Depense $depense): self
-        {
-            if ($this->depenses->removeElement($depense)) {
-                // set the owning side to null (unless already changed)
-                if ($depense->getId_categorie() === $this) {
-                    $depense->setId_categorie(null);
-                }
-            }
-    
-            return $this;
-        }
+
+        return $this;
+    }
+
+    public function getIdCat(): ?int
+    {
+        return $this->id_cat;
+    }
+
+    public function getNomCategorie(): ?string
+    {
+        return $this->nom_categorie;
+    }
+
+    public function setNomCategorie(string $nom_categorie): static
+    {
+        $this->nom_categorie = $nom_categorie;
+
+        return $this;
+    }
+
+    public function getIconeUrl(): ?string
+    {
+        return $this->icone_url;
+    }
+
+    public function setIconeUrl(string $icone_url): static
+    {
+        $this->icone_url = $icone_url;
+
+        return $this;
+    }
 }

@@ -1,0 +1,91 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon espace — After Travel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .dash-hero { background: #ffffff; border-radius: 16px; padding: 28px 32px; margin-bottom: 24px; border: 1px solid rgba(26, 43, 94, 0.08); box-shadow: 0 2px 16px rgba(26, 43, 94, 0.07); }
+        .dash-hero h1 { margin: 0 0 8px; font-size: 1.5rem; font-weight: 800; color: #1a2b5e; }
+        .dash-hero p { margin: 0; color: #6b7280; font-size: 15px; line-height: 1.5; }
+        .dash-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 18px; margin-bottom: 28px; }
+        .dash-card { background: #ffffff; border-radius: 16px; padding: 22px 24px; border: 1px solid rgba(26, 43, 94, 0.08); box-shadow: 0 2px 16px rgba(26, 43, 94, 0.07); }
+        .dash-card .num { font-size: 2rem; font-weight: 800; color: #3b5bdb; line-height: 1.2; }
+        .dash-card .lbl { font-size: 13px; color: #6b7280; margin-top: 8px; font-weight: 500; }
+        .dash-section-title { font-size: 1.1rem; margin: 0 0 14px; font-weight: 700; color: #1a2b5e; }
+        .res-table { width: 100%; border-collapse: collapse; font-size: 14px; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(26, 43, 94, 0.06); }
+        .res-table th, .res-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .res-table th { background: #f8f9fc; color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .res-table td { color: #374151; }
+        .res-table tbody tr:last-child td { border-bottom: none; }
+        .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-ok { background: #dcfce7; color: #15803d; }
+        .badge-wait { background: #fef3c7; color: #b45309; }
+        .dash-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+        .dash-actions .toolbar-btn { text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+        .dash-empty { color: #6b7280; font-size: 15px; line-height: 1.5; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="dash-hero">
+    <h1>Bonjour, {{ app.user.prenom }} {{ app.user.nom }}</h1>
+    <p>Voici un aperçu de vos réservations et de votre activité sur After Travel.</p>
+</div>
+
+<div class="dash-grid">
+    <div class="dash-card">
+        <div class="num">{{ reservations_count }}</div>
+        <div class="lbl">Réservation(s)</div>
+    </div>
+    <div class="dash-card">
+        <div class="num">{{ documents_count }}</div>
+        <div class="lbl">Document(s)</div>
+    </div>
+    <div class="dash-card">
+        <div class="num">{{ app.user.isVerified ? 'Oui' : 'Non' }}</div>
+        <div class="lbl">Compte vérifié</div>
+    </div>
+</div>
+
+<div class="dash-actions">
+    <a href="{{ path('app_profile') }}" class="toolbar-btn add">Mon profil</a>
+    <a href="{{ path('_logout_main') }}" class="toolbar-btn reset">Déconnexion</a>
+</div>
+
+<h2 class="dash-section-title" style="margin-top:32px;">Réservations récentes</h2>
+{% if recent_reservations is empty %}
+    <p class="dash-empty">Aucune réservation pour le moment.</p>
+{% else %}
+    <div style="overflow-x:auto;">
+        <table class="res-table">
+            <thead>
+                <tr>
+                    <th>Voyage</th>
+                    <th>Date</th>
+                    <th>Statut</th>
+                    <th>Personnes</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in recent_reservations %}
+                <tr>
+                    <td>
+                        {% set v = r.idVoyage %}
+                        {{ v ? v.titre : '—' }}
+                    </td>
+                    <td>{{ r.date_reservation|date('d/m/Y') }}</td>
+                    <td>
+                        {% set st = r.statut|lower %}
+                        <span class="badge {{ st == 'confirmée' or st == 'confirmee' ? 'badge-ok' : 'badge-wait' }}">{{ r.statut }}</span>
+                    </td>
+                    <td>{{ r.nbPersonnes|default('—') }}</td>
+                    <td>{{ r.prix_total|number_format(2, ',', ' ') }} €</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endif %}
+{% endblock %}

@@ -6,8 +6,9 @@ use Doctrine\ORM\Mapping as ORM;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Repository\DestinationRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: DestinationRepository::class)]
 class Destination
 {
     #[ORM\Id]
@@ -47,6 +48,11 @@ class Destination
     }
 
     public function getId_destination(): ?int
+    {
+        return $this->id_destination;
+    }
+
+    public function getIdDestination(): ?int
     {
         return $this->id_destination;
     }

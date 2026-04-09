@@ -1,0 +1,173 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Mon profil — After Travel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .prof-wrap { max-width: 920px; margin: 0 auto; }
+        .prof-head { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-bottom: 28px; }
+        .prof-avatar { width: 100px; height: 100px; border-radius: 16px; object-fit: cover; border: 3px solid rgba(59, 91, 219, 0.35); box-shadow: 0 4px 14px rgba(26, 43, 94, 0.12); }
+        .prof-meta h1 { margin: 0 0 6px; font-size: 1.45rem; font-weight: 800; color: #1a2b5e; }
+        .prof-meta .email { color: #6b7280; font-size: 14px; word-break: break-all; }
+        .prof-badges { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .prof-badge { padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+        .prof-badge-role { background: #dbeafe; color: #1d4ed8; }
+        .prof-badge-ok { background: #dcfce7; color: #15803d; }
+        .prof-badge-warn { background: #fef3c7; color: #b45309; }
+        .prof-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+        @media (max-width: 768px) { .prof-grid { grid-template-columns: 1fr; } }
+        .prof-panel { background: #ffffff; border-radius: 16px; padding: 24px 26px; border: 1px solid rgba(26, 43, 94, 0.08); box-shadow: 0 2px 16px rgba(26, 43, 94, 0.07); }
+        .prof-panel h2 { margin: 0 0 16px; font-size: 1.05rem; font-weight: 700; color: #1a2b5e; }
+        .prof-field { margin-bottom: 14px; }
+        .prof-field label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.04em; }
+        .prof-field input, .prof-field select { width: 100%; padding: 10px 12px; border-radius: 10px; border: 1.5px solid #e2e5f0; background: #f8f9fc; color: #1a2b5e; box-sizing: border-box; font-size: 15px; font-family: inherit; }
+        .prof-field input:focus, .prof-field select:focus { outline: none; border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12); }
+        .prof-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+        .prof-btn-save { padding: 11px 22px; border-radius: 10px; font-weight: 600; border: none; cursor: pointer; font-size: 14px; font-family: inherit; background: #3b5bdb; color: #ffffff; transition: background 0.2s; }
+        .prof-btn-save:hover { background: #2f4ac9; }
+        .prof-btn-outline { padding: 11px 22px; border-radius: 10px; font-weight: 600; font-size: 14px; font-family: inherit; background: #ffffff; border: 1.5px solid #e2e5f0; color: #374151; text-decoration: none; display: inline-flex; align-items: center; transition: border-color 0.2s, background 0.2s; }
+        .prof-btn-outline:hover { border-color: #3b5bdb; color: #1a2b5e; background: #f8f9fc; }
+        .prof-table { width: 100%; font-size: 13px; border-collapse: collapse; }
+        .prof-table th, .prof-table td { padding: 10px 10px; text-align: left; border-bottom: 1px solid #e5e7eb; }
+        .prof-table th { color: #6b7280; font-weight: 600; font-size: 11px; text-transform: uppercase; }
+        .prof-table td { color: #374151; }
+        .prof-flash { padding: 12px 14px; border-radius: 10px; margin-bottom: 16px; font-weight: 600; font-size: 14px; border: 1px solid transparent; }
+        .prof-flash-success { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+        .prof-flash-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .prof-flash-info, .prof-flash-notice { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+        .prof-muted { color: #6b7280; font-size: 14px; line-height: 1.55; margin: 0 0 16px; }
+        .prof-stat-list { list-style: none; padding: 0; margin: 0 0 20px; font-size: 15px; line-height: 1.85; color: #374151; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="prof-wrap">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="prof-flash prof-flash-{{ label }}">{{ message }}</div>
+        {% endfor %}
+    {% endfor %}
+
+    <div class="prof-head">
+        <img src="{{ asset('uploads/photos/' ~ user.photo_profil|default('default.png')) }}" alt="" class="prof-avatar" onerror="this.src='{{ asset('uploads/photos/default.png') }}'">
+        <div class="prof-meta">
+            <h1>{{ user.prenom }} {{ user.nom }}</h1>
+            <div class="email">{{ user.email }}</div>
+            <div class="prof-badges">
+                <span class="prof-badge prof-badge-role">{{ user.type_utilisateur|upper }}</span>
+                {% if user.isVerified %}
+                    <span class="prof-badge prof-badge-ok">Compte vérifié</span>
+                {% else %}
+                    <span class="prof-badge prof-badge-warn">Compte non vérifié</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="prof-grid">
+        <div class="prof-panel">
+            <h2>Informations personnelles</h2>
+            <form method="post" enctype="multipart/form-data" action="{{ path('app_profile') }}">
+                <input type="hidden" name="_csrf_token" value="{{ csrf_token('profile_edit_' ~ user.id) }}">
+
+                <div class="prof-field">
+                    <label for="pf_nom">Nom</label>
+                    <input type="text" id="pf_nom" name="nom" value="{{ user.nom }}" required>
+                </div>
+                <div class="prof-field">
+                    <label for="pf_prenom">Prénom</label>
+                    <input type="text" id="pf_prenom" name="prenom" value="{{ user.prenom }}" required>
+                </div>
+                <div class="prof-field">
+                    <label for="pf_email">Email</label>
+                    <input type="email" id="pf_email" name="email" value="{{ user.email }}" required autocomplete="email">
+                </div>
+                <div class="prof-field">
+                    <label for="pf_tel">Téléphone</label>
+                    <input type="tel" id="pf_tel" name="telephone" value="{{ user.telephone|default('') }}" autocomplete="tel">
+                </div>
+                <div class="prof-field">
+                    <label for="pf_pass">Nouveau mot de passe <span style="color:#9ca3af;font-weight:400;text-transform:none;letter-spacing:0;">(optionnel)</span></label>
+                    <input type="password" id="pf_pass" name="password" placeholder="Laisser vide pour ne pas modifier" autocomplete="new-password">
+                </div>
+                <div class="prof-field">
+                    <label for="pf_photo">Photo de profil</label>
+                    <input type="file" id="pf_photo" name="photo_profil" accept="image/jpeg,image/png,image/webp,image/gif">
+                </div>
+
+                <div class="prof-actions">
+                    <button type="submit" class="prof-btn-save">Enregistrer les modifications</button>
+                    <a href="{{ path('app_dashboard') }}" class="prof-btn-outline">Retour au tableau de bord</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="prof-panel">
+            <h2>Vue d’ensemble</h2>
+            <p class="prof-muted">Résumé de l’activité liée à votre compte.</p>
+            <ul class="prof-stat-list">
+                <li><strong>{{ reservations_count }}</strong> réservation(s)</li>
+                <li><strong>{{ documents_count }}</strong> document(s)</li>
+                <li>Compte actif</li>
+            </ul>
+
+            <h2 style="margin-top:8px;">Documents récents</h2>
+            {% if recent_documents is empty %}
+                <p class="prof-muted" style="margin-bottom:0;">Aucun document enregistré.</p>
+            {% else %}
+                <table class="prof-table">
+                    <thead>
+                        <tr><th>Nom</th><th>Ajout</th><th>Expiration</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for d in recent_documents %}
+                        <tr>
+                            <td>{{ d.nom_document }}</td>
+                            <td>{{ d.date_ajout|date('d/m/Y') }}</td>
+                            <td>{{ d.date_expiration|date('d/m/Y') }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+
+            <h2 style="margin-top:22px;">Réservations (aperçu)</h2>
+            {% if recent_reservations is empty %}
+                <p class="prof-muted" style="margin-bottom:0;">Aucune réservation.</p>
+            {% else %}
+                <table class="prof-table">
+                    <thead>
+                        <tr><th>Voyage</th><th>Date</th><th>Statut</th></tr>
+                    </thead>
+                    <tbody>
+                    {% for r in recent_reservations %}
+                        <tr>
+                            <td>{{ r.idVoyage ? r.idVoyage.titre : '—' }}</td>
+                            <td>{{ r.date_reservation|date('d/m/Y') }}</td>
+                            <td>{{ r.statut }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/form-validation.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var f = document.querySelector('.prof-panel form[method="post"]');
+    if (f && window.AppFormValidation) {
+        AppFormValidation.attachClearOnInput(f);
+        f.addEventListener('submit', function (e) {
+            if (!AppFormValidation.validateDashboardEditForm(f)) e.preventDefault();
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -2,11 +2,13 @@
 
 namespace App\Entity;
 
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
 use App\Entity\Activite;
+use App\Repository\PlanningRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\PlanningRepository::class)]
 class Planning
 {
 
@@ -17,7 +19,7 @@ class Planning
     #[ORM\Column(type: "integer")]
     private int $id_user;
 
-        #[ORM\ManyToOne(targetEntity: Activite::class, inversedBy: "plannings")]
+    #[ORM\ManyToOne(targetEntity: Activite::class, inversedBy: "plannings")]
     #[ORM\JoinColumn(name: 'id_activite', referencedColumnName: 'id_activite', onDelete: 'CASCADE')]
     private Activite $id_activite;
 
@@ -88,5 +90,58 @@ class Planning
     public function setDuree($value)
     {
         $this->duree = $value;
+    }
+
+    public function getIdPlanning(): ?int
+    {
+        return $this->id_planning;
+    }
+
+    public function getIdUser(): ?int
+    {
+        return $this->id_user;
+    }
+
+    public function setIdUser(int $id_user): static
+    {
+        $this->id_user = $id_user;
+
+        return $this;
+    }
+
+    public function getDateActivite(): ?\DateTime
+    {
+        return $this->date_activite;
+    }
+
+    public function setDateActivite(\DateTime $date_activite): static
+    {
+        $this->date_activite = $date_activite;
+
+        return $this;
+    }
+
+    public function getHeureDebut(): ?string
+    {
+        return $this->heure_debut;
+    }
+
+    public function setHeureDebut(string $heure_debut): static
+    {
+        $this->heure_debut = $heure_debut;
+
+        return $this;
+    }
+
+    public function getIdActivite(): ?Activite
+    {
+        return $this->id_activite;
+    }
+
+    public function setIdActivite(?Activite $id_activite): static
+    {
+        $this->id_activite = $id_activite;
+
+        return $this;
     }
 }

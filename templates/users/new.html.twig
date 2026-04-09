@@ -1,0 +1,54 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvel utilisateur — After Travel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .user-form-card { background: #ffffff; border-radius: 16px; padding: 32px 36px; max-width: 640px; box-shadow: 0 2px 16px rgba(26, 43, 94, 0.07); border: 1px solid rgba(26, 43, 94, 0.08); }
+        .user-form-card form > div { margin-bottom: 18px; }
+        .user-form-card label, .user-form-card .form-label { display: block; font-weight: 600; color: #374151; margin-bottom: 6px; font-size: 14px; }
+        .user-form-card input[type="text"], .user-form-card input[type="email"], .user-form-card input[type="password"], .user-form-card input[type="tel"], .user-form-card input[type="file"], .user-form-card select { width: 100%; padding: 10px 12px; border: 1.5px solid #e2e5f0; border-radius: 10px; font-size: 15px; font-family: inherit; color: #1a2b5e; background: #f8f9fc; box-sizing: border-box; }
+        .user-form-card input:focus, .user-form-card select:focus { outline: none; border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12); }
+        .user-form-card ul { margin: 6px 0 0; padding-left: 18px; color: #991b1b; font-size: 13px; }
+        .user-form-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 28px; padding-top: 20px; border-top: 1px solid #e5e7eb; }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="page-header">
+    <h1>Nouvel utilisateur</h1>
+    <p>Créer un compte avec le formulaire ci-dessous</p>
+</div>
+
+<div class="user-form-card">
+    {{ form_start(form, { attr: { id: 'usersNewForm', novalidate: 'novalidate' } }) }}
+        {{ form_row(form.nom) }}
+        {{ form_row(form.prenom) }}
+        {{ form_row(form.email) }}
+        {{ form_row(form.telephone) }}
+        {{ form_row(form.type_utilisateur) }}
+        {{ form_row(form.password) }}
+        {{ form_row(form.photo_profil) }}
+        <div class="user-form-actions">
+            <button type="submit" class="toolbar-btn add">Créer l’utilisateur</button>
+            <a href="{{ path('app_dashboard') }}" class="toolbar-btn reset" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">Annuler</a>
+        </div>
+    {{ form_end(form) }}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/form-validation.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var f = document.getElementById('usersNewForm');
+    if (!f || !window.AppFormValidation) return;
+    AppFormValidation.attachClearOnInput(f);
+    f.addEventListener('submit', function (e) {
+        if (!AppFormValidation.validateSymfonyUsersForm(f)) e.preventDefault();
+    });
+});
+</script>
+{% endblock %}

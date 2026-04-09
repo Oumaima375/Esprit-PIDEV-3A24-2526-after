@@ -2,12 +2,14 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Document;
+use App\Repository\Categorie_documentRepository;
 
-#[ORM\Entity]
+#[ORM\Entity(repositoryClass: App\Repository\Categorie_documentRepository::class)]
 class Categorie_document
 {
 
@@ -54,30 +56,39 @@ class Categorie_document
     #[ORM\OneToMany(mappedBy: "id_categorie", targetEntity: Document::class)]
     private Collection $documents;
 
-        public function getDocuments(): Collection
-        {
-            return $this->documents;
+    public function __construct()
+    {
+        $this->documents = new ArrayCollection();
+    }
+
+    public function getDocuments(): Collection
+    {
+        return $this->documents;
+    }
+
+    public function addDocument(Document $document): self
+    {
+        if (!$this->documents->contains($document)) {
+            $this->documents[] = $document;
+            $document->setId_categorie($this);
         }
-    
-        public function addDocument(Document $document): self
-        {
-            if (!$this->documents->contains($document)) {
-                $this->documents[] = $document;
-                $document->setId_categorie($this);
+
+        return $this;
+    }
+
+    public function removeDocument(Document $document): self
+    {
+        if ($this->documents->removeElement($document)) {
+            if ($document->getId_categorie() === $this) {
+                $document->setId_categorie(null);
             }
-    
-            return $this;
         }
-    
-        public function removeDocument(Document $document): self
-        {
-            if ($this->documents->removeElement($document)) {
-                // set the owning side to null (unless already changed)
-                if ($document->getId_categorie() === $this) {
-                    $document->setId_categorie(null);
-                }
-            }
-    
-            return $this;
-        }
+
+        return $this;
+    }
+
+    public function getIdCategorie(): ?int
+    {
+        return $this->id_categorie;
+    }
 }

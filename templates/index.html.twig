@@ -1,0 +1,322 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des utilisateurs — After Travel{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .flash-dashboard { margin: 0 0 20px; padding: 12px 16px; border-radius: 10px; font-weight: 600; font-size: 14px; border: 1px solid transparent; }
+        .flash-dashboard.flash-success { background: #ecfdf3; color: #166534; border-color: #bbf7d0; }
+        .flash-dashboard.flash-error { background: #fef2f2; color: #991b1b; border-color: #fecaca; }
+        .flash-dashboard.flash-info, .flash-dashboard.flash-notice { background: #eff6ff; color: #1e40af; border-color: #bfdbfe; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(26, 43, 94, 0.45); display: none; z-index: 1000; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; }
+        .modal-overlay.is-open { display: flex; }
+        .modal { background: #ffffff; padding: 28px; border-radius: 16px; max-width: 520px; width: 100%; max-height: 92vh; overflow-y: auto; box-shadow: 0 20px 50px rgba(26, 43, 94, 0.18); border: 1px solid #e2e8f0; }
+        .modal.modal-wide { max-width: 640px; }
+        .modal h3 { margin-top: 0; margin-bottom: 6px; color: #1a2b5e; font-size: 1.35rem; font-weight: 800; }
+        .modal-sub { margin: 0 0 20px; color: #6b7280; font-size: 0.95rem; }
+        .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+        @media (max-width: 540px) { .modal-grid { grid-template-columns: 1fr; } }
+        .modal-field { margin-bottom: 0; }
+        .modal-field label { display: block; font-weight: 600; font-size: 0.85rem; color: #374151; margin-bottom: 6px; }
+        .modal-field input[type="text"], .modal-field input[type="email"], .modal-field input[type="password"], .modal-field input[type="tel"], .modal-field select { width: 100%; padding: 10px 12px; border: 1.5px solid #e2e5f0; border-radius: 10px; box-sizing: border-box; font-size: 15px; font-family: inherit; color: #1a2b5e; background: #f8f9fc; }
+        .modal-field input:focus, .modal-field select:focus { outline: none; border-color: #3b5bdb; box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.15); }
+        .modal-field.span-2 { grid-column: span 2; }
+        @media (max-width: 540px) { .modal-field.span-2 { grid-column: span 1; } }
+        .modal-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; padding-top: 16px; border-top: 1px solid #e5e7eb; }
+        .modal-actions .btn-modal-primary { padding: 10px 22px; background: #3b5bdb; color: #ffffff; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 15px; font-family: inherit; transition: background 0.2s; }
+        .modal-actions .btn-modal-primary:hover { background: #2f4ac9; }
+        .modal-actions .btn-modal-cancel { padding: 10px 22px; background: #6b7280; color: #ffffff; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 15px; font-family: inherit; transition: background 0.2s; }
+        .modal-actions .btn-modal-cancel:hover { background: #4b5563; }
+        .edit-preview-wrap { display: flex; align-items: center; gap: 14px; margin-top: 8px; }
+        .edit-preview-wrap img { width: 64px; height: 64px; border-radius: 12px; object-fit: cover; border: 2px solid #e5e7eb; }
+        .users-empty { grid-column: 1 / -1; text-align: center; padding: 40px; color: #6b7280; font-size: 15px; }
+    </style>
+{% endblock %}
+
+{% block body %}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="flash-dashboard flash-{{ label }}">{{ message }}</div>
+    {% endfor %}
+{% endfor %}
+
+<div class="page-header">
+    <h1>Gestion des utilisateurs</h1>
+    <p>Administrer les comptes voyageurs et administrateurs After Travel</p>
+</div>
+
+<div class="toolbar">
+    <input id="search" class="toolbar-search" type="search" placeholder="Rechercher par nom ou email…" aria-label="Rechercher" oninput="filter()">
+    <button type="button" class="toolbar-btn reset" onclick="reset()">Réinitialiser</button>
+    <button type="button" class="toolbar-btn add" onclick="openAddModal()">+ Nouvel utilisateur</button>
+</div>
+
+<div class="stats-row">
+    <div class="stat-box">
+        <div class="stat-box-label">Total utilisateurs</div>
+        <div class="stat-box-value">{{ totalUsers }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-label">Voyageurs</div>
+        <div class="stat-box-value">{{ totalVoyageurs }}</div>
+    </div>
+    <div class="stat-box">
+        <div class="stat-box-label">Administrateurs</div>
+        <div class="stat-box-value">{{ totalAdmins }}</div>
+    </div>
+</div>
+
+<div class="users-grid" id="grid">
+{% for user in users %}
+<div class="user-card" data-name="{{ (user.nom ~ ' ' ~ user.prenom)|lower }}" data-email="{{ user.email|lower }}">
+    <div class="user-card-info">
+        <img src="{{ asset('uploads/photos/' ~ user.photo_profil|default('default.png')) }}" alt="" class="user-card-avatar" onerror="this.src='{{ asset('uploads/photos/default.png') }}'">
+        <div class="user-card-details">
+            <div class="user-card-name">{{ user.nom }} {{ user.prenom }}</div>
+            <div class="user-card-email">{{ user.email }}</div>
+            <span class="role-badge {{ user.type_utilisateur|upper == 'ADMIN' ? 'admin' : 'voyageur' }}">{{ user.type_utilisateur|upper }}</span>
+            <div class="user-card-phone">{{ user.telephone ?: 'Pas de téléphone' }}</div>
+        </div>
+    </div>
+    <div class="user-card-actions">
+        <button type="button" class="action-btn edit"
+            data-edit-url="{{ path('user_edit', {id: user.id}) }}"
+            data-csrf="{{ csrf_token('user_edit_' ~ user.id)|e('html_attr') }}"
+            data-nom="{{ user.nom|e('html_attr') }}"
+            data-prenom="{{ user.prenom|e('html_attr') }}"
+            data-email="{{ user.email|e('html_attr') }}"
+            data-telephone="{{ (user.telephone ?? '')|e('html_attr') }}"
+            data-type="{{ user.type_utilisateur|lower|e('html_attr') }}"
+            data-photo="{{ asset('uploads/photos/' ~ user.photo_profil|default('default.png'))|e('html_attr') }}"
+            onclick="openEditModal(this)">Modifier</button>
+        <form method="POST" action="{{ path('user_delete', {id: user.id}) }}" style="display: inline-block; flex: 1; margin: 0;">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ user.id) }}">
+            <button type="submit" class="action-btn delete" style="width:100%;" onclick="return confirm('Supprimer cet utilisateur ?')">Supprimer</button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="users-empty">Aucun utilisateur trouvé</div>
+{% endfor %}
+</div>
+
+<div class="modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
+    <div class="modal modal-wide">
+        <h3 id="addModalTitle">Ajouter un utilisateur</h3>
+        <p class="modal-sub">Les champs marqués * sont obligatoires.</p>
+        <form id="addForm" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('user_new') }}">
+            <div class="modal-grid">
+                <div class="modal-field" data-field-wrap>
+                    <label for="add_nom">Nom *</label>
+                    <input type="text" id="add_nom" name="nom" placeholder="Nom" autocomplete="family-name">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="add_prenom">Prénom *</label>
+                    <input type="text" id="add_prenom" name="prenom" placeholder="Prénom" autocomplete="given-name">
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="add_email">Email *</label>
+                    <input type="email" id="add_email" name="email" placeholder="email@exemple.com" autocomplete="email">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="add_tel">Téléphone</label>
+                    <input type="tel" id="add_tel" name="telephone" placeholder="+33 …" autocomplete="tel">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="add_type">Rôle</label>
+                    <select id="add_type" name="type_utilisateur">
+                        <option value="voyageur">Voyageur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="add_password">Mot de passe *</label>
+                    <input type="password" id="add_password" name="password" placeholder="Au moins 6 caractères" autocomplete="new-password">
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="add_photo">Photo de profil</label>
+                    <input type="file" id="add_photo" name="photo_profil" accept="image/jpeg,image/png,image/webp,image/gif">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal-primary">Ajouter</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeAddModal()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle">
+    <div class="modal modal-wide">
+        <h3 id="editModalTitle">Modifier l’utilisateur</h3>
+        <p class="modal-sub" id="editModalSubtitle"></p>
+        <form id="editForm" method="POST" enctype="multipart/form-data">
+            <input type="hidden" name="_csrf_token" id="edit_csrf" value="">
+            <div class="modal-grid">
+                <div class="modal-field span-2 edit-preview-wrap" data-field-wrap>
+                    <img src="" alt="" id="editPhotoPreview" width="64" height="64">
+                    <span style="color:#6b7280;font-size:0.9rem;">Photo actuelle (remplacez ci-dessous si besoin)</span>
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="edit_nom">Nom *</label>
+                    <input type="text" id="edit_nom" name="nom" autocomplete="family-name">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="edit_prenom">Prénom *</label>
+                    <input type="text" id="edit_prenom" name="prenom" autocomplete="given-name">
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="edit_email">Email *</label>
+                    <input type="email" id="edit_email" name="email" autocomplete="email">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="edit_tel">Téléphone</label>
+                    <input type="tel" id="edit_tel" name="telephone" autocomplete="tel">
+                </div>
+                <div class="modal-field" data-field-wrap>
+                    <label for="edit_type">Rôle</label>
+                    <select id="edit_type" name="type_utilisateur">
+                        <option value="voyageur">Voyageur</option>
+                        <option value="admin">Administrateur</option>
+                    </select>
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="edit_password">Nouveau mot de passe</label>
+                    <input type="password" id="edit_password" name="password" placeholder="Laisser vide pour ne pas changer" autocomplete="new-password">
+                </div>
+                <div class="modal-field span-2" data-field-wrap>
+                    <label for="edit_photo">Nouvelle photo</label>
+                    <input type="file" id="edit_photo" name="photo_profil" accept="image/jpeg,image/png,image/webp,image/gif">
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button type="submit" class="btn-modal-primary" id="editSubmitBtn">Enregistrer</button>
+                <button type="button" class="btn-modal-cancel" onclick="closeEditModal()">Annuler</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script src="{{ asset('js/form-validation.js') }}"></script>
+<script>
+(function () {
+    var addModal = document.getElementById('addModal');
+    var editModal = document.getElementById('editModal');
+    var editForm = document.getElementById('editForm');
+
+    window.filter = function () {
+        var term = document.getElementById('search').value.toLowerCase();
+        document.querySelectorAll('#grid > .user-card').forEach(function (card) {
+            card.style.display = (card.dataset.name.includes(term) || card.dataset.email.includes(term)) ? 'block' : 'none';
+        });
+    };
+    window.reset = function () {
+        document.getElementById('search').value = '';
+        window.filter();
+    };
+    window.openAddModal = function () {
+        addModal.classList.add('is-open');
+    };
+    window.closeAddModal = function () {
+        addModal.classList.remove('is-open');
+    };
+    window.closeEditModal = function () {
+        editModal.classList.remove('is-open');
+    };
+    window.openEditModal = function (btn) {
+        var d = btn.dataset;
+        editForm.action = d.editUrl;
+        document.getElementById('edit_csrf').value = d.csrf;
+        document.getElementById('edit_nom').value = d.nom || '';
+        document.getElementById('edit_prenom').value = d.prenom || '';
+        document.getElementById('edit_email').value = d.email || '';
+        document.getElementById('edit_tel').value = d.telephone || '';
+        document.getElementById('edit_type').value = (d.type === 'admin') ? 'admin' : 'voyageur';
+        document.getElementById('edit_password').value = '';
+        document.getElementById('edit_photo').value = '';
+        document.getElementById('editPhotoPreview').src = d.photo || '';
+        document.getElementById('editModalSubtitle').textContent = (d.prenom || '') + ' ' + (d.nom || '');
+        if (window.AppFormValidation) AppFormValidation.clearFormErrors(editForm);
+        editModal.classList.add('is-open');
+    };
+
+    function closeOnOverlayClick(e) {
+        if (e.target === addModal) closeAddModal();
+        if (e.target === editModal) closeEditModal();
+    }
+    addModal.addEventListener('click', closeOnOverlayClick);
+    editModal.addEventListener('click', closeOnOverlayClick);
+
+    var addForm = document.getElementById('addForm');
+    if (window.AppFormValidation) {
+        AppFormValidation.attachClearOnInput(addForm);
+        AppFormValidation.attachClearOnInput(editForm);
+    }
+
+    addForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (window.AppFormValidation && !AppFormValidation.validateDashboardAddForm(addForm)) return;
+        var fd = new FormData(addForm);
+        fetch('{{ path('user_new') }}', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: fd
+        }).then(function (r) {
+            return r.json().then(function (j) { return { ok: r.ok, j: j }; }).catch(function () { return { ok: false, j: { message: 'Réponse invalide du serveur.' } }; });
+        })
+        .then(function (res) {
+            if (res.j.success) {
+                alert(res.j.message);
+                closeAddModal();
+                location.reload();
+                return;
+            }
+            if (res.j.errors && window.AppFormValidation) {
+                AppFormValidation.applyServerErrors(addForm, res.j.errors);
+            }
+            alert(res.j.message || 'Erreur');
+        }).catch(function () { alert('Erreur réseau'); });
+    });
+
+    editForm.addEventListener('submit', function (e) {
+        e.preventDefault();
+        if (window.AppFormValidation && !AppFormValidation.validateDashboardEditForm(editForm)) return;
+        var btn = document.getElementById('editSubmitBtn');
+        var prev = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Enregistrement…';
+        var fd = new FormData(editForm);
+        fetch(editForm.action, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json' },
+            body: fd
+        }).then(function (r) {
+            return r.json().then(function (j) { return { ok: r.ok, j: j }; }).catch(function () { return { ok: false, j: { message: 'Réponse invalide du serveur.' } }; });
+        })
+        .then(function (res) {
+            btn.disabled = false;
+            btn.textContent = prev;
+            if (res.j.success) {
+                alert(res.j.message);
+                closeEditModal();
+                location.reload();
+                return;
+            }
+            if (res.j.errors && window.AppFormValidation) {
+                AppFormValidation.applyServerErrors(editForm, res.j.errors);
+            }
+            alert(res.j.message || 'Erreur');
+        }).catch(function () {
+            btn.disabled = false;
+            btn.textContent = prev;
+            alert('Erreur réseau');
+        });
+    });
+})();
+</script>
+{% endblock %}
