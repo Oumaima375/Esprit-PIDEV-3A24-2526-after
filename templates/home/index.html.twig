@@ -80,9 +80,9 @@
                             {% endif %}
                         </div>
                         <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
-                            <small class="flex-fill text-center border-end py-2"><i class="fa fa-calendar-alt text-primary me-2"></i>{{ voyage.date_debut ? voyage.date_debut|date('d M Y') : 'N/A' }}</small>
+                            <small class="flex-fill text-center border-end py-2"><i class="fa fa-calendar-alt text-primary me-2"></i>{{ voyage.dateDebut ? voyage.dateDebut|date('d M Y') : 'N/A' }}</small>
                             <small class="flex-fill text-center border-end py-2"><i class="fa fa-tag text-primary me-2"></i>{{ voyage.prix }} TND</small>
-                            <small class="flex-fill text-center py-2"><i class="fa fa-users text-primary me-2"></i>{{ voyage.nb_places }} places</small>
+                            <small class="flex-fill text-center py-2"><i class="fa fa-users text-primary me-2"></i>{{ voyage.nbPlaces }} places</small>
                         </div>
                     </div>
                     <div class="blog-content border border-top-0 rounded-bottom p-4">

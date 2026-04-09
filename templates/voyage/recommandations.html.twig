@@ -80,13 +80,13 @@
                     <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
                         <small class="flex-fill text-center border-end py-2">
                             <i class="fa fa-calendar-alt text-primary me-1"></i>
-                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }}
+                            {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }}
                         </small>
                         <small class="flex-fill text-center border-end py-2">
                             <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
                         </small>
                         <small class="flex-fill text-center py-2">
-                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nb_places }} places
+                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nbPlaces }} places
                         </small>
                     </div>
                 </div>
@@ -97,7 +97,7 @@
                         <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill py-1 px-3">
                             <i class="fa fa-eye me-1"></i>Voir
                         </a>
-                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage}) }}" class="btn btn-outline-danger rounded-pill py-1 px-3">
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}" class="btn btn-outline-danger rounded-pill py-1 px-3">
                             <i class="fa fa-heart me-1"></i>Favori
                         </a>
                     </div>

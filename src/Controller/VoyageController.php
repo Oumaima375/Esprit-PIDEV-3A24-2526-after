@@ -23,10 +23,10 @@ public function exportPdf(int $id, VoyageRepository $repo, PdfService $pdfServic
  $data = [
  'titre' => $voyage->getTitre(),
  'description' => $voyage->getDescription(),
- 'date_debut' => $voyage->getDate_debut()?->format('d/m/Y') ?? 'N/A',
- 'date_fin' => $voyage->getDate_fin()?->format('d/m/Y') ?? 'N/A',
+ 'date_debut' => $voyage->getDateDebut()?->format('d/m/Y') ?? 'N/A',
+ 'date_fin' => $voyage->getDateFin()?->format('d/m/Y') ?? 'N/A',
  'prix' => $voyage->getPrix(),
- 'nb_places' => $voyage->getNb_places(),
+ 'nb_places' => $voyage->getNbPlaces(),
  'destination' => $dest ? $dest->getPays() . ' - ' . $dest->getVille() : 'N/A',
  ];
  $pdfContent = $pdfService->generateVoyagePdf($data);
@@ -254,9 +254,9 @@ public function recommandationsIA(Request $request, VoyageRepository $voyageRepo
         $voyages = $voyageRepository->findAll();
         $voyagesText = '';
         foreach ($voyages as $v) {
-            $voyagesText .= "- {$v->getTitre()} : {$v->getPrix()} TND, {$v->getNb_places()} places, du " .
-                ($v->getDate_debut() ? $v->getDate_debut()->format('d/m/Y') : 'N/A') . " au " .
-                ($v->getDate_fin() ? $v->getDate_fin()->format('d/m/Y') : 'N/A') .
+            $voyagesText .= "- {$v->getTitre()} : {$v->getPrix()} TND, {$v->getNbPlaces()} places, du " .
+                ($v->getDateDebut() ? $v->getDateDebut()->format('d/m/Y') : 'N/A') . " au " .
+                ($v->getDateFin() ? $v->getDateFin()->format('d/m/Y') : 'N/A') .
                 ", description: {$v->getDescription()}\n";
         }
 
@@ -271,7 +271,7 @@ public function recommandationsIA(Request $request, VoyageRepository $voyageRepo
             $client = \Symfony\Component\HttpClient\HttpClient::create();
             $response = $client->request('POST', 'https://api.groq.com/openai/v1/chat/completions', [
                 'headers' => [
-                    'Authorization' => 'Bearer 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',
+                    'Authorization' => 'api_key',
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [

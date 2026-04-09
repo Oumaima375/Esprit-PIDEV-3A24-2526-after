@@ -7,12 +7,13 @@ use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
 use App\Repository\DestinationRepository;
+use App\Entity\Voyage;
 
 #[ORM\Entity(repositoryClass: DestinationRepository::class)]
 class Destination
 {
     #[ORM\Id]
-    #[ORM\GeneratedValue(strategy: "AUTO")]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
     private ?int $id_destination = null;
 
@@ -42,54 +43,49 @@ class Destination
         $this->voyages = new ArrayCollection();
     }
 
+    // ✅ ID
     public function getId(): ?int
     {
         return $this->id_destination;
     }
 
-    public function getId_destination(): ?int
-    {
-        return $this->id_destination;
-    }
-
-    public function getIdDestination(): ?int
-    {
-        return $this->id_destination;
-    }
-
+    // ✅ Pays
     public function getPays(): ?string
     {
         return $this->pays;
     }
 
-    public function setPays(?string $pays): self
+    public function setPays(string $pays): self
     {
         $this->pays = $pays;
         return $this;
     }
 
+    // ✅ Ville
     public function getVille(): ?string
     {
         return $this->ville;
     }
 
-    public function setVille(?string $ville): self
+    public function setVille(string $ville): self
     {
         $this->ville = $ville;
         return $this;
     }
 
+    // ✅ Continent
     public function getContinent(): ?string
     {
         return $this->continent;
     }
 
-    public function setContinent(?string $continent): self
+    public function setContinent(string $continent): self
     {
         $this->continent = $continent;
         return $this;
     }
 
+    // ✅ Description
     public function getDescription(): ?string
     {
         return $this->description;
@@ -101,6 +97,7 @@ class Destination
         return $this;
     }
 
+    // ✅ Image
     public function getImage(): ?string
     {
         return $this->image;
@@ -112,6 +109,7 @@ class Destination
         return $this;
     }
 
+    // ✅ Relation Voyages
     public function getVoyages(): Collection
     {
         return $this->voyages;
@@ -121,18 +119,20 @@ class Destination
     {
         if (!$this->voyages->contains($voyage)) {
             $this->voyages[] = $voyage;
-            $voyage->setId_destination($this);
+            $voyage->setIdDestination($this);
         }
+
         return $this;
     }
 
     public function removeVoyage(Voyage $voyage): self
     {
         if ($this->voyages->removeElement($voyage)) {
-            if ($voyage->getId_destination() === $this) {
-                $voyage->setId_destination(null);
+            if ($voyage->getIdDestination() === $this) {
+                $voyage->setIdDestination(null);
             }
         }
+
         return $this;
     }
 }

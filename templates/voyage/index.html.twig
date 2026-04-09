@@ -64,7 +64,7 @@
                     <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
                         <small class="flex-fill text-center border-end py-2">
                             <i class="fa fa-calendar-alt text-primary me-1"></i>
-                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }}
+                            {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }}
                         </small>
                         <small class="flex-fill text-center border-end py-2">
  <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
@@ -75,7 +75,7 @@
  </span>
 </small>
                         <small class="flex-fill text-center py-2">
-                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nb_places }} places
+                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nbPlaces }} places
                         </small>
                     </div>
                 </div>
@@ -91,19 +91,19 @@
 
                     <div class="d-flex gap-2 flex-wrap align-items-center">
                         <span class="badge bg-primary rounded-pill px-3 py-2">
-                            {{ voyage.date_debut ? voyage.date_debut|date('d/m/Y') : 'N/A' }} → {{ voyage.date_fin ? voyage.date_fin|date('d/m/Y') : 'N/A' }}
+                            {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }} → {{ voyage.dateFin ? voyage.dateFin|date('d/m/Y') : 'N/A' }}
                         </span>
                         
-                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id_voyage}) }}" 
-                           class="btn rounded-pill py-1 px-3 ms-auto {{ voyage.id_voyage in favoris ? 'btn-danger' : 'btn-outline-danger' }}">
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}" 
+                           class="btn rounded-pill py-1 px-3 ms-auto {{ voyage.id in favoris ? 'btn-danger' : 'btn-outline-danger' }}">
                             <i class="fa fa-heart me-1"></i>
-                            {{ voyage.id_voyage in favoris ? 'Favori ❤' : 'Ajouter ♡' }}
+                            {{ voyage.id in favoris ? 'Favori ❤' : 'Ajouter ♡' }}
                         </a>
-                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id_voyage}) }}"
+                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id}) }}"
  class="btn btn-success rounded-pill py-1 px-3" target="_blank">
  <i class="fa fa-file-pdf me-1"></i>PDF
 </a>
-                        <a href="{{ path('app_voyage_show', {'id': voyage.id_voyage}) }}"
+                        <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
    class="btn btn-outline-secondary rounded-pill py-1 px-3">
     <i class="fa fa-eye"></i>
 </a>
