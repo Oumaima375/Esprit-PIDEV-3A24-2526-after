@@ -22,11 +22,16 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
+// TODO after merge — décommentez après intégration User
+// use Symfony\Component\Security\Http\Attribute\IsGranted;
+
 #[Route('/document/crud')]
 final class DocumentCrudController extends AbstractController
 {
     // ===== INDEX =====
     #[Route('', name: 'app_document_crud_index', methods: ['GET'])]
+    // TODO after merge — décommentez pour forcer la connexion
+    // #[IsGranted('ROLE_USER')]
     public function index(
         Request $request,
         DocumentRepository $documentRepository,
@@ -37,6 +42,12 @@ final class DocumentCrudController extends AbstractController
         $tri    = $request->query->get('tri', 'dateAjout');
         $ordre  = $request->query->get('ordre', 'ASC');
 
+        // TODO after merge — remplacez findByFiltersQuery par findByFiltersQueryForUser
+        // if ($this->isGranted('ROLE_ADMIN')) {
+        //     $query = $documentRepository->findByFiltersQuery($search, $filtre, $tri, $ordre);
+        // } else {
+        //     $query = $documentRepository->findByFiltersQueryForUser($search, $filtre, $tri, $ordre, $this->getUser());
+        // }
         $query = $documentRepository->findByFiltersQuery($search, $filtre, $tri, $ordre);
 
         $documents = $paginator->paginate(
@@ -48,6 +59,10 @@ final class DocumentCrudController extends AbstractController
         $allDocs = $documentRepository->findAll();
         $expires = $documentRepository->findExpired();
 
+        // TODO after merge — remplacez findAll() par findByUser()
+        // $allDocs = $documentRepository->findByUser($this->getUser());
+        // $expires = $documentRepository->findExpiredByUser($this->getUser());
+
         return $this->render('document_crud/index.html.twig', [
             'documents' => $documents,
             'total'     => count($allDocs),
@@ -57,14 +72,16 @@ final class DocumentCrudController extends AbstractController
         ]);
     }
 
-    // ===== NEW avec détection catégorie + Cloudinary =====
+    // ===== NEW =====
     #[Route('/new', name: 'app_document_crud_new', methods: ['GET', 'POST'])]
+    // TODO after merge — décommentez pour forcer ROLE_USER seulement
+    // #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
         CategorieDetectorService $categorieDetector,
         CategorieDocumentRepository $categorieRepo,
-        CloudinaryService $cloudinaryService  // ← Cloudinary injecté
+        CloudinaryService $cloudinaryService
     ): Response {
         $document = new Document();
         $form     = $this->createForm(DocumentType::class, $document);
@@ -72,7 +89,9 @@ final class DocumentCrudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // ← Détection automatique catégorie
+            // TODO after merge — associer le document à l'utilisateur connecté
+            // $document->setUser($this->getUser());
+
             $libelleDetecte = null;
             if (!$document->getCategorie()) {
                 $categories = array_map(
@@ -91,18 +110,15 @@ final class DocumentCrudController extends AbstractController
                 }
             }
 
-            // ← Upload fichier vers Cloudinary
             $fichier = $form->get('fichier')->getData();
             if ($fichier) {
                 try {
-                    // ← Upload vers Cloudinary → retourne URL
                     $url = $cloudinaryService->upload(
                         $fichier->getRealPath(),
                         $fichier->getClientOriginalName()
                     );
                     $document->setCheminFichier($url);
                 } catch (\Exception $e) {
-                    // ← Si Cloudinary échoue → upload local en fallback
                     $nomFichier = uniqid() . '.' . $fichier->guessExtension();
                     $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
                     $document->setCheminFichier($nomFichier);
@@ -137,6 +153,11 @@ final class DocumentCrudController extends AbstractController
         if (!$document) {
             throw $this->createNotFoundException('Document non trouvé');
         }
+
+        // TODO after merge — vérifier que le document appartient à l'user connecté
+        // if ($document->getUser() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
+        //     throw $this->createAccessDeniedException('Accès refusé');
+        // }
 
         $contenu = sprintf(
             "AFTER Travel | %s | %s | Ajout: %s | Expire: %s",
@@ -194,6 +215,12 @@ final class DocumentCrudController extends AbstractController
     #[Route('/export/pdf', name: 'app_document_export_pdf', methods: ['GET'])]
     public function exportPdf(DocumentRepository $documentRepository): Response
     {
+        // TODO after merge — exporter seulement les documents de l'user connecté
+        // if ($this->isGranted('ROLE_ADMIN')) {
+        //     $documents = $documentRepository->findAll();
+        // } else {
+        //     $documents = $documentRepository->findByUser($this->getUser());
+        // }
         $documents = $documentRepository->findAll();
 
         $html = $this->renderView('document_crud/pdf.html.twig', [
@@ -209,14 +236,12 @@ final class DocumentCrudController extends AbstractController
         $dompdf->setPaper('A4', 'portrait');
         $dompdf->render();
 
-        $filename = 'documents_' . date('Y-m-d') . '.pdf';
-
         return new Response(
             $dompdf->output(),
             200,
             [
                 'Content-Type'        => 'application/pdf',
-                'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+                'Content-Disposition' => 'attachment; filename="documents_' . date('Y-m-d') . '.pdf"',
             ]
         );
     }
@@ -230,6 +255,12 @@ final class DocumentCrudController extends AbstractController
         $tri    = $request->query->get('tri', 'dateAjout');
         $ordre  = $request->query->get('ordre', 'ASC');
 
+        // TODO after merge — filtrer par user connecté
+        // if ($this->isGranted('ROLE_ADMIN')) {
+        //     $documents = $documentRepository->findByFilters($search, $filtre, $tri, $ordre);
+        // } else {
+        //     $documents = $documentRepository->findByFiltersForUser($search, $filtre, $tri, $ordre, $this->getUser());
+        // }
         $documents = $documentRepository->findByFilters($search, $filtre, $tri, $ordre);
 
         $html = $this->renderView('document_crud/_cards.html.twig', [
@@ -254,6 +285,11 @@ final class DocumentCrudController extends AbstractController
             throw $this->createNotFoundException('Document non trouvé');
         }
 
+        // TODO after merge — vérifier accès
+        // if ($document->getUser() !== $this->getUser() && !$this->isGranted('ROLE_ADMIN')) {
+        //     throw $this->createAccessDeniedException('Ce document ne vous appartient pas');
+        // }
+
         $conseils = $conseilsService->genererConseils(
             $document->getNomDocument(),
             $document->getCategorie()?->getLibelle() ?? 'Document',
@@ -266,19 +302,30 @@ final class DocumentCrudController extends AbstractController
         ]);
     }
 
-    // ===== EDIT avec Cloudinary =====
+    // ===== EDIT =====
     #[Route('/{idDocument}/edit', name: 'app_document_crud_edit', methods: ['GET', 'POST'])]
+    // TODO after merge — admin ne peut pas modifier → décommentez
+    // #[IsGranted('ROLE_USER')]
     public function edit(
         Request $request,
         int $idDocument,
         DocumentRepository $documentRepository,
         EntityManagerInterface $entityManager,
-        CloudinaryService $cloudinaryService  // ← Cloudinary injecté
+        CloudinaryService $cloudinaryService
     ): Response {
         $document = $documentRepository->find($idDocument);
         if (!$document) {
             throw $this->createNotFoundException('Document non trouvé');
         }
+
+        // TODO after merge — vérifier que c'est le bon user + bloquer admin
+        // if ($document->getUser() !== $this->getUser()) {
+        //     throw $this->createAccessDeniedException('Ce document ne vous appartient pas');
+        // }
+        // if ($this->isGranted('ROLE_ADMIN')) {
+        //     $this->addFlash('error', '⚠️ Les admins ne peuvent pas modifier les documents.');
+        //     return $this->redirectToRoute('app_admin_dashboard');
+        // }
 
         $form = $this->createForm(DocumentType::class, $document);
         $form->handleRequest($request);
@@ -300,27 +347,22 @@ final class DocumentCrudController extends AbstractController
                 ]);
             }
 
-            // ← Upload nouveau fichier vers Cloudinary si fourni
             $fichier = $form->get('fichier')->getData();
             if ($fichier) {
                 try {
-                    // ← Upload vers Cloudinary → retourne URL
                     $url = $cloudinaryService->upload(
                         $fichier->getRealPath(),
                         $fichier->getClientOriginalName()
                     );
                     $document->setCheminFichier($url);
                 } catch (\Exception $e) {
-                    // ← Si Cloudinary échoue → upload local en fallback
                     $nomFichier = uniqid() . '.' . $fichier->guessExtension();
                     $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
                     $document->setCheminFichier($nomFichier);
                 }
             }
-            // ← Si pas de nouveau fichier → garde l'ancien
 
             $entityManager->flush();
-
             $this->addFlash('success', '✅ Document modifié avec succès !');
             return $this->redirectToRoute('app_document_crud_index');
         }
@@ -355,6 +397,15 @@ final class DocumentCrudController extends AbstractController
         EntityManagerInterface $entityManager
     ): Response {
         $document = $documentRepository->find($idDocument);
+
+        // TODO after merge — vérifier que c'est le bon user + bloquer admin
+        // if ($document && $document->getUser() !== $this->getUser()) {
+        //     throw $this->createAccessDeniedException('Ce document ne vous appartient pas');
+        // }
+        // if ($this->isGranted('ROLE_ADMIN')) {
+        //     $this->addFlash('error', '⚠️ Les admins ne peuvent pas supprimer les documents.');
+        //     return $this->redirectToRoute('app_admin_dashboard');
+        // }
 
         if ($document && $this->isCsrfTokenValid(
             'delete' . $idDocument,

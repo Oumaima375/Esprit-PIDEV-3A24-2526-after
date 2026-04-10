@@ -30,6 +30,11 @@ class Document
     #[ORM\JoinColumn(name: 'id_categorie', referencedColumnName: 'id_categorie')]
     private ?CategorieDocument $categorie = null;
 
+    // TODO after merge — décommentez après intégration User
+    // #[ORM\ManyToOne(targetEntity: User::class)]
+    // #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', nullable: true)]
+    // private ?User $user = null;
+
     public function getIdDocument(): ?int { return $this->idDocument; }
     public function getNomDocument(): ?string { return $this->nomDocument; }
     public function setNomDocument(string $nomDocument): static { $this->nomDocument = $nomDocument; return $this; }
@@ -41,4 +46,8 @@ class Document
     public function setDateExpiration(?\DateTimeInterface $dateExpiration): static { $this->dateExpiration = $dateExpiration; return $this; }
     public function getCategorie(): ?CategorieDocument { return $this->categorie; }
     public function setCategorie(?CategorieDocument $categorie): static { $this->categorie = $categorie; return $this; }
+
+    // TODO after merge — décommentez après intégration User
+    // public function getUser(): ?User { return $this->user; }
+    // public function setUser(?User $user): static { $this->user = $user; return $this; }
 }
