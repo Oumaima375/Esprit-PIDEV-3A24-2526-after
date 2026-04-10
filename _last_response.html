@@ -1,0 +1,625 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFTER Travel Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/styles/app.css">
+    </head>
+<body>
+<div class="app-shell" data-app data-initial-view="reservations">
+    <header class="hero">
+        <div class="hero__main">
+            <div class="brand">
+                <div class="brand__logo"><i data-lucide="plane"></i></div>
+                <div>
+                    <p class="eyebrow">Travel Dashboard</p>
+                    <h1>AFTER Travel</h1>
+                </div>
+            </div>
+
+            <nav class="hero__nav">
+                <button class="tab-button is-active" type="button" data-view-target="reservations">
+                    <i data-lucide="briefcase-business"></i>
+                    RÃƒÂ©servations
+                </button>
+                <button class="tab-button" type="button" data-view-target="payments">
+                    <i data-lucide="credit-card"></i>
+                    Paiements
+                </button>
+            </nav>
+        </div>
+
+        <div class="hero__actions">
+            <button class="button button--sky" type="button" data-modal-open="reservation-modal">+ RÃƒÂ©server</button>
+            <button class="button button--outline-light" type="button" data-view-target="payments">Mes Paiements</button>
+            <button class="button button--ghost" type="button"><i data-lucide="settings"></i>Admin</button>
+        </div>
+    </header>
+
+    <main class="content">
+        
+        <section class="view is-active" data-view="reservations">
+            <div class="stats-grid">
+                                    <article class="stat-card">
+                        <span class="stat-card__badge stat-card__badge--primary">AperÃƒÂ§u</span>
+                        <strong class="stat-card__value stat-card__value--primary">10</strong>
+                        <p class="stat-card__label">Total Reservations</p>
+                    </article>
+                                    <article class="stat-card">
+                        <span class="stat-card__badge stat-card__badge--success">AperÃƒÂ§u</span>
+                        <strong class="stat-card__value stat-card__value--success">6</strong>
+                        <p class="stat-card__label">Confirmees</p>
+                    </article>
+                                    <article class="stat-card">
+                        <span class="stat-card__badge stat-card__badge--warning">AperÃƒÂ§u</span>
+                        <strong class="stat-card__value stat-card__value--warning">4</strong>
+                        <p class="stat-card__label">En Attente</p>
+                    </article>
+                            </div>
+
+            <section class="search-panel">
+                <div class="search-panel__grid">
+                    <label class="field-group field-group--search">
+                        <i data-lucide="search"></i>
+                        <input type="text" placeholder="Recherche destination, type ou rÃƒÂ©fÃƒÂ©rence" data-search-input>
+                    </label>
+                    <label class="field-group"><input type="date" data-start-date></label>
+                    <label class="field-group"><input type="date" data-end-date></label>
+                    <button class="button button--secondary" type="button" data-reset-search">
+                        <i data-lucide="filter-x"></i>
+                        RÃƒÂ©initialiser
+                    </button>
+                </div>
+            </section>
+
+            <section class="reservation-grid">
+                                    <article class="reservation-card" data-card data-search="ref 113 gebes  voyage" data-date="2026-02-14">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #113</p>
+                                <h3>GEBES </h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>GEBES </strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>14 fevr. 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Voyage</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>10 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">gebes semha</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">40,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 109 siliana voyage" data-date="2026-02-26">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #109</p>
+                                <h3>siliana</h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>siliana</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>26 fevr. 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Voyage</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>5 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">sskldsdlsdkskd</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">5 500,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 108 araiana chauffeur" data-date="2026-02-27">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #108</p>
+                                <h3>araiana</h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>araiana</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>27 fevr. 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Chauffeur</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>5 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">lsmdkdlsds</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">100,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 110 korba chauffeur" data-date="2026-02-28">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #110</p>
+                                <h3>korba</h3>
+                            </div>
+                            <span class="status-badge status-badge--warning">En attente</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>korba</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>28 fevr. 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Chauffeur</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>2 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">korba semha</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">200,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 102 rome hôtel" data-date="2026-03-12">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #102</p>
+                                <h3>Rome</h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>Rome</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>12 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Hôtel</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>4 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">Visite historique de Rome</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">1 200,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 103 maldives plage" data-date="2026-03-15">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #103</p>
+                                <h3>Maldives</h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>Maldives</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>15 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="umbrella"></i></span><div><p>Type</p><strong>Plage</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>2 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">Vacances plage et resort</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">2 000,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 105 kenya safari" data-date="2026-03-20">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #105</p>
+                                <h3>Kenya</h3>
+                            </div>
+                            <span class="status-badge status-badge--warning">En attente</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>Kenya</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>20 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="globe-2"></i></span><div><p>Type</p><strong>Safari</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>5 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">Safari animaux sauvages</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">2 500,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 114 italy voyage" data-date="2026-03-22">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #114</p>
+                                <h3>italy</h3>
+                            </div>
+                            <span class="status-badge status-badge--warning">En attente</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>italy</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>22 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Voyage</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>7 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">qsedfy</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">900,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 118 brazil voyage" data-date="2026-03-29">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #118</p>
+                                <h3>brazil</h3>
+                            </div>
+                            <span class="status-badge status-badge--warning">En attente</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>brazil</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>29 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Voyage</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>2 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">oooo</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">8 070,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                                    <article class="reservation-card" data-card data-search="ref 115 maldives chauffeur" data-date="2026-03-29">
+                        <div class="reservation-card__header">
+                            <div>
+                                <p class="reservation-card__ref">Ref #115</p>
+                                <h3>MALDIVES</h3>
+                            </div>
+                            <span class="status-badge status-badge--success">Confirmée</span>
+                        </div>
+
+                        <div class="reservation-card__body">
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="map-pinned"></i></span><div><p>Destination</p><strong>MALDIVES</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="calendar-days"></i></span><div><p>Date</p><strong>29 mars 2026</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="hotel"></i></span><div><p>Type</p><strong>Chauffeur</strong></div></div>
+                            <div class="detail-row"><span class="detail-icon"><i data-lucide="users"></i></span><div><p>Personnes</p><strong>11 voyageurs</strong></div></div>
+
+                            <p class="reservation-card__description">edfghjklnbv</p>
+
+                            <div class="reservation-card__footer">
+                                <strong class="price">30,00 TND</strong>
+                                <button class="button button--sand" type="button">DÃƒÂ©tails</button>
+                            </div>
+                        </div>
+                    </article>
+                            </section>
+        </section>
+
+        <section class="view" data-view="payments">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow eyebrow--brand">Mes Paiements</p>
+                    <h2>Suivi financier</h2>
+                </div>
+                <button class="button button--primary" type="button" data-modal-open="payment-modal">+ Nouveau</button>
+            </div>
+
+            <div class="payment-stats">
+                                    <article class="payment-stat-card">
+                        <div>
+                            <p>Nombre de paiements</p>
+                            <strong>8</strong>
+                        </div>
+                        <span class="payment-stat-card__icon"><i data-lucide="wallet"></i></span>
+                    </article>
+                                    <article class="payment-stat-card">
+                        <div>
+                            <p>Montant Total Verse</p>
+                            <strong>20 670,00 TND</strong>
+                        </div>
+                        <span class="payment-stat-card__icon"><i data-lucide="badge-dollar-sign"></i></span>
+                    </article>
+                            </div>
+
+            <section class="panel">
+                <div class="panel__heading">
+                    <div>
+                        <h3>Historique</h3>
+                        <p>Toutes les transactions rÃƒÂ©centes et leurs statuts.</p>
+                    </div>
+                </div>
+
+                <div class="payments-list">
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>PAY-005</strong><p>Ref #105 - Kenya</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--muted">Remboursé</span>
+                                <span class="amount-badge">2 500,00 EUR</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>PAY-003</strong><p>Ref #103 - Maldives</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--warning">En attente</span>
+                                <span class="amount-badge">2 000,00 EUR</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>PAY-002</strong><p>Ref #102 - Rome</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">Payé</span>
+                                <span class="amount-badge">1 200,00 EUR</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>errrr</strong><p>Ref #118 - brazil</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">payé</span>
+                                <span class="amount-badge">8 070,00 TND</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>titou</strong><p>Ref #114 - italy</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">payé</span>
+                                <span class="amount-badge">900,00 TND</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>aaaaa</strong><p>Ref #103 - Maldives</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">payé</span>
+                                <span class="amount-badge">2 000,00 TND</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>105</strong><p>Ref #103 - Maldives</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">payé</span>
+                                <span class="amount-badge">2 000,00 TND</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                            <article class="payment-row">
+                            <div class="payment-row__info">
+                                <span class="payment-row__icon"><i data-lucide="wallet"></i></span>
+                                <div><strong>105</strong><p>Ref #103 - Maldives</p></div>
+                            </div>
+                            <div class="payment-row__meta">
+                                <span class="status-badge status-badge--success">payé</span>
+                                <span class="amount-badge">2 000,00 TND</span>
+                                <div class="icon-actions">
+                                    <button type="button" class="icon-button"><i data-lucide="printer"></i></button>
+                                    <button type="button" class="icon-button"><i data-lucide="square-pen"></i></button>
+                                    <button type="button" class="icon-button icon-button--danger"><i data-lucide="trash-2"></i></button>
+                                </div>
+                            </div>
+                        </article>
+                                    </div>
+            </section>
+        </section>
+    </main>
+
+    <div class="modal" id="réservation-modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <div class="modal__title">
+                <span class="modal__icon"><i data-lucide="plane"></i></span>
+                <div>
+                    <h3>Nouvelle Réservation</h3>
+                    <p>Créez une nouvelle fiche voyage client.</p>
+                </div>
+            </div>
+            <button type="button" class="icon-button icon-button--light" data-modal-close><i data-lucide="x"></i></button>
+        </div>
+        <form class="modal__body" method="post" action="/reservation/create">
+            <div class="form-grid">
+                <label class="field-block"><span>Voyage ID</span><input type="number" name="voyage_id" placeholder="1024" required></label>
+                <label class="field-block"><span>Client ID</span><input type="number" name="utilisateur_id" placeholder="980" required></label>
+                <label class="field-block"><span>Date du voyage</span><input type="date" name="date_réservation" required></label>
+                <label class="field-block"><span>Nb Personnes</span><input type="number" name="nb_personnes" min="1" placeholder="2" required></label>
+                <label class="field-block"><span>Prix Total (TND)</span><input type="number" name="prix_total" min="0" step="0.01" placeholder="1200" required></label>
+                <label class="field-block">
+                    <span>Type</span>
+                    <select name="type" required>
+                        <option value="Hôtel">Hôtel</option>
+                        <option value="Plage">Plage</option>
+                        <option value="Safari">Safari</option>
+                    </select>
+                </label>
+                <label class="field-block">
+                    <span>Statut</span>
+                    <select name="statut" required>
+                        <option value="En attente">En attente</option>
+                        <option value="Confirmée">Confirmée</option>
+                        <option value="Annulée">Annulée</option>
+                    </select>
+                </label>
+                <label class="field-block field-block--full"><span>Lieu</span><input type="text" name="lieu" placeholder="Destination ou lieu du séjour" required></label>
+                <label class="field-block field-block--full"><span>Description</span><textarea name="description" rows="5" placeholder="Ajoutez les détails utiles de la réservation..."></textarea></label>
+            </div>
+            <div class="modal__actions">
+                <button class="button button--outline-dark" type="button" data-modal-close>Annuler</button>
+                <button class="button button--primary" type="submit">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div>    <div class="modal" id="payment-modal" aria-hidden="true">
+    <div class="modal__backdrop" data-modal-close></div>
+    <div class="modal__dialog">
+        <div class="modal__header">
+            <div class="modal__title">
+                <span class="modal__icon"><i data-lucide="wallet"></i></span>
+                <div>
+                    <h3>Effectuer un paiement</h3>
+                    <p>Enregistrez un paiement ou mettez à jour son statut.</p>
+                </div>
+            </div>
+            <button type="button" class="icon-button icon-button--light" data-modal-close><i data-lucide="x"></i></button>
+        </div>
+        <form class="modal__body" method="post" action="/payment/create">
+            <div class="form-grid">
+                <label class="field-block"><span>Référence</span><input type="text" name="reference" placeholder="PAY-009" required></label>
+                <label class="field-block"><span>Montant</span><input type="number" name="montant" min="0" step="0.01" placeholder="1200" required></label>
+                <label class="field-block"><span>Devise</span><select name="devise" required><option value="TND">TND</option><option value="EUR">EUR</option></select></label>
+                <label class="field-block"><span>Méthode</span><select name="methode" required><option value="Carte">Carte</option><option value="Virement">Virement</option><option value="Espèces">Espèces</option></select></label>
+                <label class="field-block"><span>Statut</span><select name="statut" required><option value="paye">paye</option><option value="En attente">En attente</option><option value="Remboursé">Remboursé</option></select></label>
+                <label class="field-block"><span>Numéro de Reservation</span><input type="number" name="id_reservation" placeholder="102" required></label>
+                <label class="field-block field-block--full"><span>Date</span><input type="date" name="date_paiement" required></label>
+            </div>
+            <div class="modal__actions">
+                <button class="button button--outline-dark" type="button" data-modal-close>Annuler</button>
+                <button class="button button--primary" type="submit">Enregistrer</button>
+            </div>
+        </form>
+    </div>
+</div></div>
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+const viewButtons = document.querySelectorAll('[data-view-target]');
+const views = document.querySelectorAll('[data-view]');
+const modals = document.querySelectorAll('.modal');
+const searchInput = document.querySelector('[data-search-input]');
+const startDate = document.querySelector('[data-start-date]');
+const endDate = document.querySelector('[data-end-date]');
+const resetButton = document.querySelector('[data-reset-search]');
+const cards = document.querySelectorAll('[data-card]');
+const initialView = document.querySelector('[data-app]')?.dataset.initialView || 'reservations';
+
+const setActiveView = (target) => {
+    views.forEach((view) => view.classList.toggle('is-active', view.dataset.view === target));
+    viewButtons.forEach((button) => button.classList.toggle('is-active', button.dataset.viewTarget === target));
+};
+
+const openModal = (id) => {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('is-open');
+    modal.setAttribute('aria-hidden', 'false');
+};
+
+const closeModal = (modal) => {
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+};
+
+const filterCards = () => {
+    const query = (searchInput?.value || '').trim().toLowerCase();
+    const start = startDate?.value || '';
+    const end = endDate?.value || '';
+
+    cards.forEach((card) => {
+        const haystack = card.dataset.search || '';
+        const date = card.dataset.date || '';
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesStart = !start || date >= start;
+        const matchesEnd = !end || date <= end;
+        card.hidden = !(matchesQuery && matchesStart && matchesEnd);
+    });
+};
+
+viewButtons.forEach((button) => button.addEventListener('click', () => setActiveView(button.dataset.viewTarget)));
+document.querySelectorAll('[data-modal-open]').forEach((button) => button.addEventListener('click', () => openModal(button.dataset.modalOpen)));
+document.querySelectorAll('[data-modal-close]').forEach((button) => button.addEventListener('click', () => {
+    const modal = button.closest('.modal');
+    if (modal) closeModal(modal);
+}));
+
+[searchInput, startDate, endDate].forEach((element) => {
+    element?.addEventListener('input', filterCards);
+    element?.addEventListener('change', filterCards);
+});
+
+resetButton?.addEventListener('click', () => {
+    if (searchInput) searchInput.value = '';
+    if (startDate) startDate.value = '';
+    if (endDate) endDate.value = '';
+    filterCards();
+});
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape') {
+        modals.forEach((modal) => closeModal(modal));
+    }
+});
+
+setActiveView(initialView);
+filterCards();
+if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+}
+</script>
+</body>
+</html>
+

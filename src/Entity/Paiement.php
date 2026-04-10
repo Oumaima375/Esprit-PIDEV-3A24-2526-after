@@ -3,17 +3,15 @@
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\Reservation;
 use App\Repository\PaiementRepository;
 
-#[ORM\Entity(repositoryClass: App\Repository\PaiementRepository::class)]
+#[ORM\Entity(repositoryClass: PaiementRepository::class)]
 class Paiement
 {
-
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: "string", length: 50)]
     private string $reference;
@@ -26,7 +24,7 @@ class Paiement
 
     #[ORM\ManyToOne(targetEntity: Reservation::class, inversedBy: "paiements")]
     #[ORM\JoinColumn(name: 'id_reservation', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private Reservation $id_reservation;
+    private ?Reservation $reservation = null;
 
     #[ORM\Column(type: "string", length: 50)]
     private string $statut;
@@ -35,109 +33,87 @@ class Paiement
     private string $devise;
 
     #[ORM\Column(type: "datetime")]
-    private \DateTimeInterface $date_paiement;
+    private \DateTimeInterface $datePaiement;
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId($value)
-    {
-        $this->id = $value;
-    }
-
-    public function getReference()
+    public function getReference(): string
     {
         return $this->reference;
     }
 
-    public function setReference($value)
+    public function setReference(string $reference): self
     {
-        $this->reference = $value;
+        $this->reference = $reference;
+        return $this;
     }
 
-    public function getMontant()
+    public function getMontant(): float
     {
         return $this->montant;
     }
 
-    public function setMontant($value)
+    public function setMontant(float $montant): self
     {
-        $this->montant = $value;
+        $this->montant = $montant;
+        return $this;
     }
 
-    public function getMethode()
+    public function getMethode(): string
     {
         return $this->methode;
     }
 
-    public function setMethode($value)
+    public function setMethode(string $methode): self
     {
-        $this->methode = $value;
+        $this->methode = $methode;
+        return $this;
     }
 
-    public function getId_reservation()
+    public function getReservation(): ?Reservation
     {
-        return $this->id_reservation;
+        return $this->reservation;
     }
 
-    public function setId_reservation($value)
+    public function setReservation(?Reservation $reservation): self
     {
-        $this->id_reservation = $value;
+        $this->reservation = $reservation;
+        return $this;
     }
 
-    public function getStatut()
+    public function getStatut(): string
     {
         return $this->statut;
     }
 
-    public function setStatut($value)
+    public function setStatut(string $statut): self
     {
-        $this->statut = $value;
+        $this->statut = $statut;
+        return $this;
     }
 
-    public function getDevise()
+    public function getDevise(): string
     {
         return $this->devise;
     }
 
-    public function setDevise($value)
+    public function setDevise(string $devise): self
     {
-        $this->devise = $value;
-    }
-
-    public function getDate_paiement()
-    {
-        return $this->date_paiement;
-    }
-
-    public function setDate_paiement($value)
-    {
-        $this->date_paiement = $value;
-    }
-
-    public function getDatePaiement(): ?\DateTime
-    {
-        return $this->date_paiement;
-    }
-
-    public function setDatePaiement(\DateTime $date_paiement): static
-    {
-        $this->date_paiement = $date_paiement;
-
+        $this->devise = $devise;
         return $this;
     }
 
-    public function getIdReservation(): ?Reservation
+    public function getDatePaiement(): \DateTimeInterface
     {
-        return $this->id_reservation;
+        return $this->datePaiement;
     }
 
-    public function setIdReservation(?Reservation $id_reservation): static
+    public function setDatePaiement(\DateTimeInterface $datePaiement): self
     {
-        $this->id_reservation = $id_reservation;
-
+        $this->datePaiement = $datePaiement;
         return $this;
     }
 }

@@ -23,3 +23,15 @@
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+
+# IDE & OS files
+/.idea/
+/.vscode/
+.DS_Store
+
+# Node / frontend
+/node_modules/
+/dist/
+
+# Logs
+*.log

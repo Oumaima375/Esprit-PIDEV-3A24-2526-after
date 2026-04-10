@@ -3,41 +3,34 @@
 namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
-use Doctrine\DBAL\Types\Types;
-use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\Voyage;
 use Doctrine\Common\Collections\Collection;
-use App\Entity\Paiement;
+use Doctrine\ORM\Mapping as ORM;
 use App\Repository\ReservationRepository;
 
-#[ORM\Entity(repositoryClass: App\Repository\ReservationRepository::class)]
+#[ORM\Entity(repositoryClass: ReservationRepository::class)]
 class Reservation
 {
-
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private int $id;
+    private ?int $id = null;
 
     #[ORM\Column(type: "date")]
-    private \DateTimeInterface $date_reservation;
+    private \DateTimeInterface $dateReservation;
 
     #[ORM\Column(type: "string", length: 50)]
     private string $statut;
 
     #[ORM\Column(type: "integer")]
-    private int $nb_personnes;
+    private int $nbPersonnes;
 
     #[ORM\ManyToOne(targetEntity: Users::class, inversedBy: "reservations")]
     #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', onDelete: 'CASCADE')]
-    private Users $id_user;
+    private ?Users $user = null;
 
     #[ORM\ManyToOne(targetEntity: Voyage::class, inversedBy: "reservations")]
     #[ORM\JoinColumn(name: 'id_voyage', referencedColumnName: 'id_voyage', onDelete: 'CASCADE')]
-    private Voyage $id_voyage;
-
-    #[ORM\Column(type: "integer")]
-    private int $id_utilisateur;
+    private ?Voyage $voyage = null;
 
     #[ORM\Column(type: "string", length: 50)]
     private string $type;
@@ -49,9 +42,9 @@ class Reservation
     private string $description;
 
     #[ORM\Column(type: "float")]
-    private float $prix_total;
+    private float $prixTotal;
 
-    #[ORM\OneToMany(mappedBy: "id_reservation", targetEntity: Paiement::class)]
+    #[ORM\OneToMany(mappedBy: "reservation", targetEntity: Paiement::class)]
     private Collection $paiements;
 
     public function __construct()
@@ -59,211 +52,112 @@ class Reservation
         $this->paiements = new ArrayCollection();
     }
 
-    public function getId()
+    public function getId(): ?int
     {
         return $this->id;
     }
 
-    public function setId($value)
+    public function getDateReservation(): \DateTimeInterface
     {
-        $this->id = $value;
+        return $this->dateReservation;
     }
 
-    public function getDate_reservation()
+    public function setDateReservation(\DateTimeInterface $dateReservation): self
     {
-        return $this->date_reservation;
+        $this->dateReservation = $dateReservation;
+        return $this;
     }
 
-    public function setDate_reservation($value)
-    {
-        $this->date_reservation = $value;
-    }
-
-    public function getStatut()
+    public function getStatut(): string
     {
         return $this->statut;
     }
 
-    public function setStatut($value)
+    public function setStatut(string $statut): self
     {
-        $this->statut = $value;
+        $this->statut = $statut;
+        return $this;
     }
 
-    public function getNb_personnes()
+    public function getNbPersonnes(): int
     {
-        return $this->nb_personnes;
+        return $this->nbPersonnes;
     }
 
-    public function setNb_personnes($value)
+    public function setNbPersonnes(int $nbPersonnes): self
     {
-        $this->nb_personnes = $value;
+        $this->nbPersonnes = $nbPersonnes;
+        return $this;
     }
 
-    public function getId_user()
+    public function getUser(): ?Users
     {
-        return $this->id_user;
+        return $this->user;
     }
 
-    public function setId_user($value)
+    public function setUser(?Users $user): self
     {
-        $this->id_user = $value;
+        $this->user = $user;
+        return $this;
     }
 
-    public function getId_voyage()
+    public function getVoyage(): ?Voyage
     {
-        return $this->id_voyage;
+        return $this->voyage;
     }
 
-    public function setId_voyage($value)
+    public function setVoyage(?Voyage $voyage): self
     {
-        $this->id_voyage = $value;
+        $this->voyage = $voyage;
+        return $this;
     }
 
-    public function getId_utilisateur()
-    {
-        return $this->id_utilisateur;
-    }
-
-    public function setId_utilisateur($value)
-    {
-        $this->id_utilisateur = $value;
-    }
-
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
-    public function setType($value)
+    public function setType(string $type): self
     {
-        $this->type = $value;
+        $this->type = $type;
+        return $this;
     }
 
-    public function getLieu()
+    public function getLieu(): string
     {
         return $this->lieu;
     }
 
-    public function setLieu($value)
+    public function setLieu(string $lieu): self
     {
-        $this->lieu = $value;
+        $this->lieu = $lieu;
+        return $this;
     }
 
-    public function getDescription()
+    public function getDescription(): string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(string $description): self
     {
-        $this->description = $value;
-    }
-
-    public function getPrix_total()
-    {
-        return $this->prix_total;
-    }
-
-    public function setPrix_total($value)
-    {
-        $this->prix_total = $value;
-    }
-
-    public function getDateReservation(): ?\DateTime
-    {
-        return $this->date_reservation;
-    }
-
-    public function setDateReservation(\DateTime $date_reservation): static
-    {
-        $this->date_reservation = $date_reservation;
-
+        $this->description = $description;
         return $this;
     }
 
-    public function getNbPersonnes(): ?int
+    public function getPrixTotal(): float
     {
-        return $this->nb_personnes;
+        return $this->prixTotal;
     }
 
-    public function setNbPersonnes(int $nb_personnes): static
+    public function setPrixTotal(float $prixTotal): self
     {
-        $this->nb_personnes = $nb_personnes;
-
-        return $this;
-    }
-
-    public function getIdUtilisateur(): ?int
-    {
-        return $this->id_utilisateur;
-    }
-
-    public function setIdUtilisateur(int $id_utilisateur): static
-    {
-        $this->id_utilisateur = $id_utilisateur;
-
-        return $this;
-    }
-
-    public function getPrixTotal(): ?float
-    {
-        return $this->prix_total;
-    }
-
-    public function setPrixTotal(float $prix_total): static
-    {
-        $this->prix_total = $prix_total;
-
-        return $this;
-    }
-
-    public function getIdUser(): ?Users
-    {
-        return $this->id_user;
-    }
-
-    public function setIdUser(?Users $id_user): static
-    {
-        $this->id_user = $id_user;
-
-        return $this;
-    }
-
-    public function getIdVoyage(): ?Voyage
-    {
-        return $this->id_voyage;
-    }
-
-    public function setIdVoyage(?Voyage $id_voyage): static
-    {
-        $this->id_voyage = $id_voyage;
-
+        $this->prixTotal = $prixTotal;
         return $this;
     }
 
     public function getPaiements(): Collection
     {
         return $this->paiements;
-    }
-
-    public function addPaiement(Paiement $paiement): static
-    {
-        if (!$this->paiements->contains($paiement)) {
-            $this->paiements->add($paiement);
-            $paiement->setIdReservation($this);
-        }
-
-        return $this;
-    }
-
-    public function removePaiement(Paiement $paiement): static
-    {
-        if ($this->paiements->removeElement($paiement)) {
-            if ($paiement->getIdReservation() === $this) {
-                $paiement->setIdReservation(null);
-            }
-        }
-
-        return $this;
     }
 }
