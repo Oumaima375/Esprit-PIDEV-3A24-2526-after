@@ -13,36 +13,49 @@ class DocumentRepository extends ServiceEntityRepository
         parent::__construct($registry, Document::class);
     }
 
-    public function findByFilters(string $search, string $filtre, string $tri, string $ordre): array
+    // ← Méthode commune partagée
+    private function buildQuery(string $search, string $filtre, string $tri, string $ordre)
     {
         $qb = $this->createQueryBuilder('d')
             ->leftJoin('d.categorie', 'c');
 
         if (!empty($search)) {
             $qb->andWhere('d.nomDocument LIKE :search')
-            ->setParameter('search', '%' . $search . '%');
+               ->setParameter('search', '%' . $search . '%');
         }
 
         $today = new \DateTime();
         if ($filtre === 'expires') {
             $qb->andWhere('d.dateExpiration < :today')
-            ->setParameter('today', $today);
+               ->setParameter('today', $today);
         } elseif ($filtre === 'valides') {
             $qb->andWhere('d.dateExpiration >= :today OR d.dateExpiration IS NULL')
-            ->setParameter('today', $today);
+               ->setParameter('today', $today);
         } elseif ($filtre === 'bientot') {
             $soon = new \DateTime('+30 days');
             $qb->andWhere('d.dateExpiration BETWEEN :today AND :soon')
-            ->setParameter('today', $today)
-            ->setParameter('soon', $soon);
+               ->setParameter('today', $today)
+               ->setParameter('soon', $soon);
         }
 
         $allowedTri = ['nomDocument', 'dateAjout', 'dateExpiration'];
         if (in_array($tri, $allowedTri)) {
-            $qb->orderBy('d.' . $tri, $ordre === 'DESC' ? 'DESC' : 'ASC'); // ← sécurisé
+            $qb->orderBy('d.' . $tri, $ordre === 'DESC' ? 'DESC' : 'ASC');
         }
 
-        return $qb->getQuery()->getResult();
+        return $qb;
+    }
+
+    // ← Pour le paginator (retourne Query)
+    public function findByFiltersQuery(string $search, string $filtre, string $tri, string $ordre)
+    {
+        return $this->buildQuery($search, $filtre, $tri, $ordre)->getQuery();
+    }
+
+    // ← Pour la recherche AJAX (retourne array)
+    public function findByFilters(string $search, string $filtre, string $tri, string $ordre): array
+    {
+        return $this->buildQuery($search, $filtre, $tri, $ordre)->getQuery()->getResult();
     }
 
     public function findExpired(): array
@@ -53,27 +66,18 @@ class DocumentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
-public function getMonthlyUploads(): array
-{
-    $conn = $this->getEntityManager()->getConnection();
-    $sql = "SELECT DATE_FORMAT(date_ajout, '%Y-%m') AS month, COUNT(id_document) as total 
-            FROM document 
-            GROUP BY month 
-            ORDER BY month ASC";
-    return $conn->executeQuery($sql)->fetchAllAssociative();
-}
 
-public function findExpiringSoon(): array
-{
-    $today = new \DateTime();
-    $soon = new \DateTime('+30 days');
-    return $this->createQueryBuilder('d')
-        ->andWhere('d.dateExpiration BETWEEN :today AND :soon')
-        ->setParameter('today', $today)
-        ->setParameter('soon', $soon)
-        ->getQuery()
-        ->getResult();
-}
+    public function findExpiringSoon(): array
+    {
+        $today = new \DateTime();
+        $soon  = new \DateTime('+30 days');
+        return $this->createQueryBuilder('d')
+            ->andWhere('d.dateExpiration BETWEEN :today AND :soon')
+            ->setParameter('today', $today)
+            ->setParameter('soon', $soon)
+            ->getQuery()
+            ->getResult();
+    }
 
     public function countByCategorie(): array
     {
@@ -83,5 +87,15 @@ public function findExpiringSoon(): array
             ->groupBy('c.libelle')
             ->getQuery()
             ->getResult();
+    }
+
+    public function getMonthlyUploads(): array
+    {
+        $conn = $this->getEntityManager()->getConnection();
+        $sql  = "SELECT DATE_FORMAT(date_ajout, '%Y-%m') AS month, COUNT(id_document) as total 
+                 FROM document 
+                 GROUP BY month 
+                 ORDER BY month ASC";
+        return $conn->executeQuery($sql)->fetchAllAssociative();
     }
 }

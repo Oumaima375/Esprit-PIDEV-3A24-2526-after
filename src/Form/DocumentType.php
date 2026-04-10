@@ -13,7 +13,6 @@ use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
-use Symfony\Component\Validator\Constraints\Regex;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
 
@@ -33,16 +32,12 @@ class DocumentType extends AbstractType
                         'minMessage' => 'Le nom doit contenir au moins {{ limit }} caractères.',
                         'maxMessage' => 'Le nom ne peut pas dépasser {{ limit }} caractères.',
                     ]),
-                    new Regex([
-                        'pattern' => '/^[\p{L}0-9\s\-\_\.\,\']+$/u',
-                        'message' => 'Le nom contient des caractères invalides.',
-                    ]),
                 ],
             ])
             ->add('fichier', FileType::class, [
                 'label'    => 'Fichier du document',
                 'mapped'   => false,
-                'required' => true,
+                'required' => false,
                 'attr'     => ['class' => 'form-control'],
                 'constraints' => [
                     new File([
@@ -61,7 +56,7 @@ class DocumentType extends AbstractType
             ->add('dateAjout', DateType::class, [
                 'widget' => 'single_text',
                 'label'  => "Date d'ajout",
-                'attr'   => ['class' => 'form-control', 'min' => (new \DateTime())->format('Y-m-d')],
+                'attr'   => ['class' => 'form-control'],
                 'constraints' => [
                     new NotBlank(['message' => "La date d'ajout est obligatoire."]),
                     new GreaterThanOrEqual([
@@ -81,12 +76,9 @@ class DocumentType extends AbstractType
                 'choice_label' => 'libelle',
                 'choice_value' => 'idCategorie',
                 'label'        => 'Catégorie',
-                'placeholder'  => '-- Sélectionnez une catégorie --',
-                'required'     => true,
+                'placeholder'  => '🤖 Laisser vide pour détection Gemini AI',
+                'required'     => false,
                 'attr'         => ['class' => 'form-select'],
-                'constraints'  => [
-                    new NotBlank(['message' => 'Veuillez sélectionner une catégorie.']),
-                ],
             ])
         ;
     }

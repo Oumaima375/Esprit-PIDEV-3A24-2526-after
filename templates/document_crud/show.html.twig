@@ -68,6 +68,57 @@
                         <a href="{{ path('app_document_crud_index') }}"
                            class="btn btn-outline-secondary rounded-pill px-4">← Retour</a>
                     </div>
+
+                    <div class="card border-0 shadow-sm rounded-4 p-4 text-center mt-4">
+                        <h5 class="fw-bold text-dark mb-3">📱 QR Code du document</h5>
+                        {# L'image SVG s'affiche pareil que PNG #}
+                        <img src="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}"
+                            alt="QR Code" class="img-fluid mx-auto d-block" style="max-width:200px;">
+
+                        <a href="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}?download=1"
+                        class="btn btn-outline-primary rounded-pill mt-2 px-4 w-100">
+                            ⬇ Télécharger QR Code
+                        </a>
+                        </a>
+                    </div>
+                    {# Conseils IA #}
+                    <div class="card border-0 shadow-sm rounded-4 mt-4">
+                        <div class="card-header border-0 rounded-top-4 py-3"
+                            style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                            <h5 class="text-white mb-0">🤖 Conseils personnalisés par IA</h5>
+                            <small class="text-white-50">Générés automatiquement pour ce document</small>
+                        </div>
+                        <div class="card-body p-4">
+                            {% if conseils is defined and conseils|length > 0 %}
+                                {% for conseil in conseils %}
+                                    <div class="d-flex gap-3 mb-3 p-3 rounded-3"
+                                        style="background:
+                                            {% if conseil.urgence == 'haute' %}#fee2e2{% elseif conseil.urgence == 'moyenne' %}#fef9c3{% else %}#f0fdf4{% endif %};">
+                                        <div style="font-size:24px;">
+                                            {% if conseil.urgence == 'haute' %}🔴{% elseif conseil.urgence == 'moyenne' %}🟡{% else %}🟢{% endif %}
+                                        </div>
+                                        <div>
+                                            <h6 class="fw-bold mb-1"
+                                                style="color:
+                                                    {% if conseil.urgence == 'haute' %}#dc2626{% elseif conseil.urgence == 'moyenne' %}#ca8a04{% else %}#16a34a{% endif %};">
+                                                {{ conseil.titre }}
+                                            </h6>
+                                            <p class="mb-0 text-muted small">{{ conseil.description }}</p>
+                                        </div>
+                                        <div class="ms-auto">
+                                            <span class="badge rounded-pill"
+                                                style="background:
+                                                    {% if conseil.urgence == 'haute' %}#ef4444{% elseif conseil.urgence == 'moyenne' %}#eab308{% else %}#22c55e{% endif %};">
+                                                {{ conseil.urgence|capitalize }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <p class="text-muted text-center">Aucun conseil disponible</p>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

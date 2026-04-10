@@ -3,93 +3,123 @@
 namespace App\Controller;
 
 use App\Entity\Document;
-use App\Entity\CategorieDocument;
 use App\Form\DocumentType;
-use App\Repository\DocumentRepository;
 use App\Repository\CategorieDocumentRepository;
-use App\Service\GeminiService;
+use App\Repository\DocumentRepository;
+use App\Service\CloudinaryService;
+use App\Service\ConseilsService;
+use App\Service\CategorieDetectorService;
 use Doctrine\ORM\EntityManagerInterface;
+use Dompdf\Dompdf;
+use Dompdf\Options;
+use Endroid\QrCode\Color\Color;
+use Endroid\QrCode\Encoding\Encoding;
+use Endroid\QrCode\QrCode;
+use Endroid\QrCode\Writer\SvgWriter;
+use Knp\Component\Pager\PaginatorInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
-use Dompdf\Dompdf;
- use Dompdf\Options;
-
 
 #[Route('/document/crud')]
 final class DocumentCrudController extends AbstractController
 {
     // ===== INDEX =====
-    #[Route(name: 'app_document_crud_index', methods: ['GET'])]
+    #[Route('', name: 'app_document_crud_index', methods: ['GET'])]
     public function index(
         Request $request,
-        DocumentRepository $documentRepository
+        DocumentRepository $documentRepository,
+        PaginatorInterface $paginator
     ): Response {
         $search = $request->query->get('search', '');
         $filtre = $request->query->get('filtre', 'tous');
-        $tri = $request->query->get('tri', 'dateAjout');
-        $ordre = $request->query->get('ordre', 'DESC');
+        $tri    = $request->query->get('tri', 'dateAjout');
+        $ordre  = $request->query->get('ordre', 'ASC');
 
-        $documents = $documentRepository->findByFilters($search, $filtre, $tri, $ordre);
+        $query = $documentRepository->findByFiltersQuery($search, $filtre, $tri, $ordre);
 
-        $total = count($documentRepository->findAll());
-        $expires = count($documentRepository->findExpired());
-        $valides = $total - $expires;
+        $documents = $paginator->paginate(
+            $query,
+            $request->query->getInt('page', 1),
+            6
+        );
+
+        $allDocs = $documentRepository->findAll();
+        $expires = $documentRepository->findExpired();
 
         return $this->render('document_crud/index.html.twig', [
             'documents' => $documents,
-            'search' => $search,
-            'filtre' => $filtre,
-            'tri' => $tri,
-            'ordre' => $ordre,
-            'total' => $total,
-            'expires' => $expires,
-            'valides' => $valides,
+            'total'     => count($allDocs),
+            'valides'   => count($allDocs) - count($expires),
+            'expires'   => count($expires),
+            'search'    => $search,
         ]);
     }
 
-    // ===== NEW avec Gemini =====
+    // ===== NEW avec détection catégorie + Cloudinary =====
     #[Route('/new', name: 'app_document_crud_new', methods: ['GET', 'POST'])]
-    public function new(Request $request, EntityManagerInterface $entityManager): Response
-    {
+    public function new(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        CategorieDetectorService $categorieDetector,
+        CategorieDocumentRepository $categorieRepo,
+        CloudinaryService $cloudinaryService  // ← Cloudinary injecté
+    ): Response {
         $document = new Document();
-        $form = $this->createForm(DocumentType::class, $document);
+        $form     = $this->createForm(DocumentType::class, $document);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // Validation dateExpiration > dateAjout
-            $dateAjout      = $document->getDateAjout();
-            $dateExpiration = $document->getDateExpiration();
-
-            if ($dateExpiration && $dateAjout && $dateExpiration <= $dateAjout) {
-                $form->get('dateExpiration')->addError(
-                    new \Symfony\Component\Form\FormError(
-                        "La date d'expiration doit être après la date d'ajout."
-                    )
+            // ← Détection automatique catégorie
+            $libelleDetecte = null;
+            if (!$document->getCategorie()) {
+                $categories = array_map(
+                    fn($c) => $c->getLibelle(),
+                    $categorieRepo->findAll()
                 );
-                return $this->render('document_crud/new.html.twig', [
-                    'document' => $document,
-                    'form'     => $form,
-                ]);
+                $libelleDetecte = $categorieDetector->detecterCategorie(
+                    $document->getNomDocument(),
+                    $categories
+                );
+                if ($libelleDetecte) {
+                    $categorie = $categorieRepo->findOneBy(['libelle' => $libelleDetecte]);
+                    if ($categorie) {
+                        $document->setCategorie($categorie);
+                    }
+                }
             }
 
-            // Gestion fichier — obligatoire en base donc on vérifie
+            // ← Upload fichier vers Cloudinary
             $fichier = $form->get('fichier')->getData();
             if ($fichier) {
-                $nomFichier = uniqid() . '.' . $fichier->guessExtension();
-                $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
-                $document->setCheminFichier($nomFichier);
+                try {
+                    // ← Upload vers Cloudinary → retourne URL
+                    $url = $cloudinaryService->upload(
+                        $fichier->getRealPath(),
+                        $fichier->getClientOriginalName()
+                    );
+                    $document->setCheminFichier($url);
+                } catch (\Exception $e) {
+                    // ← Si Cloudinary échoue → upload local en fallback
+                    $nomFichier = uniqid() . '.' . $fichier->guessExtension();
+                    $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
+                    $document->setCheminFichier($nomFichier);
+                }
             } else {
-                // ← IMPORTANT : valeur par défaut si aucun fichier uploadé
                 $document->setCheminFichier('aucun_fichier');
             }
 
             $entityManager->persist($document);
             $entityManager->flush();
 
-            $this->addFlash('success', '✅ Document ajouté avec succès !');
+            if ($libelleDetecte) {
+                $this->addFlash('success', '✅ Document ajouté ! 🤖 Catégorie détectée : ' . $libelleDetecte);
+            } else {
+                $this->addFlash('success', '✅ Document ajouté !');
+            }
+
             return $this->redirectToRoute('app_document_crud_index');
         }
 
@@ -99,29 +129,68 @@ final class DocumentCrudController extends AbstractController
         ]);
     }
 
-    // ===== STATS (avant show !) =====
+    // ===== QR CODE =====
+    #[Route('/{idDocument}/qrcode', name: 'app_document_qrcode', methods: ['GET'])]
+    public function qrcode(int $idDocument, Request $request, DocumentRepository $repo): Response
+    {
+        $document = $repo->find($idDocument);
+        if (!$document) {
+            throw $this->createNotFoundException('Document non trouvé');
+        }
+
+        $contenu = sprintf(
+            "AFTER Travel | %s | %s | Ajout: %s | Expire: %s",
+            $document->getNomDocument(),
+            $document->getCategorie()?->getLibelle() ?? 'N/A',
+            $document->getDateAjout()?->format('d/m/Y') ?? 'N/A',
+            $document->getDateExpiration()?->format('d/m/Y') ?? 'N/A'
+        );
+
+        $writer = new SvgWriter();
+        $qrCode = new QrCode(
+            data:            $contenu,
+            encoding:        new Encoding('UTF-8'),
+            size:            300,
+            margin:          10,
+            foregroundColor: new Color(26, 39, 68),
+            backgroundColor: new Color(255, 255, 255)
+        );
+
+        $result  = $writer->write($qrCode);
+        $svgData = $result->getString();
+
+        $disposition = $request->query->get('download')
+            ? 'attachment; filename="qrcode_' . $document->getNomDocument() . '.svg"'
+            : 'inline';
+
+        return new Response($svgData, 200, [
+            'Content-Type'        => 'image/svg+xml',
+            'Content-Length'      => strlen($svgData),
+            'Content-Disposition' => $disposition,
+            'Cache-Control'       => 'no-cache',
+        ]);
+    }
+
+    // ===== STATS =====
     #[Route('/stats', name: 'app_document_stats', methods: ['GET'])]
     public function stats(
         DocumentRepository $documentRepository,
         CategorieDocumentRepository $categorieRepo
     ): Response {
-        $total = count($documentRepository->findAll());
-        $expires = count($documentRepository->findExpired());
-        $valides = $total - $expires;
+        $total        = count($documentRepository->findAll());
+        $expires      = count($documentRepository->findExpired());
+        $valides      = $total - $expires;
         $parCategorie = $documentRepository->countByCategorie();
 
         return $this->render('document_crud/stats.html.twig', [
-            'total' => $total,
-            'expires' => $expires,
-            'valides' => $valides,
+            'total'        => $total,
+            'expires'      => $expires,
+            'valides'      => $valides,
             'parCategorie' => $parCategorie,
         ]);
     }
 
-    // ===== EXPORT PDF (avant show !) =====
-   // src/Controller/DocumentCrudController.php
-
-
+    // ===== EXPORT PDF =====
     #[Route('/export/pdf', name: 'app_document_export_pdf', methods: ['GET'])]
     public function exportPdf(DocumentRepository $documentRepository): Response
     {
@@ -131,7 +200,6 @@ final class DocumentCrudController extends AbstractController
             'documents' => $documents,
         ]);
 
-        // Configuration DomPDF
         $options = new Options();
         $options->set('defaultFont', 'Arial');
         $options->set('isRemoteEnabled', true);
@@ -143,7 +211,6 @@ final class DocumentCrudController extends AbstractController
 
         $filename = 'documents_' . date('Y-m-d') . '.pdf';
 
-        // Force le téléchargement
         return new Response(
             $dompdf->output(),
             200,
@@ -153,14 +220,15 @@ final class DocumentCrudController extends AbstractController
             ]
         );
     }
-        // ===== AJAX SEARCH =====
+
+    // ===== AJAX SEARCH =====
     #[Route('/search', name: 'app_document_crud_search', methods: ['GET'])]
     public function search(Request $request, DocumentRepository $documentRepository): Response
     {
         $search = $request->query->get('search', '');
         $filtre = $request->query->get('filtre', 'tous');
         $tri    = $request->query->get('tri', 'dateAjout');
-        $ordre  = $request->query->get('ordre', 'ASC'); // ← vérifiez que c'est bien là
+        $ordre  = $request->query->get('ordre', 'ASC');
 
         $documents = $documentRepository->findByFilters($search, $filtre, $tri, $ordre);
 
@@ -173,28 +241,39 @@ final class DocumentCrudController extends AbstractController
             'count' => count($documents),
         ]);
     }
+
     // ===== SHOW =====
     #[Route('/{idDocument}', name: 'app_document_crud_show', methods: ['GET'])]
     public function show(
         int $idDocument,
-        DocumentRepository $documentRepository
+        DocumentRepository $documentRepository,
+        ConseilsService $conseilsService
     ): Response {
         $document = $documentRepository->find($idDocument);
         if (!$document) {
             throw $this->createNotFoundException('Document non trouvé');
         }
+
+        $conseils = $conseilsService->genererConseils(
+            $document->getNomDocument(),
+            $document->getCategorie()?->getLibelle() ?? 'Document',
+            $document->getDateExpiration()?->format('d/m/Y')
+        );
+
         return $this->render('document_crud/show.html.twig', [
             'document' => $document,
+            'conseils' => $conseils,
         ]);
     }
 
-    // ===== EDIT =====
+    // ===== EDIT avec Cloudinary =====
     #[Route('/{idDocument}/edit', name: 'app_document_crud_edit', methods: ['GET', 'POST'])]
     public function edit(
         Request $request,
         int $idDocument,
         DocumentRepository $documentRepository,
-        EntityManagerInterface $entityManager
+        EntityManagerInterface $entityManager,
+        CloudinaryService $cloudinaryService  // ← Cloudinary injecté
     ): Response {
         $document = $documentRepository->find($idDocument);
         if (!$document) {
@@ -206,7 +285,6 @@ final class DocumentCrudController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            // Validation dateExpiration > dateAjout
             $dateAjout      = $document->getDateAjout();
             $dateExpiration = $document->getDateExpiration();
 
@@ -222,14 +300,24 @@ final class DocumentCrudController extends AbstractController
                 ]);
             }
 
-            // Gestion fichier — garder l'ancien si aucun nouveau uploadé
+            // ← Upload nouveau fichier vers Cloudinary si fourni
             $fichier = $form->get('fichier')->getData();
             if ($fichier) {
-                $nomFichier = uniqid() . '.' . $fichier->guessExtension();
-                $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
-                $document->setCheminFichier($nomFichier);
+                try {
+                    // ← Upload vers Cloudinary → retourne URL
+                    $url = $cloudinaryService->upload(
+                        $fichier->getRealPath(),
+                        $fichier->getClientOriginalName()
+                    );
+                    $document->setCheminFichier($url);
+                } catch (\Exception $e) {
+                    // ← Si Cloudinary échoue → upload local en fallback
+                    $nomFichier = uniqid() . '.' . $fichier->guessExtension();
+                    $fichier->move($this->getParameter('uploads_directory'), $nomFichier);
+                    $document->setCheminFichier($nomFichier);
+                }
             }
-            // Si pas de nouveau fichier → on garde l'ancien cheminFichier déjà en base
+            // ← Si pas de nouveau fichier → garde l'ancien
 
             $entityManager->flush();
 
@@ -243,7 +331,7 @@ final class DocumentCrudController extends AbstractController
         ]);
     }
 
-    // ===== SUPPRIMER TOUS LES EXPIRES =====
+    // ===== SUPPRIMER EXPIRES =====
     #[Route('/supprimer/expires', name: 'app_document_supprimer_expires', methods: ['GET'])]
     public function supprimerExpires(
         DocumentRepository $documentRepository,
@@ -258,12 +346,7 @@ final class DocumentCrudController extends AbstractController
         return $this->redirectToRoute('app_admin_dashboard');
     }
 
-
-
-
     // ===== DELETE =====
-  // src/Controller/DocumentCrudController.php
-
     #[Route('/{idDocument}', name: 'app_document_crud_delete', methods: ['POST'])]
     public function delete(
         Request $request,
@@ -282,7 +365,6 @@ final class DocumentCrudController extends AbstractController
             $this->addFlash('success', '🗑 Document supprimé !');
         }
 
-        // ← Vérifier si la requête vient du dashboard
         $referer = $request->headers->get('referer');
         if ($referer && str_contains($referer, '/admin/dashboard')) {
             return $this->redirectToRoute('app_admin_dashboard');

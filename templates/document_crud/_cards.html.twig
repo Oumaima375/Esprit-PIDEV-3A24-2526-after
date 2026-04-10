@@ -1,9 +1,10 @@
+{# templates/document_crud/_cards.html.twig #}
 {% for document in documents %}
 <div class="col-md-6 col-lg-4">
     <div class="card border-0 shadow-sm rounded-4 h-100"
-         style="transition: transform 0.2s;"
-         onmouseover="this.style.transform='translateY(-4px)'"
-         onmouseout="this.style.transform='translateY(0)'">
+         style="transition: transform 0.2s, box-shadow 0.2s;"
+         onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)';"
+         onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
 
         <div class="card-header border-0 rounded-top-4 py-3"
              style="background: linear-gradient(135deg, #1a2744, #2563eb);">
@@ -13,9 +14,9 @@
                 </span>
                 {% if document.dateExpiration %}
                     {% if document.dateExpiration < date() %}
-                        <span class="badge bg-danger rounded-pill">❌ Expiré</span>
+                        <span class="badge bg-danger rounded-pill px-3">❌ Expiré</span>
                     {% else %}
-                        <span class="badge bg-success rounded-pill">✅ Valide</span>
+                        <span class="badge bg-success rounded-pill px-3">✅ Valide</span>
                     {% endif %}
                 {% endif %}
             </div>
@@ -24,22 +25,39 @@
         <div class="card-body p-4">
             <h5 class="fw-bold text-dark mb-3">✈ {{ document.nomDocument }}</h5>
             <div class="d-flex flex-column gap-2">
-                <small class="text-muted">📅 Ajouté : {{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}</small>
-                <small class="{{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger fw-bold' : 'text-muted' }}">
-                    ⏳ Expire : {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
-                </small>
+                <div>
+                    <small class="text-muted">📅 Ajouté :</small>
+                    <small class="fw-medium ms-1">
+                        {{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}
+                    </small>
+                </div>
+                <div>
+                    <small class="text-muted">⏳ Expire :</small>
+                    <small class="fw-medium ms-1 {{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger' : 'text-success' }}">
+                        {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
+                    </small>
+                </div>
+                {% if document.cheminFichier starts with 'http' %}
+                <a href="{{ document.cheminFichier }}" target="_blank"
+                   class="btn btn-outline-primary btn-sm rounded-pill mt-1">
+                    🔗 Voir le fichier
+                </a>
+                {% endif %}
             </div>
         </div>
 
         <div class="card-footer bg-transparent border-0 px-4 pb-4">
             <div class="d-flex gap-2">
-                <a href="/document/crud/{{ document.idDocument }}"
+                <a href="{{ path('app_document_crud_show', {'idDocument': document.idDocument}) }}"
                    class="btn btn-outline-primary btn-sm rounded-pill flex-fill">👁 Voir</a>
-                <a href="/document/crud/{{ document.idDocument }}/edit"
+                <a href="{{ path('app_document_crud_edit', {'idDocument': document.idDocument}) }}"
                    class="btn btn-warning btn-sm rounded-pill flex-fill">✏️</a>
-                <form method="post" action="/document/crud/{{ document.idDocument }}"
-                      onsubmit="return confirm('Supprimer ?')" style="flex:1">
-                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ document.idDocument) }}">
+                <form method="post"
+                      action="{{ path('app_document_crud_delete', {'idDocument': document.idDocument}) }}"
+                      onsubmit="return confirm('Supprimer ce document ?')"
+                      style="flex:1">
+                    <input type="hidden" name="_token"
+                           value="{{ csrf_token('delete' ~ document.idDocument) }}">
                     <button class="btn btn-danger btn-sm rounded-pill w-100">🗑</button>
                 </form>
             </div>

@@ -13,6 +13,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
-    App\Service\GeminiService:
+    App\Service\MailjetService:
         arguments:
-            $apiKey: '%env(GEMINI_API_KEY)%'
+            $apiKey:    '%env(MAILJET_API_KEY)%'
+            $apiSecret: '%env(MAILJET_API_SECRET)%'

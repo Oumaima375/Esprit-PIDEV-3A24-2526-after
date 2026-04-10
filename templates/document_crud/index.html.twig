@@ -52,18 +52,26 @@
         </div>
     </div>
 
-   <!-- Recherche AJAX + Filtres -->
+    <!-- Bouton Catégories -->
+    <div class="d-flex gap-3 mb-4">
+        <a href="{{ path('app_categorie_document_index') }}"
+           class="btn btn-outline-primary rounded-pill px-4 fw-bold">
+            🗂 Voir les Catégories
+        </a>
+    </div>
+
+    <!-- Recherche AJAX + Filtres -->
     <div class="card border-0 shadow-sm rounded-4 p-4 mb-4">
         <div class="row g-3 align-items-center">
             <div class="col-md-4">
                 <div class="input-group">
                     <span class="input-group-text bg-white border-end-0 border-2">🔍</span>
                     <input type="text"
-                        id="searchInput"
-                        class="form-control border-start-0 border-2 ps-0"
-                        placeholder="Rechercher un document..."
-                        autocomplete="off"
-                        value="{{ search }}">
+                           id="searchInput"
+                           class="form-control border-start-0 border-2 ps-0"
+                           placeholder="Rechercher un document..."
+                           autocomplete="off"
+                           value="{{ search }}">
                 </div>
             </div>
             <div class="col-md-2">
@@ -82,7 +90,6 @@
                 </select>
             </div>
             <div class="col-md-2">
-                {# ← NOUVEAU : ordre ASC/DESC #}
                 <select id="ordreSelect" class="form-select border-2">
                     <option value="ASC">⬆ Croissant</option>
                     <option value="DESC">⬇ Décroissant</option>
@@ -90,7 +97,7 @@
             </div>
             <div class="col-md-2">
                 <a href="{{ path('app_document_crud_new') }}"
-                class="btn btn-primary w-100 rounded-3 fw-bold">
+                   class="btn btn-primary w-100 rounded-3 fw-bold">
                     ➕ Ajouter
                 </a>
             </div>
@@ -117,7 +124,6 @@
                  onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)';"
                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
 
-                <!-- Card Header -->
                 <div class="card-header border-0 rounded-top-4 py-3"
                      style="background: linear-gradient(135deg, #1a2744, #2563eb);">
                     <div class="d-flex justify-content-between align-items-center">
@@ -134,7 +140,6 @@
                     </div>
                 </div>
 
-                <!-- Card Body -->
                 <div class="card-body p-4">
                     <h5 class="fw-bold text-dark mb-3">✈ {{ document.nomDocument }}</h5>
                     <div class="d-flex flex-column gap-2">
@@ -159,7 +164,6 @@
                     </div>
                 </div>
 
-                <!-- Card Footer -->
                 <div class="card-footer bg-transparent border-0 px-4 pb-4">
                     <div class="d-flex gap-2">
                         <a href="{{ path('app_document_crud_show', {'idDocument': document.idDocument}) }}"
@@ -190,47 +194,95 @@
         {% endfor %}
     </div>
 
+    <!-- Pagination — EN BAS après les cards -->
+    <div id="paginationContainer" class="d-flex justify-content-center mt-5">
+        {{ knp_pagination_render(documents) }}
+    </div>
+
 </div>
 
 {% endblock %}
+
 {% block javascripts %}
+{{ parent() }}
 <script>
 const searchInput  = document.getElementById('searchInput');
 const filtreSelect = document.getElementById('filtreSelect');
 const triSelect    = document.getElementById('triSelect');
-const ordreSelect  = document.getElementById('ordreSelect'); // ← NOUVEAU
+const ordreSelect  = document.getElementById('ordreSelect');
 const container    = document.getElementById('documentsContainer');
+const pagination   = document.getElementById('paginationContainer');
 const resultsCount = document.getElementById('resultsCount');
 
 let searchTimeout;
+let isSearching = false;
 
 function doSearch() {
-    const search = searchInput.value;
+    const search = searchInput.value.trim();
     const filtre = filtreSelect.value;
     const tri    = triSelect.value;
-    const ordre  = ordreSelect.value; // ← NOUVEAU
+    const ordre  = ordreSelect.value;
 
-    fetch(`/document/crud/search?search=${encodeURIComponent(search)}&filtre=${filtre}&tri=${tri}&ordre=${ordre}`)
-        .then(r => r.json())
+    // Si recherche vide et filtres par défaut → rechargement normal avec pagination
+    if (search === '' && filtre === 'tous' && tri === 'dateAjout' && ordre === 'ASC') {
+        if (isSearching) {
+            window.location.href = '/document/crud';
+        }
+        return;
+    }
+
+    isSearching = true;
+
+    // Cacher la pagination pendant la recherche AJAX
+    if (pagination) pagination.style.display = 'none';
+
+    fetch(`/document/crud/search?search=${encodeURIComponent(search)}&filtre=${encodeURIComponent(filtre)}&tri=${encodeURIComponent(tri)}&ordre=${encodeURIComponent(ordre)}`)
+        .then(r => {
+            if (!r.ok) throw new Error('Erreur réseau');
+            return r.json();
+        })
         .then(data => {
             resultsCount.textContent = data.count + ' résultat(s)';
             container.innerHTML = data.html;
         })
-        .catch(err => console.error('Erreur AJAX:', err));
+        .catch(err => {
+            console.error('Erreur AJAX:', err);
+            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Erreur de recherche</p></div>';
+        });
+}
+
+// Reset → recharge la page
+function resetSearch() {
+    if (
+        searchInput.value === '' &&
+        filtreSelect.value === 'tous' &&
+        triSelect.value === 'dateAjout' &&
+        ordreSelect.value === 'ASC'
+    ) {
+        isSearching = false;
+        if (pagination) pagination.style.display = 'flex';
+    }
 }
 
 searchInput.addEventListener('keyup', () => {
     clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(doSearch, 300);
-});
-searchInput.addEventListener('input', () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(doSearch, 300);
+    searchTimeout = setTimeout(() => {
+        resetSearch();
+        doSearch();
+    }, 300);
 });
 
-filtreSelect.addEventListener('change', doSearch);
-triSelect.addEventListener('change', doSearch);
-ordreSelect.addEventListener('change', doSearch); // ← NOUVEAU
+searchInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        resetSearch();
+        doSearch();
+    }, 300);
+});
+
+filtreSelect.addEventListener('change', () => { resetSearch(); doSearch(); });
+triSelect.addEventListener('change',    () => { resetSearch(); doSearch(); });
+ordreSelect.addEventListener('change',  () => { resetSearch(); doSearch(); });
 
 resultsCount.textContent = '{{ documents|length }} résultat(s)';
 </script>

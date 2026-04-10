@@ -171,6 +171,112 @@
     </div>
 </div>
 {% endif %}
+{# Tous les documents — vue admin #}
+<div style="background:white; border-radius:16px; padding:25px; margin:0 20px 20px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+    <h3 style="color:#1a2744; font-size:16px; margin:0 0 20px 0;">📋 Tous les Documents</h3>
+
+    <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse;">
+            <thead>
+                <tr style="background:#f8fafc;">
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">#</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Nom</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Catégorie</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Date Ajout</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Date Expiration</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Fichier</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Statut</th>
+                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for doc in allDocuments %}
+                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.2s;"
+                    onmouseover="this.style.background='#f8fafc'"
+                    onmouseout="this.style.background='white'">
+
+                    <td style="padding:12px; color:#94a3b8; font-size:13px;">{{ doc.idDocument }}</td>
+
+                    <td style="padding:12px; color:#1a2744; font-weight:600;">
+                        {{ doc.nomDocument }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        <span style="background:#dbeafe; color:#2563eb; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">
+                            {{ doc.categorie ? doc.categorie.libelle : 'N/A' }}
+                        </span>
+                    </td>
+
+                    <td style="padding:12px; color:#64748b; font-size:13px;">
+                        {{ doc.dateAjout ? doc.dateAjout|date('d/m/Y') : 'N/A' }}
+                    </td>
+
+                    <td style="padding:12px; font-size:13px;
+                        {% if doc.dateExpiration and doc.dateExpiration < date() %}
+                            color:#ef4444; font-weight:bold;
+                        {% else %}
+                            color:#22c55e;
+                        {% endif %}">
+                        {{ doc.dateExpiration ? doc.dateExpiration|date('d/m/Y') : 'N/A' }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        {% if doc.cheminFichier and doc.cheminFichier != 'aucun_fichier' %}
+                            {% if doc.cheminFichier starts with 'http' %}
+                                <a href="{{ doc.cheminFichier }}" target="_blank"
+                                   style="color:#2563eb; font-size:13px;">🔗 Voir</a>
+                            {% else %}
+                                <span style="color:#94a3b8; font-size:12px;">📎 {{ doc.cheminFichier|slice(0,20) }}...</span>
+                            {% endif %}
+                        {% else %}
+                            <span style="color:#cbd5e1; font-size:12px;">Aucun</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="padding:12px;">
+                        {% if doc.dateExpiration and doc.dateExpiration < date() %}
+                            <span style="background:#fee2e2; color:#ef4444; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">❌ Expiré</span>
+                        {% else %}
+                            <span style="background:#dcfce7; color:#16a34a; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">✅ Valide</span>
+                        {% endif %}
+                    </td>
+
+                    <td style="padding:12px;">
+                        <div style="display:flex; gap:6px;">
+                            <a href="{{ path('app_document_crud_show', {'idDocument': doc.idDocument}) }}"
+                               style="background:#2563eb; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">
+                                👁
+                            </a>
+                            <a href="{{ path('app_document_crud_edit', {'idDocument': doc.idDocument}) }}"
+                               style="background:#f59e0b; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">
+                                ✏️
+                            </a>
+                            <form method="post"
+                                  action="{{ path('app_document_crud_delete', {'idDocument': doc.idDocument}) }}"
+                                  onsubmit="return confirm('Supprimer ce document ?')"
+                                  style="display:inline">
+                                <input type="hidden" name="_token"
+                                       value="{{ csrf_token('delete' ~ doc.idDocument) }}">
+                                <button style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:12px;">
+                                    🗑
+                                </button>
+                            </form>
+                        </div>
+                    </td>
+
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="padding:30px; text-align:center; color:#94a3b8;">
+                        Aucun document
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 
 {% endblock %}
 {% block javascripts %}
