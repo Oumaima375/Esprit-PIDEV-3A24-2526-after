@@ -8,516 +8,203 @@
     {% block stylesheets %}
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600&family=Roboto&display=swap" rel="stylesheet">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.4/css/all.css"/>
         <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css" rel="stylesheet">
         <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet">
         <link href="{{ asset('css/style.css') }}" rel="stylesheet">
+        <style>
+            /* ── Profile chip ── */
+            .nav-profile-chip {
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                padding: 5px 14px 5px 6px;
+                border-radius: 50px;
+                border: 1.5px solid rgba(255,255,255,0.25);
+                background: rgba(255,255,255,0.10);
+                color: #fff;
+                text-decoration: none;
+                font-size: 13.5px;
+                font-weight: 600;
+                transition: background 0.2s, border-color 0.2s;
+                white-space: nowrap;
+            }
+            .nav-profile-chip:hover {
+                background: rgba(255,255,255,0.20);
+                border-color: rgba(255,255,255,0.45);
+                color: #fff;
+            }
+            .nav-profile-avatar {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                object-fit: cover;
+                border: 2px solid rgba(255,255,255,0.5);
+            }
+            .nav-profile-initials {
+                width: 30px;
+                height: 30px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #3b5bdb, #74c0fc);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 11px;
+                font-weight: 700;
+                color: #fff;
+                border: 2px solid rgba(255,255,255,0.5);
+                flex-shrink: 0;
+            }
+
+            /* ── Dropdown tweaks ── */
+            .navbar .dropdown-menu {
+                border-radius: 12px;
+                border: none;
+                box-shadow: 0 8px 32px rgba(26,43,94,0.14);
+                padding: 6px;
+                min-width: 210px;
+            }
+            .navbar .dropdown-item {
+                border-radius: 8px;
+                padding: 8px 14px;
+                font-size: 14px;
+                font-weight: 500;
+                color: #1a2b5e;
+                display: flex;
+                align-items: center;
+                gap: 9px;
+            }
+            .navbar .dropdown-item:hover {
+                background: #f0f4ff;
+                color: #3b5bdb;
+            }
+            .navbar .dropdown-item i {
+                width: 16px;
+                text-align: center;
+                color: #3b5bdb;
+            }
+            .navbar .dropdown-divider { margin: 4px 6px; }
+
+            /* Keep the existing nav-link color on primary bg */
+            .navbar .nav-link.dropdown-toggle { color: inherit; }
+        </style>
     {% endblock %}
-
-    <style>
-        :root {
-            --at-blue:      #1a2b5e;
-            --at-accent:    #3b5bdb;
-            --at-light:     #f0f4ff;
-            --at-border:    rgba(26,43,94,.10);
-            --at-shadow:    0 8px 32px rgba(26,43,94,.12);
-            --nav-h:        68px;
-        }
-
-        * { box-sizing: border-box; }
-
-        body {
-            font-family: 'DM Sans', sans-serif;
-            margin: 0;
-            padding-top: var(--nav-h);
-        }
-
-        /* ── NAVBAR ── */
-        .at-nav {
-            position: fixed;
-            top: 0; left: 0; right: 0;
-            height: var(--nav-h);
-            background: rgba(255,255,255,.92);
-            backdrop-filter: blur(14px);
-            -webkit-backdrop-filter: blur(14px);
-            border-bottom: 1px solid var(--at-border);
-            z-index: 9999;
-            display: flex;
-            align-items: center;
-            padding: 0 2rem;
-            gap: 2rem;
-        }
-
-        /* Brand */
-        .at-brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            text-decoration: none;
-            flex-shrink: 0;
-        }
-        .at-brand-icon {
-            width: 38px; height: 38px;
-            background: var(--at-accent);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            color: white;
-            font-size: 16px;
-        }
-        .at-brand-name {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.25rem;
-            color: var(--at-blue);
-            white-space: nowrap;
-        }
-        .at-brand-name span { color: var(--at-accent); }
-
-        /* Nav links wrapper */
-        .at-nav-links {
-            display: flex;
-            align-items: center;
-            gap: .25rem;
-            flex: 1;
-        }
-
-        /* Individual nav link */
-        .at-nav-link {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #4b5563;
-            text-decoration: none;
-            transition: background .18s, color .18s;
-            white-space: nowrap;
-        }
-        .at-nav-link:hover,
-        .at-nav-link.active {
-            background: var(--at-light);
-            color: var(--at-accent);
-            text-decoration: none;
-        }
-        .at-nav-link i { font-size: 13px; opacity: .7; }
-
-        /* ── DROPDOWN ── */
-        .at-dropdown {
-            position: relative;
-        }
-        .at-dropdown-toggle {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 14px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            color: #4b5563;
-            cursor: pointer;
-            background: none;
-            border: none;
-            font-family: inherit;
-            transition: background .18s, color .18s;
-            white-space: nowrap;
-        }
-        .at-dropdown-toggle:hover,
-        .at-dropdown-toggle.open {
-            background: var(--at-light);
-            color: var(--at-accent);
-        }
-        .at-dropdown-toggle .chevron {
-            font-size: 10px;
-            transition: transform .2s;
-            opacity: .6;
-        }
-        .at-dropdown-toggle.open .chevron {
-            transform: rotate(180deg);
-        }
-
-        .at-dropdown-menu {
-            position: absolute;
-            top: calc(100% + 10px);
-            left: 50%;
-            transform: translateX(-50%);
-            width: 520px;
-            background: white;
-            border: 1px solid var(--at-border);
-            border-radius: 16px;
-            box-shadow: var(--at-shadow);
-            padding: 16px;
-            display: none;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            z-index: 10000;
-        }
-        .at-dropdown-menu.open {
-            display: grid;
-            animation: dropIn .18s ease;
-        }
-        @keyframes dropIn {
-            from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-            to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-
-        .at-drop-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 14px;
-            border-radius: 10px;
-            text-decoration: none;
-            color: var(--at-blue);
-            transition: background .15s;
-        }
-        .at-drop-item:hover {
-            background: var(--at-light);
-            text-decoration: none;
-            color: var(--at-accent);
-        }
-        .at-drop-icon {
-            width: 38px; height: 38px;
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 16px;
-            flex-shrink: 0;
-        }
-        .at-drop-icon.blue   { background: #dbeafe; color: #1d4ed8; }
-        .at-drop-icon.green  { background: #dcfce7; color: #15803d; }
-        .at-drop-icon.amber  { background: #fef3c7; color: #b45309; }
-        .at-drop-icon.rose   { background: #ffe4e6; color: #be123c; }
-        .at-drop-icon.violet { background: #ede9fe; color: #6d28d9; }
-        .at-drop-icon.teal   { background: #ccfbf1; color: #0f766e; }
-        .at-drop-icon.orange { background: #ffedd5; color: #c2410c; }
-
-        .at-drop-text strong {
-            display: block;
-            font-size: 13.5px;
-            font-weight: 600;
-            margin-bottom: 1px;
-        }
-        .at-drop-text span {
-            display: block;
-            font-size: 11.5px;
-            color: #6b7280;
-        }
-
-        /* ── RIGHT SIDE ── */
-        .at-nav-right {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-left: auto;
-            flex-shrink: 0;
-        }
-
-        .at-user-pill {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 14px 6px 8px;
-            background: var(--at-light);
-            border-radius: 999px;
-            text-decoration: none;
-            color: var(--at-blue);
-            font-size: 13.5px;
-            font-weight: 500;
-            transition: background .18s;
-        }
-        .at-user-pill:hover {
-            background: #dbeafe;
-            text-decoration: none;
-            color: var(--at-accent);
-        }
-        .at-user-avatar {
-            width: 28px; height: 28px;
-            border-radius: 50%;
-            background: var(--at-accent);
-            color: white;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 11px;
-            font-weight: 700;
-            overflow: hidden;
-        }
-        .at-user-avatar img {
-            width: 100%; height: 100%;
-            object-fit: cover;
-        }
-
-        .at-btn-login {
-            padding: 8px 18px;
-            background: var(--at-accent);
-            color: white;
-            border-radius: 8px;
-            font-size: 13.5px;
-            font-weight: 600;
-            text-decoration: none;
-            transition: background .18s;
-        }
-        .at-btn-login:hover {
-            background: #2f4ac9;
-            color: white;
-            text-decoration: none;
-        }
-
-        /* ── MOBILE TOGGLE ── */
-        .at-hamburger {
-            display: none;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 6px;
-            margin-left: auto;
-        }
-        .at-hamburger span {
-            display: block;
-            width: 22px; height: 2px;
-            background: var(--at-blue);
-            border-radius: 2px;
-            margin: 5px 0;
-            transition: all .25s;
-        }
-
-        /* ── MOBILE DRAWER ── */
-        .at-mobile-menu {
-            display: none;
-            position: fixed;
-            top: var(--nav-h);
-            left: 0; right: 0;
-            background: white;
-            border-bottom: 1px solid var(--at-border);
-            padding: 16px;
-            z-index: 9998;
-            box-shadow: var(--at-shadow);
-        }
-        .at-mobile-menu.open { display: block; }
-        .at-mobile-link {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 11px 14px;
-            border-radius: 10px;
-            font-size: 14px;
-            font-weight: 500;
-            color: var(--at-blue);
-            text-decoration: none;
-        }
-        .at-mobile-link:hover {
-            background: var(--at-light);
-            text-decoration: none;
-        }
-        .at-mobile-section {
-            font-size: 11px;
-            font-weight: 700;
-            color: #9ca3af;
-            letter-spacing: .08em;
-            text-transform: uppercase;
-            padding: 12px 14px 6px;
-        }
-        .at-mobile-divider {
-            height: 1px;
-            background: var(--at-border);
-            margin: 10px 0;
-        }
-
-        @media (max-width: 992px) {
-            .at-nav-links { display: none; }
-            .at-nav-right  { display: none; }
-            .at-hamburger  { display: block; }
-        }
-
-        /* Overlay to close dropdown */
-        .at-overlay {
-            display: none;
-            position: fixed;
-            inset: 0;
-            z-index: 9990;
-        }
-        .at-overlay.open { display: block; }
-    </style>
 </head>
 <body>
 
-<!-- ══════════════════════════════════════════
-     NAVBAR
-══════════════════════════════════════════ -->
-<nav class="at-nav">
+<!-- Navbar -->
+<div class="container-fluid position-relative p-0">
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <a href="{{ path('app_home') }}" class="navbar-brand p-0">
+            <h1 class="m-0"><i class="fa fa-map-marker-alt me-3"></i>After Travel</h1>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse">
+            <span class="fa fa-bars"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <div class="navbar-nav ms-auto py-0 align-items-lg-center">
 
-    <!-- Brand -->
-    <a href="{{ path('app_home') }}" class="at-brand">
-        <div class="at-brand-icon"><i class="fas fa-map-marker-alt"></i></div>
-        <span class="at-brand-name">After<span>Travel</span></span>
+                <a href="{{ path('app_home') }}" class="nav-item nav-link">Accueil</a>
+
+                {# ── Voyages dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="voyagesDropdown"
+                       role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Voyages
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="voyagesDropdown">
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_voyage') }}">
+                                <i class="fa fa-plane"></i> Tous les voyages
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_voyage_favoris') }}">
+                                <i class="fa fa-heart"></i> Mes favoris
+                            </a>
+                        </li>
+                        
+<li>
+    <a class="dropdown-item" href="{{ path('app_destination') }}">
+        <i class="fa fa-map-marker-alt"></i> Destinations
     </a>
-
-    <!-- Desktop links -->
-    <div class="at-nav-links">
-
-        <a href="{{ path('app_home') }}"
-           class="at-nav-link {{ app.request.get('_route') == 'app_home' ? 'active' }}">
-            <i class="fas fa-home"></i> Accueil
-        </a>
-
-        <!-- Modules dropdown -->
-        <div class="at-dropdown" id="modulesDropdown">
-            <button class="at-dropdown-toggle" id="modulesBtn" onclick="toggleModules(event)">
-                <i class="fas fa-th"></i> Modules
-                <i class="fas fa-chevron-down chevron"></i>
-            </button>
-
-            <div class="at-dropdown-menu" id="modulesMenu">
-
-                <a href="{{ path('app_voyage') }}" class="at-drop-item">
-                    <div class="at-drop-icon blue"><i class="fas fa-plane"></i></div>
-                    <div class="at-drop-text">
-                        <strong>Voyages</strong>
-                        <span>Explorer & réserver</span>
-                    </div>
-                </a>
-
-                <a href="{{ path('app_destination') }}" class="at-drop-item">
-                    <div class="at-drop-icon teal"><i class="fas fa-map-marker-alt"></i></div>
-                    <div class="at-drop-text">
-                        <strong>Destinations</strong>
-                        <span>Découvrir le monde</span>
-                    </div>
-                </a>
-
-                <a href="{{ path('app_voyage_favoris') }}" class="at-drop-item">
-                    <div class="at-drop-icon rose"><i class="fas fa-heart"></i></div>
-                    <div class="at-drop-text">
-                        <strong>Mes Favoris</strong>
-                        <span>Voyages sauvegardés</span>
-                    </div>
-                </a>
-
-                <a href="{{ path('app_voyage_recommandations') }}" class="at-drop-item">
-                    <div class="at-drop-icon green"><i class="fas fa-filter"></i></div>
-                    <div class="at-drop-text">
-                        <strong>Recommandations</strong>
-                        <span>Filtrage multicritères</span>
-                    </div>
-                </a>
-
-                <a href="{{ path('app_voyage_recommandations_ia') }}" class="at-drop-item">
-                    <div class="at-drop-icon violet"><i class="fas fa-robot"></i></div>
-                    <div class="at-drop-text">
-                        <strong>IA Conseiller</strong>
-                        <span>Suggestions personnalisées</span>
-                    </div>
-                </a>
-
-                <a href="{{ path('app_about') }}" class="at-drop-item">
-                    <div class="at-drop-icon amber"><i class="fas fa-info-circle"></i></div>
-                    <div class="at-drop-text">
-                        <strong>À propos</strong>
-                        <span>Notre projet</span>
-                    </div>
-                </a>
-
-            </div>
-        </div><!-- /.at-dropdown -->
-
-        <a href="{{ path('app_voyage') }}"
-           class="at-nav-link {{ app.request.get('_route') starts with 'app_voyage' ? 'active' }}">
-            <i class="fas fa-plane"></i> Voyages
-        </a>
-
-        <a href="{{ path('app_destination') }}"
-           class="at-nav-link {{ app.request.get('_route') starts with 'app_destination' ? 'active' }}">
-            <i class="fas fa-map-marker-alt"></i> Destinations
-        </a>
-
-    </div><!-- /.at-nav-links -->
-
-    <!-- Right side: user pill or login -->
-    <div class="at-nav-right">
-        {% if app.user %}
-            {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
-            <a href="{{ path('app_profile') }}" class="at-user-pill">
-                <div class="at-user-avatar">
-                    {% if app.user.photoProfil and app.user.photoProfil != 'default.png' %}
-                        <img src="{{ asset('uploads/photos/' ~ app.user.photoProfil) }}" alt="">
-                    {% else %}
-                        {{ initials }}
-                    {% endif %}
+</li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_voyage_recommandations') }}">
+                                <i class="fa fa-filter"></i> Recommandations
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="{{ path('app_voyage_recommandations_ia') }}">
+                                <i class="fa fa-robot"></i> Recommandations IA
+                            </a>
+                        </li>
+                    </ul>
                 </div>
-                {{ app.user.prenom }} {{ app.user.nom }}
-            </a>
-            <a href="{{ path('app_dashboard') }}" class="at-nav-link">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-            <a href="{{ path('_logout_main') }}" class="at-nav-link" style="color:#ef4444;">
-                <i class="fas fa-sign-out-alt"></i>
-            </a>
-        {% else %}
-            <a href="/login" class="at-btn-login">Connexion</a>
-        {% endif %}
-    </div>
 
-    <!-- Hamburger (mobile) -->
-    <button class="at-hamburger" id="hamburger" onclick="toggleMobile()">
-        <span></span><span></span><span></span>
-    </button>
+                <a href="#" class="nav-item nav-link">Réservation</a>
+                <a href="#" class="nav-item nav-link">Activité</a>
+                <a href="#" class="nav-item nav-link">Document</a>
+                <a href="#" class="nav-item nav-link">Services</a>
+                <a href="#" class="nav-item nav-link">Dépense</a>
+                <a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
 
-</nav>
-
-<!-- Overlay to close dropdown on outside click -->
-<div class="at-overlay" id="overlay" onclick="closeAll()"></div>
-
-<!-- ══════════════════════════════════════════
-     MOBILE MENU
-══════════════════════════════════════════ -->
-<div class="at-mobile-menu" id="mobileMenu">
-
-    <div class="at-mobile-section">Navigation</div>
-    <a href="{{ path('app_home') }}" class="at-mobile-link"><i class="fas fa-home" style="width:18px;text-align:center;color:#3b5bdb"></i> Accueil</a>
-
-    <div class="at-mobile-divider"></div>
-    <div class="at-mobile-section">Modules</div>
-
-    <a href="{{ path('app_voyage') }}" class="at-mobile-link"><i class="fas fa-plane" style="width:18px;text-align:center;color:#1d4ed8"></i> Voyages</a>
-    <a href="{{ path('app_destination') }}" class="at-mobile-link"><i class="fas fa-map-marker-alt" style="width:18px;text-align:center;color:#0f766e"></i> Destinations</a>
-    <a href="{{ path('app_voyage_favoris') }}" class="at-mobile-link"><i class="fas fa-heart" style="width:18px;text-align:center;color:#be123c"></i> Mes Favoris</a>
-    <a href="{{ path('app_voyage_recommandations') }}" class="at-mobile-link"><i class="fas fa-filter" style="width:18px;text-align:center;color:#15803d"></i> Recommandations</a>
-    <a href="{{ path('app_voyage_recommandations_ia') }}" class="at-mobile-link"><i class="fas fa-robot" style="width:18px;text-align:center;color:#6d28d9"></i> IA Conseiller</a>
-    <a href="{{ path('app_about') }}" class="at-mobile-link"><i class="fas fa-info-circle" style="width:18px;text-align:center;color:#b45309"></i> À propos</a>
-
-    <div class="at-mobile-divider"></div>
-
-    {% if app.user %}
-        {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
-        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:#f0f4ff;border-radius:12px;margin-bottom:10px;">
-            <div class="at-user-avatar" style="width:40px;height:40px;font-size:14px;">
-                {% if app.user.photoProfil and app.user.photoProfil != 'default.png' %}
-                    <img src="{{ asset('uploads/photos/' ~ app.user.photoProfil) }}" alt="">
+                {# ── Profile chip (only when logged in) ── #}
+                {% if app.user %}
+                    <div class="nav-item dropdown ms-lg-3 mt-2 mt-lg-0">
+                        <a class="nav-profile-chip dropdown-toggle" href="#"
+                           id="profileDropdown" role="button"
+                           data-bs-toggle="dropdown" aria-expanded="false">
+                            {% if app.user.photo_profil and app.user.photo_profil != 'default.png' %}
+                                <img src="{{ asset('uploads/photos/' ~ app.user.photo_profil) }}"
+                                     alt="" class="nav-profile-avatar"
+                                     onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                                <span class="nav-profile-initials" style="display:none">
+                                    {{ (app.user.prenom|first ~ app.user.nom|first)|upper }}
+                                </span>
+                            {% else %}
+                                <span class="nav-profile-initials">
+                                    {{ (app.user.prenom|first ~ app.user.nom|first)|upper }}
+                                </span>
+                            {% endif %}
+                            {{ app.user.prenom }} {{ app.user.nom }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_profile') }}">
+                                    <i class="fa fa-user"></i> Mon profil
+                                </a>
+                            </li>
+                            {% if is_granted('ROLE_ADMIN') %}
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_dashboard') }}">
+                                    <i class="fa fa-tachometer-alt"></i> Dashboard admin
+                                </a>
+                            </li>
+                            {% endif %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{{ path('_logout_main') }}">
+                                    <i class="fa fa-sign-out-alt"></i> Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
                 {% else %}
-                    {{ initials }}
+                    <a href="{{ path('app_login') }}" class="nav-item nav-link ms-lg-2">
+                        <i class="fa fa-sign-in-alt me-1"></i>Connexion
+                    </a>
                 {% endif %}
-            </div>
-            <div>
-                <div style="font-weight:600;font-size:14px;color:#1a2b5e;">{{ app.user.prenom }} {{ app.user.nom }}</div>
-                <div style="font-size:12px;color:#6b7280;">{{ app.user.email }}</div>
+
             </div>
         </div>
-        <a href="{{ path('app_profile') }}" class="at-mobile-link"><i class="fas fa-user" style="width:18px;text-align:center;color:#3b5bdb"></i> Mon profil</a>
-        <a href="{{ path('app_dashboard') }}" class="at-mobile-link"><i class="fas fa-tachometer-alt" style="width:18px;text-align:center;color:#3b5bdb"></i> Dashboard</a>
-        <a href="{{ path('_logout_main') }}" class="at-mobile-link" style="color:#ef4444;"><i class="fas fa-sign-out-alt" style="width:18px;text-align:center;"></i> Déconnexion</a>
-    {% else %}
-        <a href="/login" class="at-btn-login" style="display:block;text-align:center;">Se connecter</a>
-    {% endif %}
-
+    </nav>
 </div>
 
-<!-- ══════════════════════════════════════════
-     PAGE CONTENT
-══════════════════════════════════════════ -->
 {% block body %}{% endblock %}
 
-<!-- ══════════════════════════════════════════
-     SCRIPTS
-══════════════════════════════════════════ -->
 {% block javascripts %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -526,29 +213,5 @@
     <script src="{{ asset('js/main.js') }}"></script>
 {% endblock %}
 
-<script>
-function toggleModules(e) {
-    e.stopPropagation();
-    var btn  = document.getElementById('modulesBtn');
-    var menu = document.getElementById('modulesMenu');
-    var ov   = document.getElementById('overlay');
-    var open = menu.classList.contains('open');
-    closeAll();
-    if (!open) {
-        menu.classList.add('open');
-        btn.classList.add('open');
-        ov.classList.add('open');
-    }
-}
-function toggleMobile() {
-    document.getElementById('mobileMenu').classList.toggle('open');
-}
-function closeAll() {
-    document.getElementById('modulesMenu').classList.remove('open');
-    document.getElementById('modulesBtn').classList.remove('open');
-    document.getElementById('overlay').classList.remove('open');
-}
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAll(); });
-</script>
 </body>
 </html>

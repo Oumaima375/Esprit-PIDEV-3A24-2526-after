@@ -41,7 +41,7 @@
             <tr style="border-bottom:1px solid var(--border);transition:background 0.2s"
                 onmouseover="this.style.background='var(--bg-card-hover)'"
                 onmouseout="this.style.background='transparent'">
-                <td style="padding:12px;color:var(--text-muted)">{{ v.id_voyage }}</td>
+                <td style="padding:12px;color:var(--text-muted)">{{ v.id }}</td>
                 <td style="padding:12px">
                     <div style="display:flex;align-items:center;gap:10px">
                         {% if v.image and v.image starts with 'http' %}
@@ -51,24 +51,24 @@
                     </div>
                 </td>
                 <td style="padding:12px;color:var(--text-secondary)">
-                    {{ v.id_destination ? v.id_destination.pays ~ ' - ' ~ v.id_destination.ville : 'N/A' }}
+                    {{ v.IdDestination ? v.IdDestination.pays ~ ' - ' ~ v.IdDestination.ville : 'N/A' }}
                 </td>
                 <td style="padding:12px;text-align:right;color:var(--gain);font-weight:600">{{ v.prix }} TND</td>
-                <td style="padding:12px;text-align:right;color:var(--text-primary)">{{ v.nb_places }}</td>
+                <td style="padding:12px;text-align:right;color:var(--text-primary)">{{ v.NbPlaces }}</td>
                 <td style="padding:12px;text-align:center;color:var(--text-secondary);font-size:12px">
-                    {{ v.date_debut ? v.date_debut|date('d/m/Y') : 'N/A' }}
+                    {{ v.DateDebut ? v.DateDebut|date('d/m/Y') : 'N/A' }}
                 </td>
                 <td style="padding:12px;text-align:center;color:var(--text-secondary);font-size:12px">
-                    {{ v.date_fin ? v.date_fin|date('d/m/Y') : 'N/A' }}
+                    {{ v.DateFin ? v.DateFin|date('d/m/Y') : 'N/A' }}
                 </td>
                 <td style="padding:12px;text-align:center">
-                    <a href="{{ path('admin_voyage_edit', {id: v.id_voyage}) }}"
+                    <a href="{{ path('admin_voyage_edit', {id: v.id}) }}"
                        style="background:var(--bg-card-hover);color:var(--accent-copper);
                               padding:5px 12px;border-radius:6px;text-decoration:none;
                               font-size:12px;border:1px solid var(--accent-copper);margin-right:4px">
                         <i class="fas fa-edit"></i>
                     </a>
-                    <a href="{{ path('admin_voyage_delete', {id: v.id_voyage}) }}"
+                    <a href="{{ path('admin_voyage_delete', {id: v.id}) }}"
                        onclick="return confirm('Supprimer ce voyage ?')"
                        style="background:var(--bg-card-hover);color:var(--loss);
                               padding:5px 12px;border-radius:6px;text-decoration:none;

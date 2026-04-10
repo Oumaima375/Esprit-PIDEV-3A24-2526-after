@@ -1,75 +1,239 @@
-
 <!DOCTYPE html>
-<html lang="fr" data-theme="dark">
+<html lang="fr">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0">
- <title>{% block title %}AfterTravel Admin{% endblock %}</title>
- <script>
- (function() {
- const t = localStorage.getItem('theme') || 'dark';
- document.documentElement.setAttribute('data-theme', t);
- })();
- </script>
- <link rel="preconnect" href="https://fonts.googleapis.com">
- <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="styles <link rel="stylesheet" href="/css/templatemo-crypto-style.css">
- <link rel="stylesheet" href="/css/templatemo-crypto-dashboard.css">
- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
- {% block stylesheets %}{% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AfterTravel Admin{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/templatemo-crypto-style.css">
+    <link rel="stylesheet" href="/css/templatemo-crypto-dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    {% block stylesheets %}{% endblock %}
+    <style>
+        /* Force light theme - all text dark */
+        body { background-color: #e8ead0 !important; color: #1a2b5e !important; }
+        .main-content { color: #1a2b5e !important; }
+        .main-content h1, .main-content h2, .main-content h3,
+        .main-content p, .main-content td, .main-content span { color: inherit; }
+        .header h1 { color: #1a2b5e !important; }
+        .header-subtitle { color: #6b7280 !important; }
+        table th { color: #6b7280 !important; }
+        table td { color: #1a2b5e !important; }
+
+        /* Nav labels */
+        .nav-label {
+            display: block !important;
+            font-size: 10px !important;
+            font-weight: 700 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1.2px !important;
+            color: rgba(255,255,255,0.35) !important;
+            padding: 14px 24px 5px !important;
+            margin: 0 !important;
+        }
+        /* Coming-soon module items */
+        .nav-item-soon {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding: 11px 24px !important;
+            color: rgba(255,255,255,0.28) !important;
+            font-size: 14px !important;
+            font-weight: 500 !important;
+            border-left: 3px solid transparent !important;
+        }
+        .badge-soon {
+            margin-left: auto;
+            font-size: 9px; font-weight: 700;
+            background: rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.4);
+            padding: 2px 7px; border-radius: 20px;
+            letter-spacing: 0.3px;
+        }
+        /* Export nav items */
+        .nav-item.export-csv { color: rgba(74,222,128,0.85) !important; }
+        .nav-item.export-csv:hover { color: #4ade80 !important; background: rgba(34,197,94,0.1) !important; }
+        .nav-item.export-pdf { color: rgba(56,189,248,0.85) !important; }
+        .nav-item.export-pdf:hover { color: #38bdf8 !important; background: rgba(14,165,233,0.1) !important; }
+        /* Sidebar user card */
+        .sidebar-user-block {
+            margin-top: auto;
+            padding: 12px 14px 0;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-user-card {
+            border-radius: 12px; padding: 11px 13px;
+            display: flex; align-items: center; gap: 10px;
+            background: rgba(255,255,255,0.07);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-user-avatar {
+            width: 34px; height: 34px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700; flex-shrink: 0; text-transform: uppercase;
+            background: linear-gradient(135deg,#4a80f5,#76a0e0); color: #fff;
+        }
+        .sidebar-user-photo {
+            width: 34px; height: 34px; border-radius: 50%;
+            object-fit: cover; flex-shrink: 0;
+        }
+        .sidebar-user-info { flex: 1; min-width: 0; }
+        .sidebar-user-name { font-size: 13px; font-weight: 600; color: #e8eaf0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sidebar-user-email { font-size: 11px; color: rgba(255,255,255,0.4); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top:1px; }
+        /* Logout */
+        .sidebar-logout-wrap { padding: 8px 14px 10px; }
+        .sidebar-logout-link {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px;
+            color: rgba(255,255,255,0.6); font-size: 13px; font-weight: 600;
+            text-decoration: none;
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.18);
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar-logout-link:hover { background: rgba(239,68,68,0.2); color: #fca5a5; }
+        /* Back to site */
+        .sidebar-back-link {
+            display: flex; align-items: center; gap: 8px;
+            margin: 0 14px 18px;
+            color: rgba(255,255,255,0.3); font-size: 12px;
+            text-decoration: none; padding: 7px 10px; border-radius: 8px;
+            transition: color 0.2s;
+        }
+        .sidebar-back-link:hover { color: rgba(255,255,255,0.65); }
+    </style>
 </head>
 <body>
- <button class="mobile-menu-toggle" id="mobileMenuToggle">
- <div class="hamburger"><span></span><span></span><span></span></div>
- </button>
- <div class="sidebar-overlay" id="sidebarOverlay"></div>
- <div class="dashboard">
- <aside class="sidebar" id="sidebar">
- <div class="logo">
- <div class="logo-icon">AT</div>
- <span class="logo-text">AfterTravel</span>
- </div>
- <nav class="nav-section">
- <div class="nav-label">Principal</div>
- <a href="{{ path('admin_dashboard') }}"
- class="nav-item {{ app.request.get('_route') == 'admin_dashboard' ? 'active' }}">
- <i class="fas fa-tachometer-alt nav-icon"></i> Dashboard
- </a>
- <div class="nav-label" style="margin-top:16px">Gestion</div>
- <a href="{{ path('admin_voyage_index') }}"
- class="nav-item {{ app.request.get('_route') starts with 'admin_voyage' ? 'active' }}">
- <i class="fas fa-plane nav-icon"></i> Voyages
- </a>
- <a href="{{ path('admin_destination_index') }}"
- class="nav-item {{ app.request.get('_route') starts with 'admin_destination' ? 'active' }}">
- <i class="fas fa-map-marker-alt nav-icon"></i> Destinations
- </a>
- </nav>
- <div class="sidebar-footer">
- <a href="{{ path('app_home') }}"
- style="color:var(--text-secondary);font-size:13px;display:flex;
- align-items:center;gap:8px;text-decoration:none;margin-bottom:12px">
- <i class="fas fa-arrow-left"></i> Retour au site
- </a>
- <div class="theme-toggle">
- <div class="theme-toggle-label">
- <i class="fas fa-sun"></i> Light Mode
- </div>
- <div class="theme-switch" id="themeSwitch"></div>
- </div>
- </div>
- </aside>
- <main class="main-content">
- {% for msg in app.flashes('success') %}
- <div style="background:#2a4a2a;border:1px solid var(--gain);color:var(--gain);
- padding:12px 16px;border-radius:8px;margin-bottom:16px">
- <i class="fas fa-check-circle"></i> {{ msg }}
- </div>
- {% endfor %}
- {% block body %}{% endblock %}
- <footer class="copyright">Copyright 2026 AfterTravel Admin Panel</footer>
- </main>
- </div>
- <script src="/js/templatemo-crypto-script.js"></script>
-{% block javascripts %}{% endblock %}
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Menu">
+        <div class="hamburger"><span></span><span></span><span></span></div>
+    </button>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard">
+        <aside class="sidebar" id="sidebar">
+
+            <div class="logo">
+                <span class="logo-text">AfterTravel</span>
+            </div>
+
+            <nav class="nav-section">
+
+                <div class="nav-label">Principal</div>
+
+                <a href="{{ path('app_dashboard') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_dashboard' ? 'active' }}">
+                    <i class="fas fa-tachometer-alt nav-icon"></i> Dashboard
+                </a>
+
+                <div class="nav-label">Gestion Voyage</div>
+
+                <a href="{{ path('admin_voyage_index') }}"
+                   class="nav-item {{ app.request.get('_route') starts with 'admin_voyage' ? 'active' }}">
+                    <i class="fas fa-plane nav-icon"></i> Voyages
+                </a>
+
+                <a href="{{ path('admin_destination_index') }}"
+                   class="nav-item {{ app.request.get('_route') starts with 'admin_destination' ? 'active' }}">
+                    <i class="fas fa-map-marker-alt nav-icon"></i> Destinations
+                </a>
+
+                <div class="nav-label">Utilisateurs</div>
+
+                <a href="{{ path('app_dashboard') }}#usersSection"
+                   class="nav-item {{ app.request.get('_route') starts with 'user' ? 'active' }}">
+                    <i class="fas fa-users nav-icon"></i> Utilisateurs
+                </a>
+
+                <div class="nav-label">Autres Modules</div>
+
+                <span class="nav-item-soon">
+                    <i class="fas fa-calendar-check nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Réservations <span class="badge-soon">bientôt</span>
+                </span>
+
+                <span class="nav-item-soon">
+                    <i class="fas fa-wallet nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Dépenses <span class="badge-soon">bientôt</span>
+                </span>
+
+                <span class="nav-item-soon">
+                    <i class="fas fa-hiking nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Activités <span class="badge-soon">bientôt</span>
+                </span>
+
+                <span class="nav-item-soon">
+                    <i class="fas fa-concierge-bell nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Services <span class="badge-soon">bientôt</span>
+                </span>
+
+                <span class="nav-item-soon">
+                    <i class="fas fa-file-alt nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Documents <span class="badge-soon">bientôt</span>
+                </span>
+
+                <div class="nav-label">Exports</div>
+
+                <a href="{{ path('users_export_csv') }}" class="nav-item export-csv">
+                    <i class="fas fa-file-csv nav-icon"></i> Export CSV
+                </a>
+
+                <a href="{{ path('users_export_pdf') }}" class="nav-item export-pdf">
+                    <i class="fas fa-file-pdf nav-icon"></i> Export PDF
+                </a>
+
+            </nav>
+
+            {% if app.user %}
+                {% set initials = (app.user.prenom|first ~ app.user.nom|first)|upper %}
+                <div class="sidebar-user-block">
+                    <div class="sidebar-user-card">
+                        {% if app.user.photoProfil %}
+                            <img src="/uploads/photos/{{ app.user.photoProfil }}"
+                                 class="sidebar-user-photo" alt="{{ initials }}"
+                                 onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+                            <div class="sidebar-user-avatar" style="display:none">{{ initials }}</div>
+                        {% else %}
+                            <div class="sidebar-user-avatar">{{ initials }}</div>
+                        {% endif %}
+                        <div class="sidebar-user-info">
+                            <div class="sidebar-user-name">{{ app.user.prenom }} {{ app.user.nom }}</div>
+                            <div class="sidebar-user-email">{{ app.user.userIdentifier }}</div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <div class="sidebar-logout-wrap">
+                <a href="{{ path('_logout_main') }}" class="sidebar-logout-link">
+                    <i class="fas fa-sign-out-alt"></i> Déconnexion
+                </a>
+            </div>
+
+            <a href="{{ path('app_home') }}" class="sidebar-back-link">
+                <i class="fas fa-arrow-left" style="font-size:11px"></i> Retour au site
+            </a>
+
+        </aside>
+
+        <main class="main-content">
+            {% for msg in app.flashes('success') %}
+                <div style="background:#dcfce7;border:1.5px solid #22c55e;color:#15803d;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500">
+                    <i class="fas fa-check-circle"></i> {{ msg }}
+                </div>
+            {% endfor %}
+            {% for msg in app.flashes('error') %}
+                <div style="background:#fee2e2;border:1.5px solid #ef4444;color:#dc2626;padding:12px 16px;border-radius:10px;margin-bottom:16px;font-size:14px;font-weight:500">
+                    <i class="fas fa-exclamation-circle"></i> {{ msg }}
+                </div>
+            {% endfor %}
+            {% block body %}{% endblock %}
+            <footer style="margin-top:48px;padding-top:18px;border-top:1px solid #e2e5f0;color:#9ca3af;font-size:12px;text-align:center">
+                Copyright 2026 AfterTravel Admin Panel
+            </footer>
+        </main>
+    </div>
+
+    <script src="/js/templatemo-crypto-script.js"></script>
+    {% block javascripts %}{% endblock %}
 </body>
 </html>
