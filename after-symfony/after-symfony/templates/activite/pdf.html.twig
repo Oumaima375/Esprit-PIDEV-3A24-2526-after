@@ -1,0 +1,300 @@
+{# templates/activite/pdf.html.twig #}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Activité : {{ activite.nom }}</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background: #fff;
+        }
+
+        /* ===== TOP BANNER ===== */
+        .top-banner {
+            background-color: #007bff;
+            padding: 12px 40px;
+            text-align: center;
+        }
+
+        .top-banner .welcome {
+            color: white;
+            font-size: 13px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        .top-banner .brand {
+            color: white;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 3px;
+        }
+
+        /* ===== HEADER ===== */
+        .header-banner {
+            background-color: #0056b3;
+            padding: 25px 40px;
+            color: white;
+        }
+
+        .header-inner {
+            display: table;
+            width: 100%;
+        }
+
+        .header-left {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .header-right {
+            display: table-cell;
+            vertical-align: middle;
+            text-align: right;
+            width: 100px;
+        }
+
+        .header-right img {
+            width: 75px;
+            height: 75px;
+            border-radius: 50%;
+            border: 3px solid white;
+            background: white;
+        }
+
+        .header-banner h1 {
+            font-size: 26px;
+            font-weight: bold;
+            color: white;
+            margin-bottom: 6px;
+        }
+
+        .header-banner .subtitle {
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 14px;
+            background-color: rgba(255,255,255,0.25);
+            border: 1px solid rgba(255,255,255,0.6);
+            border-radius: 20px;
+            font-size: 12px;
+            color: white;
+        }
+
+        /* ===== CONTENT ===== */
+        .content {
+            padding: 25px 40px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: bold;
+            color: #007bff;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+            margin-bottom: 15px;
+            margin-top: 20px;
+        }
+
+        /* ===== INFO CARDS ===== */
+        .info-grid {
+            display: table;
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 8px;
+        }
+
+        .info-card {
+            display: table-cell;
+            width: 33%;
+            background-color: #f0f6ff;
+            border: 1px solid #cce0ff;
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .info-card .icon {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+
+        .info-card .label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .info-card .value {
+            font-size: 13px;
+            font-weight: bold;
+            color: #0056b3;
+        }
+
+        /* ===== PRIX BOX ===== */
+        .prix-box {
+            background-color: #0056b3;
+            border-radius: 8px;
+            padding: 18px;
+            text-align: center;
+            color: white;
+            margin: 10px 0;
+        }
+
+        .prix-box .prix-label {
+            font-size: 12px;
+            color: rgba(255,255,255,0.85);
+            margin-bottom: 6px;
+        }
+
+        .prix-box .prix-amount {
+            font-size: 36px;
+            font-weight: bold;
+            color: white;
+        }
+
+        .prix-box .prix-devise {
+            font-size: 16px;
+            color: rgba(255,255,255,0.85);
+            margin-left: 5px;
+        }
+
+        /* ===== DESCRIPTION ===== */
+        .description-box {
+            background-color: #f8f9fa;
+            border-left: 4px solid #007bff;
+            border-radius: 4px;
+            padding: 15px 20px;
+            font-size: 13px;
+            color: #444;
+            line-height: 1.7;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            background-color: #f0f6ff;
+            border-top: 2px solid #007bff;
+            padding: 12px 40px;
+            margin-top: 30px;
+            display: table;
+            width: 100%;
+        }
+
+        .footer-left {
+            display: table-cell;
+            vertical-align: middle;
+        }
+
+        .footer-right {
+            display: table-cell;
+            text-align: right;
+            vertical-align: middle;
+        }
+
+        .footer .company {
+            font-size: 13px;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        .footer .website {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .footer .date {
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Welcome Banner -->
+    <div class="top-banner">
+        <div class="welcome">Bienvenue chez</div>
+        <div class="brand">✈ AFTER TRAVEL ✈</div>
+    </div>
+
+    <!-- Header -->
+    <div class="header-banner">
+        <div class="header-inner">
+            <div class="header-left">
+                <div class="subtitle">Votre partenaire de voyage</div>
+                <h1>{{ activite.nom }}</h1>
+                {% if activite.categorie %}
+                    <div class="badge">{{ activite.categorie }}</div>
+                {% endif %}
+            </div>
+            <div class="header-right">
+                <img src="http://localhost/after-symfony/after-symfony/public/assets/img/logo-travela.png" alt="Logo">
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+
+        <!-- Info Cards -->
+        <div class="section-title">Informations generales</div>
+        <div class="info-grid">
+            <div class="info-card">
+                <div class="icon">📍</div>
+                <div class="label">Lieu</div>
+                <div class="value">{{ activite.lieu ?: 'Non precise' }}</div>
+            </div>
+            <div class="info-card">
+                <div class="icon">🏷</div>
+                <div class="label">Categorie</div>
+                <div class="value">{{ activite.categorie ?: 'Non precise' }}</div>
+            </div>
+            <div class="info-card">
+                <div class="icon">📅</div>
+                <div class="label">Genere le</div>
+                <div class="value">{{ "now"|date("d/m/Y") }}</div>
+            </div>
+        </div>
+
+        <!-- Prix -->
+        <div class="section-title">Tarification</div>
+        <div class="prix-box">
+            <div class="prix-label">Prix de l'activite</div>
+            <div>
+                <span class="prix-amount">{{ activite.prix ? activite.prix : '0' }}</span>
+                <span class="prix-devise">TND</span>
+            </div>
+        </div>
+
+        <!-- Description -->
+        <div class="section-title">Description</div>
+        <div class="description-box">
+            {{ activite.description ?: 'Aucune description disponible.' }}
+        </div>
+
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <div class="footer-left">
+            <div class="company">After Travel</div>
+            <div class="website">www.travela.com</div>
+        </div>
+        <div class="footer-right">
+            <div class="date">Document genere le {{ "now"|date("d/m/Y") }}</div>
+        </div>
+    </div>
+
+</body>
+</html>

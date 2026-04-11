@@ -1,0 +1,87 @@
+{% extends 'dashboard_base.html.twig' %}
+
+{% block title %}Dashboard - Ajouter Activité{% endblock %}
+
+{% block body %}
+
+<div style="padding: 24px;">
+
+    <div class="sd-section-header" style="margin-bottom: 20px;">
+        <h3 class="sd-section-title">➕ Ajouter une Activité</h3>
+        <a href="{{ path('app_dashboard') }}" class="sd-btn sd-btn-gray">
+            ← Retour au Dashboard
+        </a>
+    </div>
+
+    <div class="sd-form-card" style="max-width: 700px;">
+
+        {{ form_start(form) }}
+
+        {% if not form.vars.valid %}
+            <div style="background:#fff3f3; border:1px solid #f44336; border-radius:8px; padding:12px; margin-bottom:16px; color:#c62828;">
+                ⚠️ Veuillez corriger les erreurs ci-dessous.
+            </div>
+        {% endif %}
+
+        <div class="sd-form-grid">
+            <div class="sd-form-group">
+                {{ form_label(form.nom, null, {'label_attr': {'class': 'sd-label'}}) }}
+                {{ form_widget(form.nom, {'attr': {'class': 'sd-input'}}) }}
+                <div style="color:#f44336; font-size:12px;">{{ form_errors(form.nom) }}</div>
+            </div>
+
+            <div class="sd-form-group">
+                {{ form_label(form.categorie, null, {'label_attr': {'class': 'sd-label'}}) }}
+                {{ form_widget(form.categorie, {'attr': {'class': 'sd-input'}}) }}
+                <div style="color:#f44336; font-size:12px;">{{ form_errors(form.categorie) }}</div>
+            </div>
+
+            <div class="sd-form-group">
+                {{ form_label(form.lieu, null, {'label_attr': {'class': 'sd-label'}}) }}
+                {{ form_widget(form.lieu, {'attr': {'class': 'sd-input'}}) }}
+                <div style="color:#f44336; font-size:12px;">{{ form_errors(form.lieu) }}</div>
+            </div>
+
+            <div class="sd-form-group">
+                {{ form_label(form.prix, null, {'label_attr': {'class': 'sd-label'}}) }}
+                {{ form_widget(form.prix, {'attr': {'class': 'sd-input'}}) }}
+                <div style="color:#f44336; font-size:12px;">{{ form_errors(form.prix) }}</div>
+            </div>
+
+            <div class="sd-form-group sd-form-full">
+                {{ form_label(form.description, null, {'label_attr': {'class': 'sd-label'}}) }}
+                {{ form_widget(form.description, {'attr': {'class': 'sd-input sd-textarea'}}) }}
+                <div style="color:#f44336; font-size:12px;">{{ form_errors(form.description) }}</div>
+            </div>
+        </div>
+
+        <div class="sd-form-actions">
+            {{ form_widget(form.save, {'attr': {'class': 'sd-btn sd-btn-green'}}) }}
+            <a href="{{ path('app_dashboard') }}" class="sd-btn sd-btn-gray">✕ Annuler</a>
+        </div>
+
+        {{ form_end(form) }}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block stylesheets %}
+<style>
+.sd-section-header { display: flex; align-items: center; justify-content: space-between; }
+.sd-section-title { font-size: 18px; font-weight: 700; color: #1A2F4A; margin: 0; }
+.sd-form-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 12px; padding: 24px; }
+.sd-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 16px; }
+.sd-form-full { grid-column: 1 / -1; }
+.sd-form-group { display: flex; flex-direction: column; gap: 4px; }
+.sd-label { font-size: 12px; font-weight: 600; color: #4A5568; }
+.sd-input { padding: 8px 12px; border: 1px solid #dee2e6; border-radius: 8px; font-size: 13px; background: white; }
+.sd-textarea { resize: vertical; min-height: 80px; }
+.sd-form-actions { display: flex; gap: 10px; }
+.sd-btn { padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 600; text-decoration: none; border: none; cursor: pointer; display: inline-block; }
+.sd-btn-green { background-color: #4CAF50; color: white; }
+.sd-btn-gray { background-color: #9E9E9E; color: white; }
+.sd-btn:hover { opacity: 0.85; }
+</style>
+{% endblock %}

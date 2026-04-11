@@ -1,0 +1,561 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Travela - Activités{% endblock %}
+
+{% block body %}
+
+<!-- Spinner Start -->
+<div id="spinner" class="show bg-white position-fixed translate-middle w-100 vh-100 top-50 start-50 d-flex align-items-center justify-content-center">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+</div>
+<!-- Spinner End -->
+
+<!-- Navbar Start -->
+<div class="container-fluid position-relative p-0">
+    <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
+        <a href="" class="navbar-brand p-0">
+            <h1 class="m-0"><i class="fa fa-map-marker-alt me-3"></i>After Travel</h1>
+        </a>
+        <div class="collapse navbar-collapse">
+            <div class="navbar-nav ms-auto py-0">
+                <a href="{{ path('app_home') }}" class="nav-item nav-link">Home</a>
+                <a href="{{ path('app_activite') }}" class="nav-item nav-link active">Activités</a>
+            </div>
+        </div>
+    </nav>
+</div>
+<!-- Navbar End -->
+
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h3 class="text-white display-3 mb-4">Nos Activités</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+            <li class="breadcrumb-item active text-white">Activités</li>
+        </ol>
+    </div>
+    <div class="container d-flex justify-content-center my-3">
+        <a href="{{ path('app_planning') }}" class="btn btn-primary rounded-pill py-2 px-4">
+            <i class="fa fa-calendar-alt me-2"></i>Planning
+        </a>
+    </div>
+    <div class="container my-4 text-center">
+        <div class="card shadow p-4 border-0 rounded">
+            <h4 class="mb-3">Scanner pour voir la liste des activités</h4>
+            <img src="{{ path('app_activite_qr') }}" alt="QR Code" width="200" class="img-fluid">
+            <p class="mt-3 text-muted">Utilisez votre téléphone pour accéder rapidement aux activités 📱</p>
+        </div>
+    </div>
+</div>
+<!-- Header End -->
+
+<!-- MODAL -->
+<div class="modal fade" id="activiteModal" tabindex="-1" aria-labelledby="activiteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0 pb-0">
+                <div>
+                    <span id="modal-categorie" class="badge bg-primary mb-1"></span>
+                    <h4 class="modal-title fw-bold" id="activiteModalLabel"></h4>
+                    <p class="text-muted mb-0">
+                        <i class="fa fa-map-marker-alt text-primary me-1"></i>
+                        <span id="modal-lieu"></span>
+                    </p>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body pt-3">
+                <div class="p-3 bg-light rounded mb-3">
+                    <p class="mb-1 fw-semibold text-muted small">📝 Description</p>
+                    <p class="mb-0" id="modal-description" style="line-height: 1.8;"></p>
+                </div>
+                <div>
+                    <small class="text-muted fw-semibold">🌍 Traduire la description en :</small>
+                    <div class="d-flex gap-2 flex-wrap mt-2">
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="en">🇬🇧 Anglais</button>
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="de">🇩🇪 Allemand</button>
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="ar">🇸🇦 Arabe</button>
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="es">🇪🇸 Espagnol</button>
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="zh">🇨🇳 Chinois</button>
+                        <button class="btn btn-sm btn-outline-secondary modal-btn-translate" data-lang="fr">🇫🇷 Français</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Activités Start -->
+<div class="container-fluid blog py-5">
+    <div class="container py-5">
+        <div class="mx-auto text-center mb-5" style="max-width: 900px;">
+            <h5 class="section-title px-3">Nos Activités</h5>
+            <h1 class="mb-4">Liste des Activités</h1>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <select id="sort" class="form-select rounded-pill px-4 py-2" style="max-width: 250px;">
+                <option value="">-- Trier par --</option>
+                <option value="nom">🔤 Nom</option>
+                <option value="prix">💰 Prix</option>
+                <option value="categorie">🏷️ Catégorie</option>
+                <option value="lieu">📍 Lieu</option>
+            </select>
+        </div>
+
+        <div class="mb-4" style="max-width: 500px; margin: 0 auto 2rem auto;">
+            <input type="text" id="search" class="form-control rounded-pill px-4 py-2"
+                   placeholder="🔍 Rechercher une activité...">
+        </div>
+
+        <div class="row g-4 justify-content-center">
+            <div id="activite-tbody-all" style="display: contents;">
+                {% for activite in activites %}
+                    <div class="col-lg-4 col-md-6">
+                        {# La carte — sans onclick, on gère ça en JS proprement #}
+                        <div class="blog-item activite-card"
+                             data-id="{{ activite.idActivite }}"
+                             data-nom="{{ activite.nom }}"
+                             data-categorie="{{ activite.categorie ?? '' }}"
+                             data-lieu="{{ activite.lieu ?? '' }}"
+                             data-description="{{ activite.description ?? '' }}">
+
+                            <div class="blog-content border rounded p-4 h-100 transition-card">
+
+                                {% if activite.categorie %}
+                                    <span class="badge bg-primary mb-2">{{ activite.categorie }}</span>
+                                {% endif %}
+
+                                <h4 class="mb-2">{{ activite.nom }}</h4>
+
+                                {% if activite.lieu %}
+                                    <p class="mb-2">
+                                        <i class="fa fa-map-marker-alt text-primary me-2"></i>
+                                        {{ activite.lieu }}
+                                    </p>
+                                {% endif %}
+
+                                {% if activite.prix %}
+                                    <p class="mb-1">
+                                        <i class="fa fa-tag text-primary me-2"></i>
+                                        <strong id="prix-{{ activite.idActivite }}">{{ activite.prix }} TND</strong>
+                                    </p>
+                                    <div class="zone-interactive mb-3">
+                                        <small class="text-muted">💱 Convertir en :</small>
+                                        <div class="d-flex gap-1 flex-wrap mt-1">
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="EUR">💶 EUR</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="USD">💵 USD</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="GBP">💷 GBP</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert"
+                                                    data-id="{{ activite.idActivite }}"
+                                                    data-prix="{{ activite.prix }}"
+                                                    data-devise="TND">🔄 TND</button>
+                                        </div>
+                                    </div>
+                                {% endif %}
+
+                                <p class="text-muted small mb-3">
+                                    <i class="fa fa-info-circle me-1"></i>
+                                    Cliquez pour voir la description
+                                </p>
+
+                                {# ══ LIKE / DISLIKE ══ #}
+                                <div class="zone-interactive d-flex align-items-center gap-3 mb-3">
+                                    <button class="btn-reaction btn-like"
+                                            data-id="{{ activite.idActivite }}"
+                                            type="button">
+                                        👍 <span class="reaction-count like-count-{{ activite.idActivite }}">0</span>
+                                    </button>
+                                    <button class="btn-reaction btn-dislike"
+                                            data-id="{{ activite.idActivite }}"
+                                            type="button">
+                                        👎 <span class="reaction-count dislike-count-{{ activite.idActivite }}">0</span>
+                                    </button>
+                                </div>
+
+                                {# ══ PARTAGE SOCIAL ══ #}
+                                <div class="zone-interactive d-flex align-items-center gap-2 mb-3">
+                                    <small class="text-muted">Partager :</small>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ (app.request.schemeAndHttpHost ~ path('app_activite'))|url_encode }}&quote={{ (activite.nom ~ ' - ' ~ activite.lieu ~ ' - ' ~ activite.prix ~ ' TND')|url_encode }}"
+                                       target="_blank" class="btn-social btn-facebook">
+                                        <i class="fab fa-facebook-f"></i>
+                                    </a>
+                                    <a href="https://www.instagram.com/"
+                                       target="_blank" class="btn-social btn-instagram">
+                                        <i class="fab fa-instagram"></i>
+                                    </a>
+                                    <a href="https://api.whatsapp.com/send?text={{ ('🏃 ' ~ activite.nom ~ ' 📍 ' ~ activite.lieu ~ ' 💰 ' ~ activite.prix ~ ' TND - After Travel!')|url_encode }}"
+                                       target="_blank" class="btn-social btn-whatsapp">
+                                        <i class="fab fa-whatsapp"></i>
+                                    </a>
+                                </div>
+
+                                {# ══ BOUTON PDF ══ #}
+                                <div class="zone-interactive d-flex gap-2 flex-wrap">
+                                    <a href="{{ path('app_activite_pdf', {'id': activite.idActivite}) }}"
+                                       class="btn btn-sm btn-success" target="_blank">
+                                        <i class="fa fa-file-pdf"></i> PDF
+                                    </a>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="col-12 text-center">
+                        <p>Aucune activité disponible pour le moment.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div id="activite-tbody-search" class="row g-4 justify-content-center"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-xl-3">
+                <div class="footer-item d-flex flex-column">
+                    <h4 class="mb-4 text-white">Get In Touch</h4>
+                    <a href=""><i class="fas fa-home me-2"></i> 123 Street, New York, USA</a>
+                    <a href=""><i class="fas fa-envelope me-2"></i> info@example.com</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<style>
+.btn-xs { padding: 2px 8px; font-size: 0.75rem; border-radius: 20px; }
+
+.transition-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+.activite-card:hover .transition-card {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+.activite-card { cursor: pointer; }
+
+/* Like / Dislike */
+.btn-reaction {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #f8f9fa;
+    border: 1.5px solid #dee2e6;
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: #555;
+    outline: none;
+}
+.btn-reaction:hover     { border-color: #adb5bd; background: #e9ecef; }
+.btn-like.active        { background: #d4edda; border-color: #28a745; color: #28a745; font-weight: 700; }
+.btn-dislike.active     { background: #f8d7da; border-color: #dc3545; color: #dc3545; font-weight: 700; }
+.reaction-count         { font-size: 0.85rem; font-weight: 600; min-width: 18px; text-align: center; }
+
+/* Social */
+.btn-social {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    font-size: 0.85rem;
+    color: #fff !important;
+    text-decoration: none;
+    transition: transform 0.2s;
+}
+.btn-social:hover   { transform: scale(1.18); }
+.btn-facebook       { background: #1877F2; }
+.btn-instagram      { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+.btn-whatsapp       { background: #25D366; }
+</style>
+
+<script>
+$(document).ready(function () {
+
+    var originalDescription = '';
+    var tauxConversion = { 'EUR': 0.30, 'USD': 0.32, 'GBP': 0.25, 'TND': 1.00 };
+
+    /* ══════════════════════════════════════
+       CHARGER REACTIONS
+    ══════════════════════════════════════ */
+    function loadReactions() {
+        $('.btn-like, .btn-dislike').each(function () {
+            var id = $(this).attr('data-id');
+            if (!id) return;
+            var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
+            var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
+            var userVote = localStorage.getItem('vote_' + id);
+            $('.like-count-'    + id).text(likes);
+            $('.dislike-count-' + id).text(dislikes);
+            if (userVote === 'like')    $('.btn-like[data-id="'    + id + '"]').addClass('active');
+            if (userVote === 'dislike') $('.btn-dislike[data-id="' + id + '"]').addClass('active');
+        });
+    }
+    loadReactions();
+
+    /* ══════════════════════════════════════
+       CLIC SUR LA CARTE → MODAL
+       (seulement si pas zone-interactive)
+    ══════════════════════════════════════ */
+    $(document).on('click', '.activite-card', function (e) {
+        if ($(e.target).closest('.zone-interactive').length > 0) return;
+
+        var nom         = $(this).attr('data-nom');
+        var categorie   = $(this).attr('data-categorie');
+        var lieu        = $(this).attr('data-lieu');
+        var description = $(this).attr('data-description');
+
+        originalDescription = description;
+        $('#activiteModalLabel').text(nom);
+        $('#modal-lieu').text(lieu || 'Non précisé');
+        $('#modal-description')
+            .text(description || 'Aucune description disponible.')
+            .attr('dir', 'ltr').css('text-align', 'left');
+
+        if (categorie) { $('#modal-categorie').text(categorie).show(); }
+        else           { $('#modal-categorie').hide(); }
+
+        var labels = { en:'🇬🇧 Anglais', de:'🇩🇪 Allemand', ar:'🇸🇦 Arabe', es:'🇪🇸 Espagnol', zh:'🇨🇳 Chinois', fr:'🇫🇷 Français' };
+        $('.modal-btn-translate').prop('disabled', false).each(function () {
+            $(this).text(labels[$(this).attr('data-lang')]);
+        });
+        $('#activiteModal').modal('show');
+    });
+
+    /* ══════════════════════════════════════
+       LIKE
+    ══════════════════════════════════════ */
+    $(document).on('click', '.btn-like', function (e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        var id = String($(this).attr('data-id'));
+        if (!id || id === 'undefined') return false;
+
+        var userVote = localStorage.getItem('vote_' + id);
+        var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
+        var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
+
+        if (userVote === 'like') {
+            likes = Math.max(0, likes - 1);
+            localStorage.removeItem('vote_' + id);
+            $('.btn-like[data-id="' + id + '"]').removeClass('active');
+        } else {
+            likes++;
+            localStorage.setItem('vote_' + id, 'like');
+            $('.btn-like[data-id="' + id + '"]').addClass('active');
+            if (userVote === 'dislike') {
+                dislikes = Math.max(0, dislikes - 1);
+                localStorage.setItem('dislike_' + id, dislikes);
+                $('.btn-dislike[data-id="' + id + '"]').removeClass('active');
+                $('.dislike-count-' + id).text(dislikes);
+            }
+        }
+        localStorage.setItem('like_' + id, likes);
+        $('.like-count-' + id).text(likes);
+        return false;
+    });
+
+    /* ══════════════════════════════════════
+       DISLIKE
+    ══════════════════════════════════════ */
+    $(document).on('click', '.btn-dislike', function (e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+
+        var id = String($(this).attr('data-id'));
+        if (!id || id === 'undefined') return false;
+
+        var userVote = localStorage.getItem('vote_' + id);
+        var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
+        var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
+
+        if (userVote === 'dislike') {
+            dislikes = Math.max(0, dislikes - 1);
+            localStorage.removeItem('vote_' + id);
+            $('.btn-dislike[data-id="' + id + '"]').removeClass('active');
+        } else {
+            dislikes++;
+            localStorage.setItem('vote_' + id, 'dislike');
+            $('.btn-dislike[data-id="' + id + '"]').addClass('active');
+            if (userVote === 'like') {
+                likes = Math.max(0, likes - 1);
+                localStorage.setItem('like_' + id, likes);
+                $('.btn-like[data-id="' + id + '"]').removeClass('active');
+                $('.like-count-' + id).text(likes);
+            }
+        }
+        localStorage.setItem('dislike_' + id, dislikes);
+        $('.dislike-count-' + id).text(dislikes);
+        return false;
+    });
+
+    /* ══════════════════════════════════════
+       TRADUCTION
+    ══════════════════════════════════════ */
+    $(document).on('click', '.modal-btn-translate', function () {
+        var lang = $(this).attr('data-lang');
+        var btn  = $(this);
+        if (!originalDescription) return;
+        btn.text('⏳').prop('disabled', true);
+        $.ajax({
+            url: 'https://api.mymemory.translated.net/get',
+            type: 'GET',
+            data: { q: originalDescription, langpair: 'fr|' + lang },
+            success: function (response) {
+                var translated = response.responseData.translatedText;
+                if (lang === 'ar') { $('#modal-description').attr('dir','rtl').css('text-align','right'); }
+                else               { $('#modal-description').attr('dir','ltr').css('text-align','left'); }
+                $('#modal-description').text(translated);
+                btn.prop('disabled', false);
+            },
+            error: function () { alert('Erreur traduction.'); btn.prop('disabled', false); }
+        });
+    });
+
+    /* ══════════════════════════════════════
+       CONVERSION PRIX
+    ══════════════════════════════════════ */
+    $(document).on('click', '.btn-convert', function (e) {
+        e.stopImmediatePropagation();
+        var id        = $(this).attr('data-id');
+        var prix      = parseFloat($(this).attr('data-prix'));
+        var devise    = $(this).attr('data-devise');
+        var converted = (prix * tauxConversion[devise]).toFixed(2);
+        $('#prix-' + id).text(converted + ' ' + devise);
+        return false;
+    });
+
+    /* ══════════════════════════════════════
+       RECHERCHE AJAX
+    ══════════════════════════════════════ */
+    $('#search').keyup(function () {
+        var value = $(this).val();
+        if (value.trim() === '') {
+            $('#activite-tbody-all').show();
+            $('#activite-tbody-search').empty();
+            $('#sort').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_activite_search') }}",
+            type: 'GET',
+            data: { 'searchValue': value },
+            dataType: 'json',
+            success: function (retour) { afficherResultats(retour); },
+            error: function () { alert('Erreur recherche!'); }
+        });
+    });
+
+    /* ══════════════════════════════════════
+       TRI AJAX
+    ══════════════════════════════════════ */
+    $('#sort').change(function () {
+        var sortBy = $(this).val();
+        if (sortBy === '') {
+            $('#activite-tbody-all').show();
+            $('#activite-tbody-search').empty();
+            $('#search').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_activite_sort') }}",
+            type: 'GET',
+            data: { 'sortBy': sortBy },
+            dataType: 'json',
+            success: function (retour) { afficherResultats(retour); },
+            error: function () { alert('Erreur tri!'); }
+        });
+    });
+
+    /* ══════════════════════════════════════
+       AFFICHAGE AJAX
+    ══════════════════════════════════════ */
+    function afficherResultats(retour) {
+        $('#activite-tbody-search').empty();
+        $('#activite-tbody-all').hide();
+
+        if (retour && retour.length > 0) {
+            $.each(retour, function (i, obj) {
+                var id         = obj.idActivite || obj.id_activite || obj.id;
+                var likes      = parseInt(localStorage.getItem('like_'    + id)) || 0;
+                var dislikes   = parseInt(localStorage.getItem('dislike_' + id)) || 0;
+                var userVote   = localStorage.getItem('vote_' + id);
+                var likeCls    = userVote === 'like'    ? 'active' : '';
+                var dislikeCls = userVote === 'dislike' ? 'active' : '';
+                var shareUrl   = encodeURIComponent(window.location.href);
+                var shareText  = encodeURIComponent('🏃 ' + (obj.nom||'') + ' 📍 ' + (obj.lieu||'') + ' 💰 ' + (obj.prix||'') + ' TND - After Travel!');
+
+                $('#activite-tbody-search').append(
+                    '<div class="col-lg-4 col-md-6">' +
+                    '<div class="activite-card blog-item" ' +
+                        'data-id="'          + id + '" ' +
+                        'data-nom="'         + (obj.nom||'').replace(/"/g,'&quot;') + '" ' +
+                        'data-categorie="'   + (obj.categorie||'') + '" ' +
+                        'data-lieu="'        + (obj.lieu||'') + '" ' +
+                        'data-description="' + (obj.description||'').replace(/"/g,'&quot;') + '">' +
+                    '<div class="blog-content border rounded p-4 h-100 transition-card">' +
+                        (obj.categorie ? '<span class="badge bg-primary mb-2">' + obj.categorie + '</span>' : '') +
+                        '<h4 class="mb-2">' + (obj.nom||'') + '</h4>' +
+                        (obj.lieu ? '<p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-2"></i>' + obj.lieu + '</p>' : '') +
+                        (obj.prix ?
+                            '<p class="mb-1"><i class="fa fa-tag text-primary me-2"></i><strong id="prix-' + id + '">' + obj.prix + ' TND</strong></p>' +
+                            '<div class="zone-interactive mb-3"><small class="text-muted">💱 Convertir en :</small>' +
+                            '<div class="d-flex gap-1 flex-wrap mt-1">' +
+                                '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="EUR">💶 EUR</button>' +
+                                '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="USD">💵 USD</button>' +
+                                '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="GBP">💷 GBP</button>' +
+                                '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="TND">🔄 TND</button>' +
+                            '</div></div>'
+                        : '') +
+                        '<p class="text-muted small mb-3"><i class="fa fa-info-circle me-1"></i>Cliquez pour voir la description</p>' +
+                        '<div class="zone-interactive d-flex align-items-center gap-3 mb-3">' +
+                            '<button class="btn-reaction btn-like ' + likeCls + '" data-id="' + id + '" type="button">👍 <span class="reaction-count like-count-' + id + '">' + likes + '</span></button>' +
+                            '<button class="btn-reaction btn-dislike ' + dislikeCls + '" data-id="' + id + '" type="button">👎 <span class="reaction-count dislike-count-' + id + '">' + dislikes + '</span></button>' +
+                        '</div>' +
+                        '<div class="zone-interactive d-flex align-items-center gap-2 mb-3">' +
+                            '<small class="text-muted">Partager :</small>' +
+                            '<a href="https://www.facebook.com/sharer/sharer.php?u=' + shareUrl + '&quote=' + shareText + '" target="_blank" class="btn-social btn-facebook"><i class="fab fa-facebook-f"></i></a>' +
+                            '<a href="https://www.instagram.com/" target="_blank" class="btn-social btn-instagram"><i class="fab fa-instagram"></i></a>' +
+                            '<a href="https://api.whatsapp.com/send?text=' + shareText + '" target="_blank" class="btn-social btn-whatsapp"><i class="fab fa-whatsapp"></i></a>' +
+                        '</div>' +
+                        '<div class="zone-interactive d-flex gap-2">' +
+                            '<a href="/after-symfony/after-symfony/public/index.php/activite/pdf/' + id + '" class="btn btn-sm btn-success" target="_blank"><i class="fa fa-file-pdf"></i> PDF</a>' +
+                        '</div>' +
+                    '</div></div></div>'
+                );
+            });
+        } else {
+            $('#activite-tbody-search').append('<div class="col-12 text-center"><p>Aucune activité trouvée.</p></div>');
+        }
+    }
+
+});
+</script>
+{% endblock %}
