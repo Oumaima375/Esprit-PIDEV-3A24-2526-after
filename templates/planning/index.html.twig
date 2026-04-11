@@ -1,0 +1,292 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Travela - Planning{% endblock %}
+
+{% block body %}
+
+<!-- Header Start -->
+<div class="container-fluid bg-breadcrumb">
+    <div class="container text-center py-5" style="max-width: 900px;">
+        <h3 class="text-white display-3 mb-4">Planning des Activités</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_activite') }}">Activités</a></li>
+            <li class="breadcrumb-item active text-white">Planning</li>
+        </ol>
+    </div>
+</div>
+<!-- Header End -->
+
+<!-- Planning Start -->
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="mx-auto text-center mb-5" style="max-width: 900px;">
+            <h5 class="section-title px-3">Planning</h5>
+            <h1 class="mb-4">Activités Planifiées</h1>
+        </div>
+
+        {# ══ Boutons Pays ══ #}
+        <div class="text-end mb-3">
+            <button id="btnVoirPays" class="btn btn-success rounded-pill py-2 px-4">
+                🌍 Voir les Pays
+            </button>
+        </div>
+
+        <!-- TRI AJAX -->
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <select id="sort" class="form-select rounded-pill px-4 py-2" style="max-width: 250px;">
+                <option value="">-- Trier par --</option>
+                <option value="nom">🔤 Nom</option>
+                <option value="prix">💰 Prix</option>
+                <option value="categorie">🏷️ Catégorie</option>
+                <option value="lieu">📍 Lieu</option>
+                <option value="date">📅 Date</option>
+                <option value="duree">⏱️ Durée</option>
+            </select>
+        </div>
+
+        <!-- RECHERCHE AJAX -->
+        <div class="mb-4" style="max-width: 500px; margin: 0 auto 2rem auto;">
+            <input type="text" id="search" class="form-control rounded-pill px-4 py-2"
+                   placeholder="🔍 Rechercher un planning...">
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover text-center">
+                <thead class="table-primary">
+                    <tr>
+                        <th>Activité</th>
+                        <th>Lieu</th>
+                        <th>Catégorie</th>
+                        <th>Prix</th>
+                        <th>Date</th>
+                        <th>Heure Début</th>
+                        <th>Durée (min)</th>
+                    </tr>
+                </thead>
+
+                <tbody id="planning-tbody-all">
+                    {% for planning in plannings %}
+                        <tr>
+                            <td>{{ planning.activite.nom }}</td>
+                            <td><i class="fa fa-map-marker-alt text-primary me-1"></i>{{ planning.activite.lieu }}</td>
+                            <td><span class="badge bg-primary">{{ planning.activite.categorie }}</span></td>
+                            <td>{{ planning.activite.prix }} TND</td>
+                            <td><i class="fa fa-calendar text-primary me-1"></i>{{ planning.dateActivite|date('Y-m-d') }}</td>
+                            <td><i class="fa fa-clock text-primary me-1"></i>{{ planning.heureDebut ? planning.heureDebut|date('H:i') : '' }}</td>
+                            <td>{{ planning.duree }} min</td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="7">Aucun planning disponible.</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+
+                <tbody id="planning-tbody-search"></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+<!-- Planning End -->
+
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+
+<script>
+$(document).ready(function() {
+
+    function formatDate(dateStr) {
+        if (!dateStr) return '';
+        const d = new Date(dateStr);
+        const year  = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day   = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+    }
+
+    function afficherResultats(retour) {
+        $('#planning-tbody-search').empty();
+        $('#planning-tbody-all').hide();
+
+        if (retour && retour.length > 0) {
+            $.each(retour, function(i, obj) {
+                var activite = obj.activite || {};
+                $('#planning-tbody-search').append(
+                    '<tr>' +
+                    '<td>' + (activite.nom || '') + '</td>' +
+                    '<td><i class="fa fa-map-marker-alt text-primary me-1"></i>' + (activite.lieu || '') + '</td>' +
+                    '<td><span class="badge bg-primary">' + (activite.categorie || '') + '</span></td>' +
+                    '<td>' + (activite.prix || '') + ' TND</td>' +
+                    '<td><i class="fa fa-calendar text-primary me-1"></i>' + formatDate(obj.dateActivite) + '</td>' +
+                    '<td><i class="fa fa-clock text-primary me-1"></i>' + (obj.heureDebut || '') + '</td>' +
+                    '<td>' + (obj.duree || '') + ' min</td>' +
+                    '</tr>'
+                );
+            });
+        } else {
+            $('#planning-tbody-search').append(
+                '<tr><td colspan="7" class="text-center">Aucun planning trouvé.</td></tr>'
+            );
+        }
+    }
+
+    // ===================== RECHERCHE AJAX =====================
+    $("#search").on('keyup', function() {
+        var value = $(this).val();
+        if (value.trim() === '') {
+            $('#planning-tbody-search').empty();
+            $('#planning-tbody-all').show();
+            $('#sort').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_planning_search') }}",
+            type: "GET",
+            data: { searchValue: value },
+            dataType: "json",
+            success: afficherResultats,
+            error: function() { alert('Erreur recherche'); }
+        });
+    });
+
+    // ===================== TRI AJAX =====================
+    $("#sort").on('change', function() {
+        var sortBy = $(this).val();
+        if (sortBy === '') {
+            $('#planning-tbody-search').empty();
+            $('#planning-tbody-all').show();
+            $('#search').val('');
+            return;
+        }
+        $.ajax({
+            url: "{{ path('app_planning_sort') }}",
+            type: "GET",
+            data: { sortBy: sortBy },
+            dataType: "json",
+            success: afficherResultats,
+            error: function() { alert('Erreur tri'); }
+        });
+    });
+
+    // ===================== VOIR LES PAYS =====================
+    $('#btnVoirPays').click(function() {
+        $.ajax({
+            url: "{{ path('app_pays_liste') }}",
+            type: 'GET',
+            dataType: 'json',
+            success: function(listePays) {
+                let options = '';
+                listePays.forEach(function(pays) {
+                    options += '<option value="' + pays + '">' + pays + '</option>';
+                });
+
+                let popup =
+                    '<div id="popupPays" style="position:fixed; top:15%; left:30%; background:white; padding:30px; border-radius:15px; box-shadow:0 0 20px gray; z-index:9999; width:400px;">' +
+                    '<h4 class="mb-3">🌍 Choisir un pays</h4>' +
+                    '<select id="selectPays" size="15" style="width:100%; font-size:1rem; padding:5px;">' +
+                    options +
+                    '</select><br><br>' +
+                    '<button id="fermerPopup" class="btn btn-danger rounded-pill px-4">Fermer</button>' +
+                    '</div>';
+
+                $('body').append(popup);
+
+                $('#fermerPopup').click(function() { $('#popupPays').remove(); });
+
+                $('#selectPays').change(function() {
+                    let paysChoisi = $(this).val();
+                    $.ajax({
+                        url: "{{ path('app_pays_info', {'nom':'PLACEHOLDER'}) }}".replace('PLACEHOLDER', encodeURIComponent(paysChoisi)),
+                        type: 'GET',
+                        dataType: 'json',
+                        success: function(data) {
+                            alert(
+                                "🌍 " + data.nom + "\n" +
+                                "🏛️ Capitale : " + data.capitale + "\n" +
+                                "🌐 Région : " + data.region + "\n" +
+                                "👥 Population : " + data.population
+                            );
+                        },
+                        error: function() { alert('Pays non trouvé'); }
+                    });
+                });
+            },
+            error: function() { alert('Erreur chargement pays'); }
+        });
+    });
+
+    // ===================== CHATBOT IA =====================
+
+    document.getElementById('chat-input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') envoyerMessage();
+    });
+
+});
+
+function fermerChat() {
+    document.getElementById('chatbox').style.display = 'none';
+}
+
+async function envoyerMessage() {
+    const input = document.getElementById('chat-input');
+    const text  = input.value.trim();
+    if (!text) return;
+
+    ajouterMessage(text, 'user');
+    window.chatMessagesArr = window.chatMessagesArr || [];
+    window.chatMessagesArr.push({ role: 'user', content: text });
+    input.value = '';
+
+    const typingId = ajouterMessage('En train d\'écrire...', 'typing');
+
+    try {
+        const res = await fetch('#', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ messages: window.chatMessagesArr })
+        });
+        const data = await res.json();
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+
+        if (data.response) {
+            ajouterMessage(data.response, 'bot');
+            window.chatMessagesArr.push({ role: 'assistant', content: data.response });
+        } else {
+            ajouterMessage('Désolé, une erreur est survenue.', 'bot');
+        }
+    } catch(e) {
+        const typingEl = document.getElementById(typingId);
+        if (typingEl) typingEl.remove();
+        ajouterMessage('Erreur de connexion.', 'bot');
+    }
+}
+
+function ajouterMessage(text, type) {
+    const id     = 'msg-' + Date.now();
+    const isUser = type === 'user';
+    const div    = document.createElement('div');
+    div.id                  = id;
+    div.style.maxWidth      = '80%';
+    div.style.padding       = '10px 14px';
+    div.style.borderRadius  = '18px';
+    div.style.background    = isUser ? 'linear-gradient(135deg,#667eea,#764ba2)' : '#f0f0f0';
+    div.style.color         = isUser ? 'white' : '#333';
+    div.style.marginLeft    = isUser ? 'auto' : '0';
+    div.style.marginBottom  = '5px';
+    div.style.fontSize      = '0.85rem';
+    div.style.lineHeight    = '1.4';
+    div.style.fontStyle     = type === 'typing' ? 'italic' : 'normal';
+    div.textContent         = text;
+    const messages = document.getElementById('chat-messages');
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+    return id;
+}
+</script>
+
+{% endblock %}

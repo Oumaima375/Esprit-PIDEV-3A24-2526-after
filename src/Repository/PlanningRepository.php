@@ -13,5 +13,35 @@ class PlanningRepository extends ServiceEntityRepository
         parent::__construct($registry, Planning::class);
     }
 
-    // Add custom methods as needed
+    // ===================== RECHERCHE =====================
+    public function findPlanningByNom(string $nom): array
+    {
+        return $this->createQueryBuilder('p')
+            ->join('p.activite', 'a')
+            ->where('a.nom LIKE :nom')
+            ->setParameter('nom', '%'.$nom.'%')
+            ->getQuery()
+            ->getResult();
+    }
+
+    // ===================== TRI =====================
+    public function findPlanningsSorted(string $sortBy): array
+    {
+        $validFields = [
+            'nom'       => 'a.nom',
+            'lieu'      => 'a.lieu',
+            'categorie' => 'a.categorie',
+            'prix'      => 'a.prix',
+            'date'      => 'p.dateActivite',
+            'duree'     => 'p.duree',
+        ];
+
+        $orderField = $validFields[$sortBy] ?? 'a.nom';
+
+        return $this->createQueryBuilder('p')
+            ->join('p.activite', 'a')
+            ->orderBy($orderField, 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

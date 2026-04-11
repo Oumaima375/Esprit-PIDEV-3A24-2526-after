@@ -233,10 +233,11 @@
    class="nav-item {{ app.request.get('_route') == 'app_admin' and app.request.query.get('tab') == 'payments' ? 'active' }}">
     <i class="fas fa-credit-card nav-icon"></i> Paiements
 </a>
-                <span class="nav-item-soon">
-                    <i class="fas fa-hiking nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Activités <span class="badge-soon">bientôt</span>
-                </span>
+                <a href="#" onclick="loadActiviteTab(); return false;"
+                   class="nav-item" id="nav-activite">
+                    <i class="fas fa-hiking nav-icon"></i>
+                    Activités
+                </a>
 
                 <span class="nav-item-soon">
                     <i class="fas fa-concierge-bell nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
@@ -486,6 +487,26 @@
                     </button>
                 </div>
                 <div id="docTabBody">
+                    <div style="text-align:center;padding:60px;color:var(--text-secondary)">
+                        <i class="fas fa-spinner fa-spin" style="font-size:28px;margin-bottom:12px"></i>
+                        <p>Chargement…</p>
+                    </div>
+                </div>
+            </div>
+
+            {# ─── Activité tab panel (loaded inline via AJAX) ─── #}
+            <div id="activiteTabContent" style="display:none;margin-top:24px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+                    <span style="font-size:1.1rem;font-weight:700;color:var(--text-primary)">
+                        <i class="fas fa-hiking me-2"></i>Gestion des Activités
+                    </span>
+                    <button onclick="closeActiviteTab()"
+                            style="background:var(--bg-card-hover);border:1px solid var(--border);color:var(--text-primary);
+                                   padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                        ✕ Fermer
+                    </button>
+                </div>
+                <div id="activiteTabBody">
                     <div style="text-align:center;padding:60px;color:var(--text-secondary)">
                         <i class="fas fa-spinner fa-spin" style="font-size:28px;margin-bottom:12px"></i>
                         <p>Chargement…</p>

@@ -179,7 +179,33 @@
                     </ul>
                 </div>
 
-                <a href="#" class="nav-item nav-link">Activité</a>
+                {# ── Activité dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a href="{{ path('app_activite') }}" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Activité
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header"><i class="fa fa-running me-1"></i> Activités</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('app_activite') }}">
+                            <i class="fa fa-list me-2 text-primary"></i>Toutes les Activités
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_activite_add') }}">
+                            <i class="fa fa-plus-circle me-2 text-primary"></i>Ajouter une Activité
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="fa fa-calendar-alt me-1"></i> Plannings</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('app_planning') }}">
+                            <i class="fa fa-calendar me-2 text-primary"></i>Tous les Plannings
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_planning_add') }}">
+                            <i class="fa fa-calendar-plus me-2 text-primary"></i>Ajouter un Planning
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ path('app_activite_qr') }}">
+                            <i class="fa fa-qrcode me-2 text-primary"></i>Générer QR Code
+                        </a></li>
+                    </ul>
+                </div>
                 {# ── Document dropdown ── #}
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">

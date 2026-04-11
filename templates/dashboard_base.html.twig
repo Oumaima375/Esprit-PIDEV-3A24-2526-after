@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CryptoVault{% endblock %}</title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+   <link rel="stylesheet" href="{{ asset('css/templatemo-crypto-style.css') }}">
+<link rel="stylesheet" href="{{ asset('css/templatemo-crypto-dashboard.css') }}">
+    {% block stylesheets %}{% endblock %}
+
+    <style>
+        /* ── Activité sidebar button ── */
+        .nav-item-activite {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            color: inherit;
+            text-decoration: none;
+            transition: background 0.2s;
+            width: 100%;
+            background: none;
+            border: none;
+            text-align: left;
+        }
+        .nav-item-activite:hover {
+            background: rgba(255,255,255,0.08);
+        }
+        .nav-item-activite.active {
+            background: rgba(255,255,255,0.12);
+            font-weight: 600;
+        }
+        .nav-icon-activite {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+
+        /* ── Inline dashboard panel ── */
+        #activite-panel {
+            display: none;
+        }
+        #activite-panel.visible {
+            display: block;
+        }
+        #default-content.hidden {
+            display: none;
+        }
+
+        /* ── Loading spinner inside panel ── */
+        .panel-loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 0;
+            font-size: 14px;
+            color: #888;
+            gap: 10px;
+        }
+        .panel-loading-spinner {
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(128,128,128,0.3);
+            border-top-color: #2196F3;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Menu Toggle -->
+    <button class="mobile-menu-toggle" id="mobileMenuToggle" aria-label="Toggle menu">
+        <div class="hamburger">
+            <span></span><span></span><span></span>
+        </div>
+    </button>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">CV</div>
+                <span class="logo-text">CryptoVault</span>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Main Menu</div>
+                <a href="{{ path('app_home') }}" class="nav-item {{ app.request.get('_route') == 'app_home' ? 'active' }}">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Home
+                </a>
+
+                {# ── Activités & Plannings — now a clickable button ── #}
+                <button
+                    class="nav-item-activite {{ app.request.get('_route') == 'app_dashboard' ? 'active' }}"
+                    id="btn-activite"
+                    onclick="loadActivitePanel()"
+                    title="Charger le tableau de bord Activités"
+                >
+                    <svg class="nav-icon-activite" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M3 3h7v7H3z"/>
+                        <path d="M14 3h7v7h-7z"/>
+                        <path d="M3 14h7v7H3z"/>
+                        <path d="M14 14h7v7h-7z"/>
+                        <circle cx="17.5" cy="17.5" r="2.5" fill="currentColor" stroke="none"/>
+                    </svg>
+                    Activités &amp; Plannings
+                </button>
+
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <div class="theme-toggle-label">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/>
+                            <line x1="12" y1="1" x2="12" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="23"/>
+                            <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
+                            <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+                            <line x1="1" y1="12" x2="3" y2="12"/>
+                            <line x1="21" y1="12" x2="23" y2="12"/>
+                            <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
+                            <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+                        </svg>
+                        Light Mode
+                    </div>
+                    <div class="theme-switch" id="themeSwitch"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            {# ── Default (non-activité) page content ── #}
+            <div id="default-content">
+                {% block body %}{% endblock %}
+            </div>
+
+            {# ── Activité panel: loaded on demand ── #}
+            <div id="activite-panel">
+                <div class="panel-loading" id="activite-loading">
+                    <div class="panel-loading-spinner"></div>
+                    Chargement du tableau de bord Activités…
+                </div>
+                <div id="activite-content"></div>
+            </div>
+
+            <footer class="copyright">
+                Copyright &copy; 2026 CryptoVault. Designed by
+                <a href="https://templatemo.com" target="_blank" rel="nofollow">TemplateMo</a>
+            </footer>
+        </main>
+
+    </div>
+
+    <script src="{{ asset('js/templatemo-crypto-script.js') }}"></script>
+
+    <script>
+    /**
+     * Loads the Activités & Plannings dashboard into #activite-content.
+     * Hides whatever was in the main content area and shows the panel.
+     */
+    function loadActivitePanel() {
+        const panel   = document.getElementById('activite-panel');
+        const defCont = document.getElementById('default-content');
+        const loading = document.getElementById('activite-loading');
+        const content = document.getElementById('activite-content');
+        const btn     = document.getElementById('btn-activite');
+
+        // Already open → toggle off
+        if (panel.classList.contains('visible')) {
+            panel.classList.remove('visible');
+            defCont.classList.remove('hidden');
+            btn.classList.remove('active');
+            return;
+        }
+
+        // Show panel, hide default content
+        defCont.classList.add('hidden');
+        panel.classList.add('visible');
+        btn.classList.add('active');
+
+        // Only fetch once; re-use if already loaded
+        if (content.innerHTML.trim() !== '') {
+            loading.style.display = 'none';
+            return;
+        }
+
+        // Fetch the dashboard page and inject just the inner content
+        fetch('{{ path('app_dashboard') }}', {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => {
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            return res.text();
+        })
+        .then(html => {
+            // Extract everything inside <main class="main-content"> … </main>
+            const parser   = new DOMParser();
+            const doc      = parser.parseFromString(html, 'text/html');
+            const mainEl   = doc.querySelector('.main-content');
+            const innerHtml = mainEl ? mainEl.innerHTML : html;
+
+            loading.style.display  = 'none';
+            content.innerHTML      = innerHtml;
+
+            // Re-run any inline scripts injected (e.g. Chart.js)
+            content.querySelectorAll('script').forEach(oldScript => {
+                const s   = document.createElement('script');
+                s.textContent = oldScript.textContent;
+                if (oldScript.src) s.src = oldScript.src;
+                document.body.appendChild(s);
+            });
+        })
+        .catch(err => {
+            loading.innerHTML = '<span style="color:#F44336">❌ Erreur de chargement : ' + err.message + '</span>';
+        });
+    }
+
+    // Auto-load if we landed directly on the dashboard route
+    {% if app.request.get('_route') == 'app_dashboard' %}
+    document.addEventListener('DOMContentLoaded', function() {
+        loadActivitePanel();
+    });
+    {% endif %}
+    </script>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

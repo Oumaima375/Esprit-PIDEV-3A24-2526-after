@@ -2,113 +2,128 @@
 
 namespace App\Entity;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\Voyage;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
-use App\Entity\Planning;
+use Symfony\Component\Serializer\Annotation\Groups;
 use App\Repository\ActiviteRepository;
-
-#[ORM\Entity(repositoryClass: App\Repository\ActiviteRepository::class)]
+use Symfony\Component\Validator\Constraints as Assert;
+#[ORM\Entity(repositoryClass: ActiviteRepository::class)]
+#[ORM\Table(name: 'activite')]
 class Activite
 {
-
     #[ORM\Id]
-    #[ORM\Column(type: "integer")]
-    private int $id_activite;
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['activites', 'plannings'])]
+    private ?int $id_activite = null;
 
-    #[ORM\Column(type: "string", length: 100)]
-    private string $nom;
-
-    #[ORM\Column(type: "text")]
-    private string $description;
-
-    #[ORM\Column(type: "string", length: 50)]
-    private string $categorie;
-
-    #[ORM\Column(type: "string", length: 100)]
-    private string $lieu;
-
-    #[ORM\Column(type: "float")]
-    private float $prix;
-
-    #[ORM\ManyToOne(targetEntity: Voyage::class, inversedBy: "activites")]
-    #[ORM\JoinColumn(name: 'id_voyage', referencedColumnName: 'id_voyage', onDelete: 'CASCADE')]
-    private Voyage $id_voyage;
-
-    public function getId_activite()
+    public function getId_activite(): ?int
     {
         return $this->id_activite;
     }
 
-    public function setId_activite($value)
+    public function setId_activite(int $id_activite): self
     {
-        $this->id_activite = $value;
+        $this->id_activite = $id_activite;
+        return $this;
     }
 
-    public function getNom()
+    #[ORM\Column(type: 'string', nullable: false)]
+#[Groups(['activites', 'plannings'])]
+
+private ?string $nom = null;
+    public function getNom(): ?string
     {
         return $this->nom;
     }
 
-    public function setNom($value)
+    public function setNom(string $nom): self
     {
-        $this->nom = $value;
+        $this->nom = $nom;
+        return $this;
     }
 
-    public function getDescription()
+   #[ORM\Column(type: 'text', nullable: true)]
+    #[Groups(['activites', 'plannings'])]
+
+    private ?string $description = null;
+
+    public function getDescription(): ?string
     {
         return $this->description;
     }
 
-    public function setDescription($value)
+    public function setDescription(?string $description): self
     {
-        $this->description = $value;
+        $this->description = $description;
+        return $this;
     }
 
-    public function getCategorie()
+      #[ORM\Column(type: 'string', nullable: true)]
+    #[Groups(['activites', 'plannings'])]
+
+    private ?string $categorie = null;
+
+    public function getCategorie(): ?string
     {
         return $this->categorie;
     }
 
-    public function setCategorie($value)
+    public function setCategorie(?string $categorie): self
     {
-        $this->categorie = $value;
+        $this->categorie = $categorie;
+        return $this;
     }
 
-    public function getLieu()
+     #[ORM\Column(type: 'string', nullable: true)]
+    #[Groups(['activites', 'plannings'])]
+ 
+    private ?string $lieu = null;
+    public function getLieu(): ?string
     {
         return $this->lieu;
     }
 
-    public function setLieu($value)
+    public function setLieu(?string $lieu): self
     {
-        $this->lieu = $value;
+        $this->lieu = $lieu;
+        return $this;
     }
 
-    public function getPrix()
+    #[ORM\Column(type: 'decimal', nullable: true)]
+    #[Groups(['activites', 'plannings'])]
+
+    private ?float $prix = null;
+
+    public function getPrix(): ?float
     {
         return $this->prix;
     }
 
-    public function setPrix($value)
+    public function setPrix(?float $prix): self
     {
-        $this->prix = $value;
+        $this->prix = $prix;
+        return $this;
     }
 
-    public function getId_voyage()
+    #[ORM\ManyToOne(targetEntity: Voyage::class, inversedBy: 'activites')]
+    #[ORM\JoinColumn(name: 'id_voyage', referencedColumnName: 'id_voyage')]
+    private ?Voyage $voyage = null;
+
+    public function getVoyage(): ?Voyage
     {
-        return $this->id_voyage;
+        return $this->voyage;
     }
 
-    public function setId_voyage($value)
+    public function setVoyage(?Voyage $voyage): self
     {
-        $this->id_voyage = $value;
+        $this->voyage = $voyage;
+        return $this;
     }
 
-    #[ORM\OneToMany(mappedBy: "id_activite", targetEntity: Planning::class)]
+    #[ORM\OneToMany(targetEntity: Planning::class, mappedBy: 'activite')]
     private Collection $plannings;
 
     public function __construct()
@@ -116,46 +131,33 @@ class Activite
         $this->plannings = new ArrayCollection();
     }
 
+    /**
+     * @return Collection<int, Planning>
+     */
     public function getPlannings(): Collection
     {
+        if (!$this->plannings instanceof Collection) {
+            $this->plannings = new ArrayCollection();
+        }
         return $this->plannings;
     }
 
     public function addPlanning(Planning $planning): self
     {
-        if (!$this->plannings->contains($planning)) {
-            $this->plannings[] = $planning;
-            $planning->setId_activite($this);
+        if (!$this->getPlannings()->contains($planning)) {
+            $this->getPlannings()->add($planning);
         }
-
         return $this;
     }
 
     public function removePlanning(Planning $planning): self
     {
-        if ($this->plannings->removeElement($planning)) {
-            if ($planning->getId_activite() === $this) {
-                $planning->setId_activite(null);
-            }
-        }
-
+        $this->getPlannings()->removeElement($planning);
         return $this;
     }
 
     public function getIdActivite(): ?int
     {
         return $this->id_activite;
-    }
-
-    public function getIdVoyage(): ?Voyage
-    {
-        return $this->id_voyage;
-    }
-
-    public function setIdVoyage(?Voyage $id_voyage): static
-    {
-        $this->id_voyage = $id_voyage;
-
-        return $this;
     }
 }

@@ -2,146 +2,110 @@
 
 namespace App\Entity;
 
-use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\Activite;
 use App\Repository\PlanningRepository;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Component\Serializer\Annotation\Groups;
 
-#[ORM\Entity(repositoryClass: App\Repository\PlanningRepository::class)]
+#[ORM\Entity(repositoryClass: PlanningRepository::class)]
+#[ORM\Table(name: 'planning')]
 class Planning
 {
-
     #[ORM\Id]
-    #[ORM\Column(type: "integer")]
-    private int $id_planning;
-
-    #[ORM\Column(type: "integer")]
-    private int $id_user;
-
-    #[ORM\ManyToOne(targetEntity: Activite::class, inversedBy: "plannings")]
-    #[ORM\JoinColumn(name: 'id_activite', referencedColumnName: 'id_activite', onDelete: 'CASCADE')]
-    private Activite $id_activite;
-
-    #[ORM\Column(type: "date")]
-    private \DateTimeInterface $date_activite;
-
-    #[ORM\Column(type: "string")]
-    private string $heure_debut;
-
-    #[ORM\Column(type: "integer")]
-    private int $duree;
-
-    public function getId_planning()
-    {
-        return $this->id_planning;
-    }
-
-    public function setId_planning($value)
-    {
-        $this->id_planning = $value;
-    }
-
-    public function getId_user()
-    {
-        return $this->id_user;
-    }
-
-    public function setId_user($value)
-    {
-        $this->id_user = $value;
-    }
-
-    public function getId_activite()
-    {
-        return $this->id_activite;
-    }
-
-    public function setId_activite($value)
-    {
-        $this->id_activite = $value;
-    }
-
-    public function getDate_activite()
-    {
-        return $this->date_activite;
-    }
-
-    public function setDate_activite($value)
-    {
-        $this->date_activite = $value;
-    }
-
-    public function getHeure_debut()
-    {
-        return $this->heure_debut;
-    }
-
-    public function setHeure_debut($value)
-    {
-        $this->heure_debut = $value;
-    }
-
-    public function getDuree()
-    {
-        return $this->duree;
-    }
-
-    public function setDuree($value)
-    {
-        $this->duree = $value;
-    }
+    #[ORM\GeneratedValue]
+    #[ORM\Column(type: 'integer')]
+    #[Groups(['plannings'])]
+    private ?int $id_planning = null;
 
     public function getIdPlanning(): ?int
     {
         return $this->id_planning;
     }
 
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[Groups(['plannings'])]
+    private ?int $id_user = null;
+
     public function getIdUser(): ?int
     {
         return $this->id_user;
     }
 
-    public function setIdUser(int $id_user): static
+    public function setIdUser(int $id_user): self
     {
         $this->id_user = $id_user;
-
         return $this;
     }
 
-    public function getDateActivite(): ?\DateTime
+    #[ORM\ManyToOne(targetEntity: Activite::class, inversedBy: 'plannings')]
+    #[ORM\JoinColumn(name: 'id_activite', referencedColumnName: 'id_activite')]
+    #[Groups(['plannings'])]
+    private ?Activite $activite = null;
+
+    public function getActivite(): ?Activite
+    {
+        return $this->activite;
+    }
+
+    public function setActivite(?Activite $activite): self
+    {
+        $this->activite = $activite;
+        return $this;
+    }
+
+    #[ORM\Column(type: 'date', nullable: false)]
+    #[Assert\NotBlank(message: "La date est obligatoire")]
+    #[Assert\GreaterThanOrEqual("today", message: "La date doit être aujourd'hui ou future")]
+    #[Groups(['plannings'])]
+    private ?\DateTimeInterface $date_activite = null;
+
+    public function getDateActivite(): ?\DateTimeInterface
     {
         return $this->date_activite;
     }
 
-    public function setDateActivite(\DateTime $date_activite): static
+    public function setDateActivite(?\DateTimeInterface $date_activite): self
     {
         $this->date_activite = $date_activite;
-
         return $this;
     }
+
+    #[ORM\Column(type: 'string', nullable: false)]
+    #[Assert\NotBlank(message: "L'heure de début est obligatoire")]
+    #[Assert\Regex(
+        pattern: '/^\d{2}:\d{2}$/',
+        message: "L'heure doit être au format HH:MM"
+    )]
+    #[Groups(['plannings'])]
+    private ?string $heure_debut = null;
 
     public function getHeureDebut(): ?string
     {
         return $this->heure_debut;
     }
 
-    public function setHeureDebut(string $heure_debut): static
+    public function setHeureDebut(?string $heure_debut): self
     {
         $this->heure_debut = $heure_debut;
-
         return $this;
     }
 
-    public function getIdActivite(): ?Activite
+    #[ORM\Column(type: 'integer', nullable: false)]
+    #[Assert\NotBlank(message: "La durée est obligatoire")]
+    #[Assert\Positive(message: "La durée doit être un nombre positif")]
+    #[Assert\LessThanOrEqual(480, message: "La durée ne peut pas dépasser 8h")]
+    #[Groups(['plannings'])]
+    private ?int $duree = null;
+
+    public function getDuree(): ?int
     {
-        return $this->id_activite;
+        return $this->duree;
     }
 
-    public function setIdActivite(?Activite $id_activite): static
+    public function setDuree(?int $duree): self
     {
-        $this->id_activite = $id_activite;
-
+        $this->duree = $duree;
         return $this;
     }
+    
 }
