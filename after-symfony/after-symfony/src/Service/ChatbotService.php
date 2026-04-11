@@ -40,9 +40,15 @@ class ChatbotService
         curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
 
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         curl_close($ch);
 
         $result = json_decode($response, true);
+
+        if (!isset($result['choices'])) {
+            throw new \Exception('HTTP ' . $httpCode . ' | ' . json_encode($result));
+        }
+
         return $result['choices'][0]['message']['content'];
     }
 }

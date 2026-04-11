@@ -21,7 +21,73 @@
 
 <div class="sd-divider"></div>
 
-{# ── KPI Cards ── #}
+{# ══════════════════════════════════════════════════════════
+   SECTION 1 — LISTE DES ACTIVITÉS
+══════════════════════════════════════════════════════════ #}
+<div class="sd-section">
+    <div class="sd-section-header">
+        <h3 class="sd-section-title">📋 Liste des Activités</h3>
+       
+                            <a href="{{ path('app_dashboard_activite_add') }}"
+                               class="sd-btn sd-btn-green sd-btn-sm">
+                                   ＋ Ajouter une Activité
+                            </a>
+      
+    </div>
+
+    {# ── Formulaire d'ajout dédié back-office ── #}
+  
+
+    {# ── Tableau des activités ── #}
+    <div class="sd-table-wrap">
+        <table class="sd-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Lieu</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activite in activites %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td><strong>{{ activite.nom }}</strong></td>
+                    <td><span class="sd-badge">{{ activite.categorie }}</span></td>
+                    <td>📍 {{ activite.lieu }}</td>
+                    <td><strong>{{ activite.prix }} TND</strong></td>
+                    <td>
+                        <div class="sd-actions">
+                            <a href="{{ path('app_dashboard_activite_edit', {'id': activite.idActivite}) }}"
+                               class="sd-btn sd-btn-orange sd-btn-sm">
+                                ✏️ Modifier
+                            </a>
+                            <a href="{{ path('app_dashboard_activite_delete', {'id': activite.idActivite}) }}"
+                               class="sd-btn sd-btn-red sd-btn-sm"
+                               onclick="return confirm('Supprimer cette activité ?')">
+                                🗑️ Supprimer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="sd-empty">Aucune activité disponible.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="sd-divider"></div>
+
+{# ══════════════════════════════════════════════════════════
+   SECTION 2 — STATISTIQUES KPI
+══════════════════════════════════════════════════════════ #}
 <div class="sd-kpi-row">
 
     <div class="sd-kpi-card">
@@ -100,6 +166,7 @@
 
 {% block stylesheets %}
 <style>
+/* ── Header ── */
 .sd-header {
     display: flex;
     align-items: center;
@@ -109,22 +176,98 @@
 }
 .sd-header-left { display: flex; align-items: center; gap: 12px; }
 .sd-icon { font-size: 22px; color: #1A2F4A; }
-.sd-title {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    color: #1A2F4A;
+.sd-title { margin: 0; font-size: 22px; font-weight: 700; color: #1A2F4A; }
+.sd-sub { margin: 2px 0 0; font-size: 12px; color: #4A5568; }
+.sd-divider { height: 1.5px; background: #D4C9B5; margin: 14px 24px 20px; }
+
+/* ── Section ── */
+.sd-section { padding: 0 24px; margin-bottom: 24px; }
+.sd-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
 }
-.sd-sub {
-    margin: 2px 0 0;
-    font-size: 12px;
-    color: #4A5568;
+.sd-section-title { font-size: 16px; font-weight: 700; color: #1A2F4A; margin: 0; }
+
+/* ── Boutons ── */
+.sd-btn {
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    display: inline-block;
 }
-.sd-divider {
-    height: 1.5px;
-    background: #D4C9B5;
-    margin: 14px 24px 20px;
+.sd-btn-sm { padding: 5px 12px; font-size: 12px; }
+.sd-btn-green { background-color: #4CAF50; color: white; }
+.sd-btn-orange { background-color: #FF9800; color: white; }
+.sd-btn-red { background-color: #F44336; color: white; }
+.sd-btn-gray { background-color: #9E9E9E; color: white; }
+.sd-btn:hover { opacity: 0.85; }
+
+/* ── Formulaire ── */
+.sd-form-card {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
 }
+.sd-form-title { font-size: 15px; font-weight: 700; color: #1A2F4A; margin-bottom: 16px; }
+.sd-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+.sd-form-full { grid-column: 1 / -1; }
+.sd-form-group { display: flex; flex-direction: column; gap: 4px; }
+.sd-label { font-size: 12px; font-weight: 600; color: #4A5568; }
+.sd-input {
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    font-size: 13px;
+    background: white;
+}
+.sd-textarea { resize: vertical; min-height: 80px; }
+.sd-form-actions { display: flex; gap: 10px; }
+
+/* ── Tableau ── */
+.sd-table-wrap { overflow-x: auto; }
+.sd-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+.sd-table th {
+    background: #1A2F4A;
+    color: white;
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+}
+.sd-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #E8E0D0;
+    color: #333;
+}
+.sd-table tr:hover td { background: #f0f6ff; }
+.sd-badge {
+    background: #e3f2fd;
+    color: #1565c0;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.sd-actions { display: flex; gap: 6px; }
+.sd-empty { text-align: center; color: #888; padding: 20px; }
+
+/* ── KPI ── */
 .sd-kpi-row {
     display: flex;
     gap: 12px;
@@ -141,26 +284,12 @@
     padding: 16px 14px 14px;
     box-shadow: 0 3px 10px rgba(0,0,0,.08);
 }
-.sd-kpi-value {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: 1.1;
-    margin-bottom: 6px;
-}
-.sd-kpi-label {
-    font-size: 11px;
-    color: #4A5568;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-}
+.sd-kpi-value { font-size: 24px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
+.sd-kpi-label { font-size: 11px; color: #4A5568; display: flex; align-items: center; gap: 4px; }
 .sd-kpi-icon { color: #7A8A9A; }
-.sd-charts-row {
-    display: flex;
-    gap: 16px;
-    padding: 0 24px;
-    margin-bottom: 16px;
-}
+
+/* ── Charts ── */
+.sd-charts-row { display: flex; gap: 16px; padding: 0 24px; margin-bottom: 16px; }
 .sd-chart-card {
     flex: 1;
     background: #FFFFFF;
@@ -169,9 +298,7 @@
     padding: 18px;
     box-shadow: 0 4px 12px rgba(0,0,0,.08);
 }
-.sd-line-card {
-    margin: 0 24px 24px;
-}
+.sd-line-card { margin: 0 24px 24px; }
 .sd-chart-title {
     font-size: 14px;
     font-weight: 700;
@@ -180,17 +307,20 @@
     padding-bottom: 10px;
     border-bottom: 1px solid #E8E0D0;
 }
-.sd-chart-body {
-    display: flex;
-    justify-content: center;
-}
+.sd-chart-body { display: flex; justify-content: center; }
 </style>
 {% endblock %}
 
 {% block javascripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script>
-    {# ── Données Twig → JS ── #}
+
+    // ── Toggle formulaire ──
+    function toggleForm() {
+        var form = document.getElementById('formAjout');
+        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
     const pieLabels = [];
     const pieData   = [];
     {% set catMap = {} %}
@@ -226,7 +356,6 @@
     const legendColor = '#1A2F4A';
     const bgColors    = ['#2196F3','#4CAF50','#FF9800','#9C27B0','#00BCD4','#F44336','#b87333','#607D8B'];
 
-    {# ── Plugin : affiche les nombres sur chaque segment ── #}
     const doughnutNumbersPlugin = {
         id: 'doughnutNumbers',
         afterDatasetDraw(chart) {
@@ -236,7 +365,6 @@
                 const value = data.datasets[0].data[index];
                 const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
                 const pct   = ((value / total) * 100).toFixed(0);
-
                 ctx.save();
                 ctx.fillStyle    = '#FFFFFF';
                 ctx.font         = 'bold 13px Segoe UI, sans-serif';
@@ -250,7 +378,6 @@
         }
     };
 
-    {# ── Pie / Doughnut ── #}
     new Chart(document.getElementById('pieChart'), {
         type: 'doughnut',
         plugins: [doughnutNumbersPlugin],
@@ -299,7 +426,6 @@
         }
     });
 
-    {# ── Bar Chart ── #}
     new Chart(document.getElementById('barChart'), {
         type: 'bar',
         data: {
@@ -320,8 +446,7 @@
                     callbacks: {
                         label: ctx => '  ' + ctx.parsed.y + ' planning(s)'
                     }
-                },
-                datalabels: false
+                }
             },
             scales: {
                 x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
@@ -334,7 +459,6 @@
         }
     });
 
-    {# ── Line Chart ── #}
     new Chart(document.getElementById('lineChart'), {
         type: 'line',
         data: {
