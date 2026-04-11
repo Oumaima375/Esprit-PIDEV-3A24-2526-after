@@ -1,29 +1,20 @@
 security:
-<<<<<<< HEAD
+    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-
+    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
         app_user_provider:
             entity:
                 class: App\Entity\Users
                 property: email
 
-=======
-    # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
-    password_hashers:
-        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
-    # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
-    providers:
-        users_in_memory: { memory: null }
->>>>>>> gestionDocument-symfony
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-<<<<<<< HEAD
             provider: app_user_provider
             form_login:
                 login_path: app_login
@@ -33,7 +24,6 @@ security:
                 password_parameter: _password
                 csrf_parameter: _csrf_token
                 csrf_token_id: authenticate
-                # After login, redirect to LoginController which handles role-based routing
                 default_target_path: app_login
                 always_use_default_target_path: true
             logout:
@@ -54,32 +44,10 @@ security:
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/user, roles: ROLE_ADMIN }
         - { path: ^/users/, roles: ROLE_ADMIN }
-=======
-            provider: users_in_memory
-
-            # activate different ways to authenticate
-            # https://symfony.com/doc/current/security.html#the-firewall
-
-            # https://symfony.com/doc/current/security/impersonating_user.html
-            # switch_user: true
-
-    # Easy way to control access for large sections of your site
-    # Note: Only the *first* access control that matches will be used
-    access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
->>>>>>> gestionDocument-symfony
 
 when@test:
     security:
         password_hashers:
-<<<<<<< HEAD
-            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
-                algorithm: auto
-                cost: 4
-                time_cost: 3
-                memory_cost: 10
-=======
             # By default, password hashers are resource intensive and take time. This is
             # important to generate secure password hashes. In tests however, secure hashes
             # are not important, waste resources and increase test times. The following
@@ -89,4 +57,3 @@ when@test:
                 cost: 4 # Lowest possible value for bcrypt
                 time_cost: 3 # Lowest possible value for argon
                 memory_cost: 10 # Lowest possible value for argon
->>>>>>> gestionDocument-symfony

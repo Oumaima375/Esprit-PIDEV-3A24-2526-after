@@ -13,9 +13,6 @@ class DocumentRepository extends ServiceEntityRepository
         parent::__construct($registry, Document::class);
     }
 
-<<<<<<< HEAD
-    // Add custom methods as needed
-=======
     private function buildQuery(string $search, string $filtre, string $tri, string $ordre)
     {
         $qb = $this->createQueryBuilder('d')
@@ -48,21 +45,6 @@ class DocumentRepository extends ServiceEntityRepository
         return $qb;
     }
 
-    // TODO after merge — remplacez buildQuery() par cette version avec filtre user
-    // private function buildQuery(string $search, string $filtre, string $tri, string $ordre, ?object $user = null)
-    // {
-    //     $qb = $this->createQueryBuilder('d')
-    //         ->leftJoin('d.categorie', 'c');
-    //
-    //     // Filtre par utilisateur connecté (sauf admin)
-    //     if ($user !== null) {
-    //         $qb->andWhere('d.user = :user')
-    //            ->setParameter('user', $user);
-    //     }
-    //
-    //     // ... reste du code identique
-    // }
-
     public function findByFiltersQuery(string $search, string $filtre, string $tri, string $ordre)
     {
         return $this->buildQuery($search, $filtre, $tri, $ordre)->getQuery();
@@ -72,31 +54,6 @@ class DocumentRepository extends ServiceEntityRepository
     {
         return $this->buildQuery($search, $filtre, $tri, $ordre)->getQuery()->getResult();
     }
-
-    // TODO after merge — ajoutez ces méthodes après intégration User
-    // public function findByFiltersQueryForUser(string $search, string $filtre, string $tri, string $ordre, object $user)
-    // {
-    //     return $this->buildQuery($search, $filtre, $tri, $ordre, $user)->getQuery();
-    // }
-    //
-    // public function findByUser(object $user): array
-    // {
-    //     return $this->createQueryBuilder('d')
-    //         ->andWhere('d.user = :user')
-    //         ->setParameter('user', $user)
-    //         ->getQuery()
-    //         ->getResult();
-    // }
-    //
-    // public function findAllWithUser(): array
-    // {
-    //     return $this->createQueryBuilder('d')
-    //         ->leftJoin('d.categorie', 'c')
-    //         ->leftJoin('d.user', 'u')  // ← join user pour admin
-    //         ->addSelect('u')
-    //         ->getQuery()
-    //         ->getResult();
-    // }
 
     public function findExpired(): array
     {
@@ -136,5 +93,4 @@ class DocumentRepository extends ServiceEntityRepository
                  FROM document GROUP BY month ORDER BY month ASC";
         return $conn->executeQuery($sql)->fetchAllAssociative();
     }
->>>>>>> gestionDocument-symfony
 }

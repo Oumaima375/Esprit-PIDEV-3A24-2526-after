@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-
 <!-- https://phpunit.readthedocs.io/en/latest/configuration.html -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
@@ -16,13 +15,11 @@
         <server name="APP_ENV" value="test" force="true" />
         <server name="SHELL_VERBOSITY" value="-1" />
     </php>
-
     <testsuites>
         <testsuite name="Project Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
-
     <source ignoreSuppressionOfDeprecations="true"
             ignoreIndirectDeprecations="true"
             restrictNotices="true"
@@ -31,21 +28,16 @@
         <include>
             <directory>src</directory>
         </include>
-
         <deprecationTrigger>
             <method>Doctrine\Deprecations\Deprecation::trigger</method>
             <method>Doctrine\Deprecations\Deprecation::delegateTriggerToBackend</method>
             <function>trigger_deprecation</function>
         </deprecationTrigger>
     </source>
-
     <extensions>
-<<<<<<< HEAD
         <bootstrap class="Symfony\Bridge\PhpUnit\SymfonyExtension">
             <parameter name="clock-mock-namespaces" value="App" />
             <parameter name="dns-mock-namespaces" value="App" />
         </bootstrap>
-=======
->>>>>>> gestionDocument-symfony
     </extensions>
 </phpunit>

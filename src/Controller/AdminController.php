@@ -2,29 +2,26 @@
 
 namespace App\Controller;
 
-<<<<<<< HEAD
+use App\Entity\DocumentArchive;
 use App\Entity\Paiement;
 use App\Entity\Reservation;
-use App\Repository\PaiementRepository;
-use App\Repository\ReservationRepository;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
-=======
-use App\Entity\DocumentArchive;
 use App\Repository\DocumentRepository;
 use App\Repository\CategorieDocumentRepository;
 use App\Repository\DocumentArchiveRepository;
+use App\Repository\PaiementRepository;
+use App\Repository\ReservationRepository;
+use App\Service\MailjetService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
->>>>>>> gestionDocument-symfony
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
-<<<<<<< HEAD
-final class AdminController extends AbstractController
+#[Route('/admin')]
+class AdminController extends AbstractController
 {
-    #[Route('/admin', name: 'app_admin', methods: ['GET'])]
+    #[Route('', name: 'app_admin', methods: ['GET'])]
     public function index(Request $request, ReservationRepository $reservationRepository, PaiementRepository $paiementRepository): Response
     {
         $tab = $request->query->get('tab', 'reservations');
@@ -66,7 +63,71 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/reservations/{id}/edit', name: 'app_admin_reservation_edit', methods: ['GET', 'POST'])]
+    #[Route('/dashboard', name: 'app_admin_dashboard')]
+    public function dashboard(
+        DocumentRepository $documentRepository,
+        CategorieDocumentRepository $categorieRepository
+    ): Response {
+        $allDocs = $documentRepository->findAll();
+        $expires = $documentRepository->findExpired();
+        $expiresSoon = $documentRepository->findExpiringSoon();
+
+        return $this->render('admin/dashboard.html.twig', [
+            'total'           => count($allDocs),
+            'totalCategories' => count($categorieRepository->findAll()),
+            'expiresSoon'     => count($expiresSoon),
+            'expires'         => count($expires),
+            'documentsExpires'=> $expires,
+            'allDocuments'    => $allDocs,
+            'categories'      => $categorieRepository->findAll(),
+            'parCategorie'    => $documentRepository->countByCategorie(),
+            'uploadsParMois'  => $documentRepository->getMonthlyUploads(),
+        ]);
+    }
+
+    #[Route('/archiver-expires', name: 'app_admin_archiver_expires', methods: ['GET'])]
+    public function archiverExpires(
+        DocumentRepository $documentRepository,
+        EntityManagerInterface $entityManager,
+        MailjetService $mailjetService
+    ): Response {
+        $expires = $documentRepository->findExpired();
+        $count = 0;
+
+        foreach ($expires as $doc) {
+            $mailjetService->envoyerNotificationExpiration(
+                'voyageur@example.com',
+                $doc->getNomDocument(),
+                $doc->getDateExpiration()?->format('d/m/Y') ?? 'N/A'
+            );
+
+            $archive = new DocumentArchive();
+            $archive->setNomDocument($doc->getNomDocument());
+            $archive->setCheminFichier($doc->getCheminFichier());
+            $archive->setDateAjout($doc->getDateAjout());
+            $archive->setDateExpiration($doc->getDateExpiration());
+            $archive->setCategorie($doc->getCategorie()?->getLibelle() ?? 'N/A');
+            $archive->setRaison('Expiré - Supprimé par admin');
+
+            $entityManager->persist($archive);
+            $entityManager->remove($doc);
+            $count++;
+        }
+
+        $entityManager->flush();
+        $this->addFlash('success', '✅ ' . $count . ' documents archivés ! Emails envoyés.');
+        return $this->redirectToRoute('app_admin_dashboard');
+    }
+
+    #[Route('/archives', name: 'app_admin_archives')]
+    public function archives(DocumentArchiveRepository $archiveRepository): Response
+    {
+        return $this->render('admin/archives.html.twig', [
+            'archives' => $archiveRepository->findBy([], ['dateArchivage' => 'DESC']),
+        ]);
+    }
+
+    #[Route('/reservations/{id}/edit', name: 'app_admin_reservation_edit', methods: ['GET', 'POST'])]
     public function editReservation(int $id, Request $request, ReservationRepository $reservationRepository): Response|RedirectResponse
     {
         $reservation = $reservationRepository->findById($id);
@@ -112,7 +173,7 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/reservations/{id}/delete', name: 'app_admin_reservation_delete', methods: ['POST'])]
+    #[Route('/reservations/{id}/delete', name: 'app_admin_reservation_delete', methods: ['POST'])]
     public function deleteReservation(int $id, ReservationRepository $reservationRepository): RedirectResponse
     {
         $reservationRepository->delete($id);
@@ -121,7 +182,7 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin', ['tab' => 'reservations']);
     }
 
-    #[Route('/admin/payments/{id}/edit', name: 'app_admin_payment_edit', methods: ['GET', 'POST'])]
+    #[Route('/payments/{id}/edit', name: 'app_admin_payment_edit', methods: ['GET', 'POST'])]
     public function editPayment(int $id, Request $request, PaiementRepository $paiementRepository): Response|RedirectResponse
     {
         $payment = $paiementRepository->findById($id);
@@ -165,7 +226,7 @@ final class AdminController extends AbstractController
         ]);
     }
 
-    #[Route('/admin/payments/{id}/delete', name: 'app_admin_payment_delete', methods: ['POST'])]
+    #[Route('/payments/{id}/delete', name: 'app_admin_payment_delete', methods: ['POST'])]
     public function deletePayment(int $id, PaiementRepository $paiementRepository): RedirectResponse
     {
         $paiementRepository->delete($id);
@@ -174,10 +235,6 @@ final class AdminController extends AbstractController
         return $this->redirectToRoute('app_admin', ['tab' => 'payments']);
     }
 
-    /**
-     * @param Reservation[] $reservations
-     * @return Reservation[]
-     */
     private function filterReservations(array $reservations, array $filters): array
     {
         $filtered = array_filter($reservations, function (Reservation $reservation) use ($filters): bool {
@@ -235,10 +292,6 @@ final class AdminController extends AbstractController
         return $filtered;
     }
 
-    /**
-     * @param Paiement[] $payments
-     * @return Paiement[]
-     */
     private function filterPayments(array $payments, array $filters): array
     {
         $filtered = array_filter($payments, function (Paiement $payment) use ($filters): bool {
@@ -297,10 +350,6 @@ final class AdminController extends AbstractController
         return $filtered;
     }
 
-    /**
-     * @param Reservation[] $reservations
-     * @param Paiement[] $payments
-     */
     private function buildStatistics(array $reservations, array $payments): array
     {
         $typeCounts = [];
@@ -442,86 +491,4 @@ final class AdminController extends AbstractController
 
         return $trimmed === '' ? null : $trimmed;
     }
-=======
-use App\Service\MailjetService;
-
-#[Route('/admin')]
-class AdminController extends AbstractController
-{
- // src/Controller/AdminController.php
-
-
-
-    #[Route('/dashboard', name: 'app_admin_dashboard')]
-    public function dashboard(
-        DocumentRepository $documentRepository,
-        CategorieDocumentRepository $categorieRepository
-    ): Response {
-        $today    = new \DateTime();
-        $soon     = new \DateTime('+30 days');
-        $allDocs  = $documentRepository->findAll();
-        $expires  = $documentRepository->findExpired();
-        $expiresSoon = $documentRepository->findExpiringSoon();
-
-        return $this->render('admin/dashboard.html.twig', [
-            'total'           => count($allDocs),
-            'totalCategories' => count($categorieRepository->findAll()),
-            'expiresSoon'     => count($expiresSoon),
-            'expires'         => count($expires),
-            'documentsExpires'=> $expires,
-            'allDocuments'    => $allDocs,          // ← NOUVEAU
-            'categories'      => $categorieRepository->findAll(),
-            'parCategorie'    => $documentRepository->countByCategorie(),
-            'uploadsParMois'  => $documentRepository->getMonthlyUploads(),
-        ]);
-    }
-
-
-    
-
-    // ===== ARCHIVER + SUPPRIMER EXPIRES =====
-
-    #[Route('/archiver-expires', name: 'app_admin_archiver_expires', methods: ['GET'])]
-    public function archiverExpires(
-        DocumentRepository $documentRepository,
-        EntityManagerInterface $entityManager,
-        MailjetService $mailjetService
-    ): Response {
-        $expires = $documentRepository->findExpired();
-        $count   = 0;
-
-        foreach ($expires as $doc) {
-            // ← Envoyer notification email
-            $mailjetService->envoyerNotificationExpiration(
-                'voyageur@example.com', // remplacer par $doc->getUser()->getEmail() après merge
-                $doc->getNomDocument(),
-                $doc->getDateExpiration()?->format('d/m/Y') ?? 'N/A'
-            );
-
-            $archive = new DocumentArchive();
-            $archive->setNomDocument($doc->getNomDocument());
-            $archive->setCheminFichier($doc->getCheminFichier());
-            $archive->setDateAjout($doc->getDateAjout());
-            $archive->setDateExpiration($doc->getDateExpiration());
-            $archive->setCategorie($doc->getCategorie()?->getLibelle() ?? 'N/A');
-            $archive->setRaison('Expiré - Supprimé par admin');
-
-            $entityManager->persist($archive);
-            $entityManager->remove($doc);
-            $count++;
-        }
-
-        $entityManager->flush();
-        $this->addFlash('success', '✅ ' . $count . ' documents archivés ! Emails envoyés.');
-        return $this->redirectToRoute('app_admin_dashboard');
-    }
-    // ===== VOIR ARCHIVES =====
-    #[Route('/archives', name: 'app_admin_archives')]
-    public function archives(DocumentArchiveRepository $archiveRepository): Response
-    {
-        return $this->render('admin/archives.html.twig', [
-            'archives' => $archiveRepository->findBy([], ['dateArchivage' => 'DESC']),
-        ]);
-    }
->>>>>>> gestionDocument-symfony
 }
