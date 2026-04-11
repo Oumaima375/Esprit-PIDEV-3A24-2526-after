@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+
+>>>>>>> gestionDocument-symfony
 ###> symfony/framework-bundle ###
 /.env.local
 /.env.local.php
@@ -11,6 +15,7 @@
 ###> phpunit/phpunit ###
 /phpunit.xml
 /.phpunit.cache/
+<<<<<<< HEAD
 .phpunit.result.cache
 ###< phpunit/phpunit ###
 
@@ -19,10 +24,15 @@
 /phpunit.xml
 ###< symfony/phpunit-bridge ###
 
+=======
+###< phpunit/phpunit ###
+
+>>>>>>> gestionDocument-symfony
 ###> symfony/asset-mapper ###
 /public/assets/
 /assets/vendor/
 ###< symfony/asset-mapper ###
+<<<<<<< HEAD
 
 # IDE & OS files
 /.idea/
@@ -35,3 +45,5 @@
 
 # Logs
 *.log
+=======
+>>>>>>> gestionDocument-symfony

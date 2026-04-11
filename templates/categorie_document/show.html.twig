@@ -1,0 +1,90 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ categorie_document.libelle }} - AFTER Travel{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">📂 {{ categorie_document.libelle }}</h1>
+        <p class="text-white fs-5">{{ categorie_document.description ?? '' }}</p>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold">
+            Documents dans cette catégorie
+            <span class="badge bg-primary rounded-pill ms-2">{{ documents|length }}</span>
+        </h4>
+        <a href="{{ path('app_categorie_document_index') }}"
+           class="btn btn-outline-primary rounded-pill">
+            ← Retour aux catégories
+        </a>
+    </div>
+
+    <div class="row g-4">
+        {% for document in documents %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 h-100"
+                 style="transition: transform 0.2s;"
+                 onmouseover="this.style.transform='translateY(-4px)'"
+                 onmouseout="this.style.transform='translateY(0)'">
+
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">
+                            {{ categorie_document.libelle }}
+                        </span>
+                        {% if document.dateExpiration %}
+                            {% if document.dateExpiration < date() %}
+                                <span class="badge bg-danger rounded-pill">❌ Expiré</span>
+                            {% else %}
+                                <span class="badge bg-success rounded-pill">✅ Valide</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3">✈ {{ document.nomDocument }}</h5>
+                    <div class="d-flex flex-column gap-2">
+                        <small class="text-muted">
+                            📅 Ajouté : {{ document.dateAjout ? document.dateAjout|date('d/m/Y') : 'N/A' }}
+                        </small>
+                        <small class="{{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger fw-bold' : 'text-muted' }}">
+                            ⏳ Expire : {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
+                        </small>
+                        {% if document.cheminFichier starts with 'http' %}
+                        <a href="{{ document.cheminFichier }}" target="_blank"
+                           class="btn btn-outline-primary btn-sm rounded-pill mt-2">
+                            🔗 Voir le fichier
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-0 px-4 pb-4">
+                    <a href="{{ path('app_document_crud_show', {'idDocument': document.idDocument}) }}"
+                       class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                        👁 Voir détails
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div style="font-size:64px;">📭</div>
+            <h4 class="text-muted">Aucun document dans cette catégorie</h4>
+            <a href="{{ path('app_document_crud_new') }}" class="btn btn-primary rounded-pill mt-3">
+                ➕ Ajouter un document
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}

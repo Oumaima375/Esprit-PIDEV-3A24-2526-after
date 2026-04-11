@@ -2,4 +2,8 @@ controllers:
     resource:
         path: ../src/Controller/
         namespace: App\Controller
+<<<<<<< HEAD
     type: attribute
+=======
+    type: attribute
+>>>>>>> gestionDocument-symfony

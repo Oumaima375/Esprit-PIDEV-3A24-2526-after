@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}AFTER Travel - Admin{% endblock %}</title>
+
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ asset('admin/css/templatemo-crypto-style.css') }}">
+    <link rel="stylesheet" href="{{ asset('admin/css/templatemo-crypto-dashboard.css') }}">
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+
+    <button class="mobile-menu-toggle" id="mobileMenuToggle">
+        <div class="hamburger"><span></span><span></span><span></span></div>
+    </button>
+
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <div class="dashboard">
+
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <div class="logo-icon">AT</div>
+                <span class="logo-text">AFTER Travel</span>
+            </div>
+
+            <nav class="nav-section">
+                <div class="nav-label">Gestion Document</div>
+
+                <a href="{{ path('app_admin_dashboard') }}"
+                class="nav-item active">
+                    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7" rx="1"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1"/>
+                    </svg>
+                    Dashboard Document
+                </a>
+
+            </nav>
+
+
+
+          
+
+            <div class="sidebar-footer">
+                <div class="theme-toggle">
+                    <div class="theme-toggle-label">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="5"/>
+                            <line x1="12" y1="1" x2="12" y2="3"/>
+                            <line x1="12" y1="21" x2="12" y2="23"/>
+                        </svg>
+                        Light Mode
+                    </div>
+                    <div class="theme-switch" id="themeSwitch"></div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block body %}{% endblock %}
+            <footer class="copyright">
+                Copyright &copy; 2026 AFTER Travel - Gestion Document
+            </footer>
+        </main>
+
+    </div>
+
+    <script src="{{ asset('admin/js/templatemo-crypto-script.js') }}"></script>
+    {% block javascripts %}
+           
+    <script>
+        // Auto-refresh toutes les 30 secondes
+        {% if app.request.get('_route') == 'app_admin_dashboard' %}
+        setTimeout(function() {
+            window.location.reload();
+        }, 30000);
+        {% endif %}
+    </script>
+    {% endblock %}</body>
+</html>

@@ -1,0 +1,55 @@
+{# templates/categorie_document/new.html.twig #}
+{% extends 'base.html.twig' %}
+{% block title %}Ajouter une Catégorie{% endblock %}
+{% block body %}
+
+<div class="container-fluid py-5 mb-5" style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">➕ Ajouter une Catégorie</h1>
+        <p class="text-white-50 fs-5">Créez une nouvelle catégorie de document</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <h4 class="text-white mb-0">🗂 Nouvelle Catégorie</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    {{ form_start(form, {'attr': {'class': 'row g-3'}}) }}
+
+                        <div class="col-12">
+                            {{ form_label(form.libelle, 'Libellé', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.libelle, {'attr': {'class': 'form-control'}}) }}
+                            {{ form_errors(form.libelle) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.description, 'Description', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.description, {'attr': {'class': 'form-control', 'rows': 4}}) }}
+                            {{ form_errors(form.description) }}
+                        </div>
+
+                        <div class="col-12 d-flex gap-3 mt-3">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                💾 Enregistrer
+                            </button>
+                            <a href="{{ path('app_admin_dashboard') }}"
+                               class="btn btn-outline-secondary rounded-pill px-4">
+                                ← Retour au Dashboard
+                            </a>
+                        </div>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

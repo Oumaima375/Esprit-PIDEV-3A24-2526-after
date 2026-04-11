@@ -1,4 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+<<<<<<< HEAD
 require dirname(__DIR__).'/vendor/phpunit/phpunit/phpunit';
+=======
+require dirname(__DIR__).'/vendor/phpunit/phpunit/phpunit';
+>>>>>>> gestionDocument-symfony

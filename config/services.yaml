@@ -1,16 +1,24 @@
+<<<<<<< HEAD
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
 
 parameters:
     photos_directory: '%kernel.project_dir%/public/uploads/photos'
     app.mailer_from: '%env(MAILER_FROM)%'
+=======
+parameters:
+    uploads_directory: '%kernel.project_dir%/public/uploads'
+>>>>>>> gestionDocument-symfony
 
 services:
     _defaults:
         autowire: true
         autoconfigure: true
 
+<<<<<<< HEAD
     # Makes classes in src/ available as services
+=======
+>>>>>>> gestionDocument-symfony
     App\:
         resource: '../src/'
         exclude:
@@ -18,6 +26,7 @@ services:
             - '../src/Entity/'
             - '../src/Kernel.php'
 
+<<<<<<< HEAD
     # Explicit controller registration (from reservation branch)
     App\Controller\:
         resource: '../src/Controller/'
@@ -36,3 +45,9 @@ services:
             $database: '%env(DB_NAME)%'
             $username: '%env(DB_USER)%'
             $password: '%env(DB_PASSWORD)%'
+=======
+    App\Service\MailjetService:
+        arguments:
+            $apiKey:    '%env(MAILJET_API_KEY)%'
+            $apiSecret: '%env(MAILJET_API_SECRET)%'
+>>>>>>> gestionDocument-symfony

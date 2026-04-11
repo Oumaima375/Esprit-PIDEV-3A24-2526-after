@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+{% block title %}Catégories - AFTER Travel{% endblock %}
+
+{% block body %}
+
+<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">📂 Catégories</h1>
+        <p class="text-white fs-5">Explorez vos documents par catégorie</p>
+    </div>
+</div>
+
+<div class="container py-5">
+
+    <div class="row g-4">
+        {% for categorie in categorie_documents %}
+        <div class="col-md-4 col-lg-3">
+            <a href="{{ path('app_categorie_document_show', {'idCategorie': categorie.idCategorie}) }}"
+               style="text-decoration:none;">
+                <div class="card border-0 shadow-sm rounded-4 text-center p-4 h-100"
+                     style="transition: transform 0.2s, box-shadow 0.2s; cursor:pointer;"
+                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(37,99,235,0.2)';"
+                     onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
+                    <div style="font-size:48px; margin-bottom:12px;">📂</div>
+                    <h5 class="fw-bold text-dark">{{ categorie.libelle }}</h5>
+                    <p class="text-muted small">{{ categorie.description ?? 'Cliquez pour voir les documents' }}</p>
+                    <span class="badge bg-primary rounded-pill mt-2">Voir documents →</span>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+
+{% endblock %}

@@ -320,15 +320,25 @@ https://templatemo.com/tm-609-crypto-vault
                     if (loginForm) loginForm.classList.add('active');
                     if (registerForm) registerForm.classList.remove('active');
                     if (formHeader) {
+<<<<<<< HEAD
                         formHeader.querySelector('h1').textContent = 'Connexion';
                         formHeader.querySelector('p').textContent = 'Accédez à votre espace After Travel';
+=======
+                        formHeader.querySelector('h1').textContent = 'Welcome Back';
+                        formHeader.querySelector('p').textContent = 'Enter your credentials to access your account';
+>>>>>>> gestionDocument-symfony
                     }
                 } else {
                     if (registerForm) registerForm.classList.add('active');
                     if (loginForm) loginForm.classList.remove('active');
                     if (formHeader) {
+<<<<<<< HEAD
                         formHeader.querySelector('h1').textContent = 'Inscription';
                         formHeader.querySelector('p').textContent = 'Créez votre compte voyageur After Travel';
+=======
+                        formHeader.querySelector('h1').textContent = 'Create Account';
+                        formHeader.querySelector('p').textContent = 'Start your crypto journey today';
+>>>>>>> gestionDocument-symfony
                     }
                 }
             });
@@ -354,6 +364,7 @@ https://templatemo.com/tm-609-crypto-vault
     }
 
     /* ========================================
+<<<<<<< HEAD
    AJAX - Ajout utilisateur via Modal
 ======================================== */
 /* ========================================
@@ -426,6 +437,8 @@ function initDeleteModal() {
 initDeleteModal();
 
     /* ========================================
+=======
+>>>>>>> gestionDocument-symfony
        Form Submissions
     ======================================== */
     function initFormSubmissions() {
@@ -434,16 +447,38 @@ initDeleteModal();
 
         if (loginForm) {
             loginForm.addEventListener('submit', function(e) {
+<<<<<<< HEAD
                 if (window.AppFormValidation && !AppFormValidation.validateLoginForm(loginForm)) {
                     e.preventDefault();
                 }
+=======
+                e.preventDefault();
+                window.location.href = 'index.html';
+>>>>>>> gestionDocument-symfony
             });
         }
 
         if (registerForm) {
             registerForm.addEventListener('submit', function(e) {
+<<<<<<< HEAD
                 if (window.AppFormValidation && !AppFormValidation.validateRegisterForm(registerForm)) {
                     e.preventDefault();
+=======
+                e.preventDefault();
+                
+                const successMessage = document.getElementById('successMessage');
+                const formHeader = document.querySelector('.form-header');
+                const authTabs = document.querySelector('.auth-tabs');
+                
+                if (successMessage) {
+                    registerForm.style.display = 'none';
+                    if (authTabs) authTabs.style.display = 'none';
+                    successMessage.classList.add('active');
+                    if (formHeader) {
+                        formHeader.querySelector('h1').textContent = 'Success!';
+                        formHeader.querySelector('p').textContent = '';
+                    }
+>>>>>>> gestionDocument-symfony
                 }
             });
         }
@@ -467,8 +502,11 @@ initDeleteModal();
         initPasswordStrength();
         initAuthTabs();
         initFormSubmissions();
+<<<<<<< HEAD
         initAddUserModal();
         initDeleteModal();
+=======
+>>>>>>> gestionDocument-symfony
     }
 
     // Run on DOM ready

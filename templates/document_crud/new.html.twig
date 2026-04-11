@@ -1,0 +1,92 @@
+{# templates/document_crud/new.html.twig #}
+{% extends 'base.html.twig' %}
+{% block title %}Ajouter Document{% endblock %}
+{% block body %}
+
+<div class="container-fluid py-5 mb-5" style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 text-white">➕ Ajouter un Document</h1>
+        <p class="text-white-50 fs-5">Ajoutez votre document de voyage</p>
+    </div>
+</div>
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-7">
+            <div class="card border-0 shadow-sm rounded-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <h4 class="text-white mb-0">📄 Nouveau Document</h4>
+                </div>
+                <div class="card-body p-4">
+
+                    {{ form_start(form, {'attr': {'class': 'row g-3', 'enctype': 'multipart/form-data'}}) }}
+
+                        <div class="col-12">
+                            {{ form_label(form.nomDocument, 'Nom du document', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.nomDocument) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.fichier, 'Fichier', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.fichier) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.dateAjout, "Date d'ajout", {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.dateAjout) }}
+                        </div>
+
+                        <div class="col-md-6">
+                            {{ form_label(form.dateExpiration, "Date d'expiration", {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.dateExpiration) }}
+                        </div>
+
+                        <div class="col-12">
+                            {{ form_label(form.categorie, 'Catégorie', {'label_attr': {'class': 'form-label fw-bold'}}) }}
+                            {{ form_widget(form.categorie) }}
+                            {{ form_errors(form.categorie) }}
+                        </div>
+
+                        <div class="col-12 d-flex gap-3 mt-3">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                💾 Enregistrer
+                            </button>
+                            <a href="{{ path('app_document_crud_index') }}"
+                               class="btn btn-outline-secondary rounded-pill px-4">
+                                ← Retour
+                            </a>
+                        </div>
+
+                    {{ form_end(form) }}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{# À la fin du block body dans document_crud/new.html.twig #}
+{% block javascripts %}
+{{ parent() }}
+<script>
+    // Date min = aujourd'hui pour dateAjout
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('document_dateAjout').setAttribute('min', today);
+
+    // Date min expiration = dateAjout sélectionnée
+    const dateAjoutInput      = document.getElementById('document_dateAjout');
+    const dateExpirationInput = document.getElementById('document_dateExpiration');
+
+    dateAjoutInput.addEventListener('change', function () {
+        if (this.value) {
+            dateExpirationInput.setAttribute('min', this.value);
+            // Reset dateExpiration si elle est avant la nouvelle dateAjout
+            if (dateExpirationInput.value && dateExpirationInput.value <= this.value) {
+                dateExpirationInput.value = '';
+            }
+        }
+    });
+</script>
+{% endblock %}
+
+{% endblock %}
