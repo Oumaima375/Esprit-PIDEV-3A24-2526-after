@@ -83,6 +83,10 @@
             <a class="admin-link {{ tab == 'reservations' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'reservations'}) }}">Reservations</a>
             <a class="admin-link {{ tab == 'payments' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'payments'}) }}">Paiements</a>
             <a class="admin-link {{ tab == 'statistics' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'statistics'}) }}">Statistiques</a>
+            <a class="admin-link {{ tab == 'documents' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'documents'}) }}"><i class="fas fa-file-alt" style="margin-right:6px"></i>Documents</a>
+            <a class="admin-link {{ tab == 'document_new' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'document_new'}) }}"><i class="fas fa-plus-circle" style="margin-right:6px"></i>Nouveau Doc</a>
+            <a class="admin-link {{ tab == 'document_stats' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'document_stats'}) }}"><i class="fas fa-chart-bar" style="margin-right:6px"></i>Stats Docs</a>
+            <a class="admin-link {{ tab == 'categories' ? 'is-active' : '' }}" href="{{ path('app_admin', {tab: 'categories'}) }}"><i class="fas fa-folder" style="margin-right:6px"></i>Catégories</a>
         </nav>
 
         <div class="admin-side-bottom">
@@ -301,7 +305,7 @@
                     </table>
                 </div>
             </section>
-        {% else %}
+        {% elseif tab == 'payments' %}
             <section class="admin-card">
                 <div class="admin-heading">
                     <div>
@@ -378,6 +382,313 @@
                                 <tr>
                                     <td colspan="9"><div class="empty-hint">Aucun paiement ne correspond a ces criteres.</div></td>
                                 </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        {% elseif tab == 'documents' %}
+            <section class="admin-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+                    <div>
+                        <h2 style="margin:0;font-size:1.4rem;color:#0f5b8d">📄 Gestion des Documents</h2>
+                        <p style="margin:4px 0 0;color:#b68656">{{ docTotal }} document(s) au total</p>
+                    </div>
+                    <a href="{{ path('app_document_crud_new') }}"
+                       style="background:linear-gradient(135deg,#1a2744,#2563eb);color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">
+                        <i class="fas fa-plus"></i> Nouveau Document
+                    </a>
+                </div>
+
+                {# Stats row #}
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
+                    <div style="background:linear-gradient(135deg,#1a2744,#2563eb);border-radius:12px;padding:20px;text-align:center;color:white">
+                        <div style="font-size:32px">📄</div>
+                        <div style="font-size:28px;font-weight:700">{{ docTotal }}</div>
+                        <div style="font-size:13px;opacity:.8">Total Documents</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:12px;padding:20px;text-align:center;color:white">
+                        <div style="font-size:32px">✅</div>
+                        <div style="font-size:28px;font-weight:700">{{ docValides }}</div>
+                        <div style="font-size:13px;opacity:.8">Valides</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:12px;padding:20px;text-align:center;color:white">
+                        <div style="font-size:32px">❌</div>
+                        <div style="font-size:28px;font-weight:700">{{ docExpires }}</div>
+                        <div style="font-size:13px;opacity:.8">Expirés</div>
+                    </div>
+                </div>
+
+                {# Documents table #}
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Nom du Document</th>
+                                <th>Catégorie</th>
+                                <th>Date Ajout</th>
+                                <th>Date Expiration</th>
+                                <th>Statut</th>
+                                <th>Fichier</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for doc in allDocuments %}
+                            <tr>
+                                <td>{{ doc.idDocument }}</td>
+                                <td style="font-weight:600">✈ {{ doc.nomDocument }}</td>
+                                <td>
+                                    <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                                        {{ doc.categorie ? doc.categorie.libelle : 'N/A' }}
+                                    </span>
+                                </td>
+                                <td>{{ doc.dateAjout ? doc.dateAjout|date('d/m/Y') : 'N/A' }}</td>
+                                <td>{{ doc.dateExpiration ? doc.dateExpiration|date('d/m/Y') : 'N/A' }}</td>
+                                <td>
+                                    {% if doc.dateExpiration and doc.dateExpiration < date() %}
+                                        <span style="background:#fee2e2;color:#dc2626;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">❌ Expiré</span>
+                                    {% else %}
+                                        <span style="background:#dcfce7;color:#16a34a;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">✅ Valide</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if doc.cheminFichier starts with 'http' %}
+                                        <a href="{{ doc.cheminFichier }}" target="_blank"
+                                           style="color:#2563eb;font-size:12px">🔗 Voir</a>
+                                    {% else %}
+                                        <span style="color:#9ca3af;font-size:12px">—</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div style="display:flex;gap:6px">
+                                        <a href="{{ path('app_document_crud_show', {idDocument: doc.idDocument}) }}"
+                                           class="action-btn">Voir</a>
+                                        <a href="{{ path('app_document_crud_edit', {idDocument: doc.idDocument}) }}"
+                                           class="action-btn edit">Modifier</a>
+                                        <form method="post"
+                                              action="{{ path('app_document_crud_delete', {idDocument: doc.idDocument}) }}"
+                                              onsubmit="return confirm('Supprimer ce document ?')">
+                                            <input type="hidden" name="_token"
+                                                   value="{{ csrf_token('delete' ~ doc.idDocument) }}">
+                                            <button class="action-btn delete" type="submit">Supprimer</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="8">
+                                    <div class="empty-hint" style="text-align:center;padding:40px">
+                                        📭 Aucun document trouvé.
+                                        <a href="{{ path('app_document_crud_new') }}" style="color:#2563eb;margin-left:8px">Ajouter le premier →</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# Quick actions #}
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:20px">
+                    <a href="{{ path('app_document_export_pdf') }}"
+                       style="background:#64748b;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="{{ path('app_document_supprimer_expires') }}"
+                       onclick="return confirm('Supprimer tous les documents expirés ?')"
+                       style="background:#ef4444;color:white;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px">
+                        <i class="fas fa-trash"></i> Supprimer Expirés
+                    </a>
+                </div>
+            </section>
+
+        {% elseif tab == 'document_stats' %}
+            <section class="admin-card">
+                <h2 style="margin:0 0 20px;font-size:1.4rem;color:#0f5b8d">📊 Statistiques Documents</h2>
+
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px">
+                    <div style="background:linear-gradient(135deg,#1a2744,#2563eb);border-radius:12px;padding:24px;text-align:center;color:white">
+                        <div style="font-size:36px">📄</div>
+                        <div style="font-size:32px;font-weight:700">{{ docTotal }}</div>
+                        <div style="opacity:.8">Total Documents</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:12px;padding:24px;text-align:center;color:white">
+                        <div style="font-size:36px">✅</div>
+                        <div style="font-size:32px;font-weight:700">{{ docValides }}</div>
+                        <div style="opacity:.8">Valides</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:12px;padding:24px;text-align:center;color:white">
+                        <div style="font-size:36px">❌</div>
+                        <div style="font-size:32px;font-weight:700">{{ docExpires }}</div>
+                        <div style="opacity:.8">Expirés</div>
+                    </div>
+                </div>
+
+                <h3 style="margin:0 0 16px;color:#0f5b8d">📂 Documents par Catégorie</h3>
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Catégorie</th>
+                                <th>Nombre de Documents</th>
+                                <th>Pourcentage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in parCategorie %}
+                            <tr>
+                                <td>
+                                    <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                                        {{ row.libelle ?? 'Sans catégorie' }}
+                                    </span>
+                                </td>
+                                <td style="font-weight:700">{{ row.total }}</td>
+                                <td style="width:200px">
+                                    <div style="background:#e5e7eb;border-radius:6px;height:10px;overflow:hidden">
+                                        <div style="background:linear-gradient(90deg,#2563eb,#1a2744);height:100%;width:{{ docTotal > 0 ? (row.total / docTotal * 100)|round : 0 }}%;border-radius:6px"></div>
+                                    </div>
+                                    <small style="color:#6b7280">{{ docTotal > 0 ? (row.total / docTotal * 100)|round : 0 }}%</small>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr><td colspan="3"><div class="empty-hint">Aucune donnée disponible.</div></td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        {% elseif tab == 'document_new' %}
+            <section class="admin-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+                    <div>
+                        <h2 style="margin:0;font-size:1.4rem;color:#0f5b8d">➕ Nouveau Document</h2>
+                        <p style="margin:4px 0 0;color:#b68656">Ajouter un document de voyage</p>
+                    </div>
+                    <a href="{{ path('app_admin', {tab: 'documents'}) }}"
+                       style="background:#e5e7eb;color:#374151;padding:8px 16px;border-radius:8px;text-decoration:none;font-size:13px">
+                        ← Retour aux documents
+                    </a>
+                </div>
+
+                <div style="max-width:640px;margin:0 auto">
+                    <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+                        <div style="background:linear-gradient(135deg,#1a2744,#2563eb);padding:20px 24px">
+                            <h4 style="margin:0;color:white;font-size:16px">📄 Informations du Document</h4>
+                        </div>
+                        <div style="padding:28px">
+                            {{ form_start(documentForm, {'attr': {'enctype': 'multipart/form-data', 'style': 'display:flex;flex-direction:column;gap:18px'}}) }}
+
+                            <div>
+                                {{ form_label(documentForm.nomDocument, 'Nom du document', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                                {{ form_widget(documentForm.nomDocument, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box', 'placeholder': 'Ex: Passeport, Visa, Billet...'}}) }}
+                                {{ form_errors(documentForm.nomDocument) }}
+                            </div>
+
+                            <div>
+                                {{ form_label(documentForm.fichier, 'Fichier', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                                {{ form_widget(documentForm.fichier, {'attr': {'style': 'width:100%;padding:8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                                {{ form_errors(documentForm.fichier) }}
+                            </div>
+
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                                <div>
+                                    {{ form_label(documentForm.dateAjout, "Date d'ajout", {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                                    {{ form_widget(documentForm.dateAjout, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                                </div>
+                                <div>
+                                    {{ form_label(documentForm.dateExpiration, "Date d'expiration", {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                                    {{ form_widget(documentForm.dateExpiration, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                                </div>
+                            </div>
+
+                            <div>
+                                {{ form_label(documentForm.categorie, 'Catégorie', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                                {{ form_widget(documentForm.categorie, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                                {{ form_errors(documentForm.categorie) }}
+                                <p style="font-size:12px;color:#6b7280;margin-top:4px">💡 Si vide, la catégorie sera détectée automatiquement par IA</p>
+                            </div>
+
+                            <div style="display:flex;gap:12px;padding-top:8px">
+                                <button type="submit"
+                                        style="background:linear-gradient(135deg,#1a2744,#2563eb);color:white;padding:12px 28px;border-radius:8px;border:none;font-weight:600;font-size:14px;cursor:pointer">
+                                    💾 Enregistrer
+                                </button>
+                                <a href="{{ path('app_admin', {tab: 'documents'}) }}"
+                                   style="background:#f3f4f6;color:#374151;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px">
+                                    Annuler
+                                </a>
+                            </div>
+
+                            {{ form_end(documentForm) }}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+        {% elseif tab == 'categories' %}
+            <section class="admin-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+                    <div>
+                        <h2 style="margin:0;font-size:1.4rem;color:#0f5b8d">📂 Catégories de Documents</h2>
+                        <p style="margin:4px 0 0;color:#b68656">{{ categories|length }} catégorie(s)</p>
+                    </div>
+                    <a href="{{ path('app_categorie_document_new') }}"
+                       style="background:linear-gradient(135deg,#1a2744,#2563eb);color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">
+                        <i class="fas fa-plus"></i> Nouvelle Catégorie
+                    </a>
+                </div>
+
+                <div class="admin-table-wrap">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Libellé</th>
+                                <th>Description</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for cat in categories %}
+                            <tr>
+                                <td>{{ cat.idCategorie }}</td>
+                                <td style="font-weight:700">
+                                    <span style="background:#e0f2fe;color:#0369a1;padding:4px 12px;border-radius:20px;font-size:13px">
+                                        📂 {{ cat.libelle }}
+                                    </span>
+                                </td>
+                                <td style="color:#6b7280">{{ cat.description ?? '—' }}</td>
+                                <td>
+                                    <div style="display:flex;gap:6px">
+                                        <a href="{{ path('app_categorie_document_show', {idCategorie: cat.idCategorie}) }}"
+                                           class="action-btn">Voir</a>
+                                        <a href="{{ path('app_categorie_document_edit', {idCategorie: cat.idCategorie}) }}"
+                                           class="action-btn edit">Modifier</a>
+                                        <form method="post"
+                                              action="{{ path('app_categorie_document_delete', {idCategorie: cat.idCategorie}) }}"
+                                              onsubmit="return confirm('Supprimer cette catégorie ?')">
+                                            <input type="hidden" name="_token"
+                                                   value="{{ csrf_token('delete' ~ cat.idCategorie) }}">
+                                            <button class="action-btn delete" type="submit">Supprimer</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-hint" style="text-align:center;padding:40px">
+                                        📂 Aucune catégorie.
+                                        <a href="{{ path('app_categorie_document_new') }}" style="color:#2563eb;margin-left:8px">Créer la première →</a>
+                                    </div>
+                                </td>
+                            </tr>
                             {% endfor %}
                         </tbody>
                     </table>

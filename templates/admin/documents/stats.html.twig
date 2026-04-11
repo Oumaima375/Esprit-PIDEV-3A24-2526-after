@@ -1,0 +1,71 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Statistiques Documents — Admin{% endblock %}
+{% block body %}
+
+<div class="header">
+    <div class="header-left">
+        <h1>📊 Statistiques Documents</h1>
+        <p class="header-subtitle">Vue d'ensemble de vos documents</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('app_admin_documents') }}"
+           style="background:#e5e7eb;color:#374151;padding:9px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            ← Retour aux documents
+        </a>
+    </div>
+</div>
+
+<section class="admin-card">
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px">
+        <div style="background:linear-gradient(135deg,#1a2744,#2563eb);border-radius:12px;padding:24px;text-align:center;color:white">
+            <div style="font-size:36px">📄</div>
+            <div style="font-size:32px;font-weight:700">{{ docTotal }}</div>
+            <div style="opacity:.8">Total Documents</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#22c55e,#16a34a);border-radius:12px;padding:24px;text-align:center;color:white">
+            <div style="font-size:36px">✅</div>
+            <div style="font-size:32px;font-weight:700">{{ docValides }}</div>
+            <div style="opacity:.8">Valides</div>
+        </div>
+        <div style="background:linear-gradient(135deg,#ef4444,#dc2626);border-radius:12px;padding:24px;text-align:center;color:white">
+            <div style="font-size:36px">❌</div>
+            <div style="font-size:32px;font-weight:700">{{ docExpires }}</div>
+            <div style="opacity:.8">Expirés</div>
+        </div>
+    </div>
+
+    <h3 style="margin:0 0 16px;color:#0f5b8d">📂 Documents par Catégorie</h3>
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Catégorie</th>
+                    <th>Nombre de Documents</th>
+                    <th>Pourcentage</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in parCategorie %}
+                <tr>
+                    <td>
+                        <span style="background:#e0f2fe;color:#0369a1;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600">
+                            {{ row.libelle ?? 'Sans catégorie' }}
+                        </span>
+                    </td>
+                    <td style="font-weight:700">{{ row.total }}</td>
+                    <td style="width:220px">
+                        <div style="background:#e5e7eb;border-radius:6px;height:10px;overflow:hidden">
+                            <div style="background:linear-gradient(90deg,#2563eb,#1a2744);height:100%;width:{{ docTotal > 0 ? (row.total / docTotal * 100)|round : 0 }}%;border-radius:6px"></div>
+                        </div>
+                        <small style="color:#6b7280">{{ docTotal > 0 ? (row.total / docTotal * 100)|round : 0 }}%</small>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="3"><div class="empty-hint">Aucune donnée disponible.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

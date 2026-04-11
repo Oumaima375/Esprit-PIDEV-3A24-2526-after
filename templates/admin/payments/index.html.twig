@@ -1,0 +1,78 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Paiements — Admin{% endblock %}
+{% block body %}
+
+<div class="header">
+    <div class="header-left">
+        <h1>Gestion des Paiements</h1>
+        <p class="header-subtitle">{{ paymentCount }} résultat(s) sur {{ paymentTotalCount }} paiement(s)</p>
+    </div>
+</div>
+
+<section class="admin-card">
+    <form method="get" class="admin-toolbar" style="margin-bottom:20px">
+        <input class="admin-input" type="text" name="payment_q" value="{{ paymentFilters.q }}" placeholder="Recherche par référence, lieu, réservation, statut...">
+        <select class="admin-select" name="payment_status">
+            <option value="">Tous statuts</option>
+            <option value="paid"     {{ paymentFilters.status == 'paid'     ? 'selected' : '' }}>Payé</option>
+            <option value="pending"  {{ paymentFilters.status == 'pending'  ? 'selected' : '' }}>En attente</option>
+            <option value="refunded" {{ paymentFilters.status == 'refunded' ? 'selected' : '' }}>Remboursé</option>
+        </select>
+        <select class="admin-select" name="payment_method">
+            <option value="">Toutes méthodes</option>
+            <option value="card"     {{ paymentFilters.method == 'card'     ? 'selected' : '' }}>Carte</option>
+            <option value="transfer" {{ paymentFilters.method == 'transfer' ? 'selected' : '' }}>Virement</option>
+            <option value="cash"     {{ paymentFilters.method == 'cash'     ? 'selected' : '' }}>Espèces</option>
+        </select>
+        <select class="admin-select" name="payment_sort">
+            <option value="date"      {{ paymentFilters.sort == 'date'      ? 'selected' : '' }}>Trier par date</option>
+            <option value="amount"    {{ paymentFilters.sort == 'amount'    ? 'selected' : '' }}>Trier par montant</option>
+            <option value="reference" {{ paymentFilters.sort == 'reference' ? 'selected' : '' }}>Trier par référence</option>
+            <option value="method"    {{ paymentFilters.sort == 'method'    ? 'selected' : '' }}>Trier par méthode</option>
+            <option value="status"    {{ paymentFilters.sort == 'status'    ? 'selected' : '' }}>Trier par statut</option>
+        </select>
+        <select class="admin-select" name="payment_dir">
+            <option value="desc" {{ paymentFilters.dir == 'desc' ? 'selected' : '' }}>Descendant</option>
+            <option value="asc"  {{ paymentFilters.dir == 'asc'  ? 'selected' : '' }}>Ascendant</option>
+        </select>
+        <button class="admin-button" type="submit">Appliquer</button>
+        <a class="admin-button secondary" href="{{ path('app_admin_payments') }}">Réinitialiser</a>
+    </form>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>ID</th><th>Référence</th><th>Montant</th><th>Devise</th>
+                    <th>Méthode</th><th>Statut</th><th>Date</th><th>Rés #</th><th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for payment in payments %}
+                <tr>
+                    <td>{{ payment.id }}</td>
+                    <td>{{ payment.reference }}</td>
+                    <td>{{ payment.montant|number_format(2, ',', ' ') }}</td>
+                    <td>{{ payment.devise }}</td>
+                    <td><span class="badge info">{{ payment.methode }}</span></td>
+                    <td><span class="badge {{ payment.statut == 'En attente' ? 'warning' : ((payment.statut|lower starts with 'remb') ? 'muted' : 'success') }}">{{ payment.statut }}</span></td>
+                    <td>{{ payment.datePaiement }}</td>
+                    <td>{{ payment.reservationId }}</td>
+                    <td>
+                        <div class="actions">
+                            <a class="action-btn edit" href="{{ path('app_admin_payment_edit', {id: payment.id}) }}">Modifier</a>
+                            <form method="post" action="{{ path('app_admin_payment_delete', {id: payment.id}) }}" onsubmit="return confirm('Supprimer ce paiement ?');">
+                                <button class="action-btn delete" type="submit">Supprimer</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="9"><div class="empty-hint">Aucun paiement ne correspond à ces critères.</div></td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

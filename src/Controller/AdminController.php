@@ -17,15 +17,28 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use App\Entity\Document;
+use App\Form\DocumentType;
+use App\Service\CloudinaryService;
+use App\Service\CategorieDetectorService;
+
 
 #[Route('/admin')]
 class AdminController extends AbstractController
 {
     #[Route('', name: 'app_admin', methods: ['GET'])]
-    public function index(Request $request, ReservationRepository $reservationRepository, PaiementRepository $paiementRepository): Response
-    {
+    public function index(
+        Request $request,
+        ReservationRepository $reservationRepository,
+        PaiementRepository $paiementRepository,
+        DocumentRepository $documentRepository,
+        CategorieDocumentRepository $categorieDocumentRepository,
+        EntityManagerInterface $entityManager,
+        CategorieDetectorService $categorieDetector,
+        CloudinaryService $cloudinaryService
+    ): Response {
         $tab = $request->query->get('tab', 'reservations');
-        if (!in_array($tab, ['reservations', 'payments', 'statistics'], true)) {
+        if (!in_array($tab, ['reservations', 'payments', 'statistics', 'documents', 'document_new', 'document_stats', 'categories'], true)) {
             $tab = 'reservations';
         }
 
@@ -49,6 +62,47 @@ class AdminController extends AbstractController
         $filteredReservations = $this->filterReservations($reservations, $reservationFilters);
         $filteredPayments = $this->filterPayments($payments, $paymentFilters);
 
+        // Document data
+        $allDocuments = $documentRepository->findAll();
+        $expiredDocs  = $documentRepository->findExpired();
+        $categories   = $categorieDocumentRepository->findAll();
+        $parCategorie = $documentRepository->countByCategorie();
+
+        // Document new form (tab=document_new)
+        $newDocument = new Document();
+        $documentForm = $this->createForm(DocumentType::class, $newDocument);
+        $documentForm->handleRequest($request);
+
+        if ($documentForm->isSubmitted() && $documentForm->isValid()) {
+            $libelleDetecte = null;
+            if (!$newDocument->getCategorie()) {
+                $cats = array_map(fn($c) => $c->getLibelle(), $categorieDocumentRepository->findAll());
+                $libelleDetecte = $categorieDetector->detecterCategorie($newDocument->getNomDocument(), $cats);
+                if ($libelleDetecte) {
+                    $cat = $categorieDocumentRepository->findOneBy(['libelle' => $libelleDetecte]);
+                    if ($cat) { $newDocument->setCategorie($cat); }
+                }
+            }
+            $fichier = $documentForm->get('fichier')->getData();
+            if ($fichier) {
+                try {
+                    $url = $cloudinaryService->upload($fichier->getRealPath(), $fichier->getClientOriginalName());
+                    $newDocument->setCheminFichier($url);
+                } catch (\Exception $e) {
+                    $nom = uniqid() . '.' . $fichier->guessExtension();
+                    $fichier->move($this->getParameter('uploads_directory'), $nom);
+                    $newDocument->setCheminFichier($nom);
+                }
+            } else {
+                $newDocument->setCheminFichier('aucun_fichier');
+            }
+            $entityManager->persist($newDocument);
+            $entityManager->flush();
+            $msg = $libelleDetecte ? '✅ Document ajouté ! 🤖 Catégorie : ' . $libelleDetecte : '✅ Document ajouté !';
+            $this->addFlash('success', $msg);
+            return $this->redirectToRoute('app_admin', ['tab' => 'documents']);
+        }
+
         return $this->render('admin/index.html.twig', [
             'tab' => $tab,
             'reservations' => $filteredReservations,
@@ -60,6 +114,14 @@ class AdminController extends AbstractController
             'reservationFilters' => $reservationFilters,
             'paymentFilters' => $paymentFilters,
             'stats' => $this->buildStatistics($reservations, $payments),
+            // Document tabs
+            'allDocuments' => $allDocuments,
+            'docTotal'     => count($allDocuments),
+            'docValides'   => count($allDocuments) - count($expiredDocs),
+            'docExpires'   => count($expiredDocs),
+            'categories'   => $categories,
+            'parCategorie' => $parCategorie,
+            'documentForm'  => $documentForm->createView(),
         ]);
     }
 
@@ -82,6 +144,133 @@ class AdminController extends AbstractController
             'categories'      => $categorieRepository->findAll(),
             'parCategorie'    => $documentRepository->countByCategorie(),
             'uploadsParMois'  => $documentRepository->getMonthlyUploads(),
+        ]);
+    }
+
+    // ─── Dedicated pages (extend base_admin.html.twig like Voyages/Destinations) ───
+
+    #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
+    public function reservations(
+        Request $request,
+        ReservationRepository $reservationRepository
+    ): Response {
+        $reservations = $reservationRepository->findAll();
+        $filters = [
+            'q'      => trim((string) $request->query->get('reservation_q', '')),
+            'status' => trim((string) $request->query->get('reservation_status', '')),
+            'sort'   => trim((string) $request->query->get('reservation_sort', 'date')),
+            'dir'    => strtolower((string) $request->query->get('reservation_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+        ];
+        return $this->render('admin/reservations/index.html.twig', [
+            'reservations'        => $this->filterReservations($reservations, $filters),
+            'reservationCount'    => count($this->filterReservations($reservations, $filters)),
+            'reservationTotalCount' => count($reservations),
+            'reservationFilters'  => $filters,
+        ]);
+    }
+
+    #[Route('/paiements', name: 'app_admin_payments', methods: ['GET'])]
+    public function payments(
+        Request $request,
+        PaiementRepository $paiementRepository
+    ): Response {
+        $payments = $paiementRepository->findAll();
+        $filters = [
+            'q'      => trim((string) $request->query->get('payment_q', '')),
+            'status' => trim((string) $request->query->get('payment_status', '')),
+            'method' => trim((string) $request->query->get('payment_method', '')),
+            'sort'   => trim((string) $request->query->get('payment_sort', 'date')),
+            'dir'    => strtolower((string) $request->query->get('payment_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+        ];
+        return $this->render('admin/payments/index.html.twig', [
+            'payments'        => $this->filterPayments($payments, $filters),
+            'paymentCount'    => count($this->filterPayments($payments, $filters)),
+            'paymentTotalCount' => count($payments),
+            'paymentFilters'  => $filters,
+        ]);
+    }
+
+    #[Route('/documents', name: 'app_admin_documents', methods: ['GET'])]
+    public function documents(
+        DocumentRepository $documentRepository,
+        CategorieDocumentRepository $categorieDocumentRepository
+    ): Response {
+        $allDocs = $documentRepository->findAll();
+        $expired = $documentRepository->findExpired();
+        return $this->render('admin/documents/index.html.twig', [
+            'allDocuments' => $allDocs,
+            'docTotal'     => count($allDocs),
+            'docValides'   => count($allDocs) - count($expired),
+            'docExpires'   => count($expired),
+        ]);
+    }
+
+    #[Route('/documents/nouveau', name: 'app_admin_document_new', methods: ['GET', 'POST'])]
+    public function documentNew(
+        Request $request,
+        DocumentRepository $documentRepository,
+        CategorieDocumentRepository $categorieDocumentRepository,
+        EntityManagerInterface $entityManager,
+        CategorieDetectorService $categorieDetector,
+        CloudinaryService $cloudinaryService
+    ): Response {
+        $newDocument  = new Document();
+        $documentForm = $this->createForm(\App\Form\DocumentType::class, $newDocument);
+        $documentForm->handleRequest($request);
+
+        if ($documentForm->isSubmitted() && $documentForm->isValid()) {
+            if (!$newDocument->getCategorie()) {
+                $cats          = array_map(fn($c) => $c->getLibelle(), $categorieDocumentRepository->findAll());
+                $libelleDetecte = $categorieDetector->detecterCategorie($newDocument->getNomDocument(), $cats);
+                if ($libelleDetecte) {
+                    $cat = $categorieDocumentRepository->findOneBy(['libelle' => $libelleDetecte]);
+                    if ($cat) { $newDocument->setCategorie($cat); }
+                }
+            }
+            $fichier = $documentForm->get('fichier')->getData();
+            if ($fichier) {
+                try {
+                    $url = $cloudinaryService->upload($fichier->getRealPath(), $fichier->getClientOriginalName());
+                    $newDocument->setCheminFichier($url);
+                } catch (\Exception $e) {
+                    $nom = uniqid() . '.' . $fichier->guessExtension();
+                    $fichier->move($this->getParameter('uploads_directory'), $nom);
+                    $newDocument->setCheminFichier($nom);
+                }
+            } else {
+                $newDocument->setCheminFichier('aucun_fichier');
+            }
+            $entityManager->persist($newDocument);
+            $entityManager->flush();
+            $this->addFlash('success', '✅ Document ajouté !');
+            return $this->redirectToRoute('app_admin_documents');
+        }
+
+        return $this->render('admin/documents/new.html.twig', [
+            'documentForm' => $documentForm->createView(),
+        ]);
+    }
+
+    #[Route('/documents/statistiques', name: 'app_admin_document_stats', methods: ['GET'])]
+    public function documentStats(
+        DocumentRepository $documentRepository
+    ): Response {
+        $allDocs = $documentRepository->findAll();
+        $expired = $documentRepository->findExpired();
+        return $this->render('admin/documents/stats.html.twig', [
+            'docTotal'     => count($allDocs),
+            'docValides'   => count($allDocs) - count($expired),
+            'docExpires'   => count($expired),
+            'parCategorie' => $documentRepository->countByCategorie(),
+        ]);
+    }
+
+    #[Route('/documents/categories', name: 'app_admin_categories', methods: ['GET'])]
+    public function categories(
+        CategorieDocumentRepository $categorieDocumentRepository
+    ): Response {
+        return $this->render('admin/documents/categories.html.twig', [
+            'categories' => $categorieDocumentRepository->findAll(),
         ]);
     }
 

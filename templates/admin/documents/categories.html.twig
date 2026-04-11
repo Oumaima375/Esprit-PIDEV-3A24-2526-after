@@ -1,0 +1,65 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Catégories Documents — Admin{% endblock %}
+{% block body %}
+
+<div class="header">
+    <div class="header-left">
+        <h1>📂 Catégories de Documents</h1>
+        <p class="header-subtitle">{{ categories|length }} catégorie(s)</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('app_categorie_document_new') }}"
+           style="background:linear-gradient(135deg,#1a2744,#2563eb);color:white;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;font-size:13px">
+            <i class="fas fa-plus"></i> Nouvelle Catégorie
+        </a>
+    </div>
+</div>
+
+<section class="admin-card">
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Libellé</th>
+                    <th>Description</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for cat in categories %}
+                <tr>
+                    <td>{{ cat.idCategorie }}</td>
+                    <td style="font-weight:700">
+                        <span style="background:#e0f2fe;color:#0369a1;padding:4px 12px;border-radius:20px;font-size:13px">
+                            📂 {{ cat.libelle }}
+                        </span>
+                    </td>
+                    <td style="color:#6b7280">{{ cat.description ?? '—' }}</td>
+                    <td>
+                        <div style="display:flex;gap:6px">
+                            <a href="{{ path('app_categorie_document_show', {idCategorie: cat.idCategorie}) }}" class="action-btn">Voir</a>
+                            <a href="{{ path('app_categorie_document_edit', {idCategorie: cat.idCategorie}) }}" class="action-btn edit">Modifier</a>
+                            <form method="post" action="{{ path('app_categorie_document_delete', {idCategorie: cat.idCategorie}) }}" onsubmit="return confirm('Supprimer cette catégorie ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ cat.idCategorie) }}">
+                                <button class="action-btn delete" type="submit">Supprimer</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="4">
+                        <div class="empty-hint" style="text-align:center;padding:40px">
+                            📂 Aucune catégorie.
+                            <a href="{{ path('app_categorie_document_new') }}" style="color:#2563eb;margin-left:8px">Créer la première →</a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+
+{% endblock %}

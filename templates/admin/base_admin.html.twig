@@ -140,21 +140,21 @@
                 <div class="nav-label">Utilisateurs</div>
 
                 <a href="{{ path('app_dashboard') }}#usersSection"
-                   class="nav-item {{ app.request.get('_route') starts with 'user' ? 'active' }}">
+                   class="nav-item">
                     <i class="fas fa-users nav-icon"></i> Utilisateurs
                 </a>
 
-                <div class="nav-label">Autres Modules</div>
+                <div class="nav-label">Gestion Réservation & Paiement</div>
 
-                <span class="nav-item-soon">
-                    <i class="fas fa-calendar-check nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Réservations <span class="badge-soon">bientôt</span>
-                </span>
+                <a href="{{ path('app_admin_reservations') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_reservations' ? 'active' }}">
+                    <i class="fas fa-calendar-check nav-icon"></i> Réservations
+                </a>
 
-                <span class="nav-item-soon">
-                    <i class="fas fa-wallet nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Dépenses <span class="badge-soon">bientôt</span>
-                </span>
+                <a href="{{ path('app_admin_payments') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_payments' ? 'active' }}">
+                    <i class="fas fa-credit-card nav-icon"></i> Paiements
+                </a>
 
                 <span class="nav-item-soon">
                     <i class="fas fa-hiking nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
@@ -166,9 +166,31 @@
                     Services <span class="badge-soon">bientôt</span>
                 </span>
 
+                <div class="nav-label">Gestion Document</div>
+
+                <a href="{{ path('app_admin_documents') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_documents' ? 'active' }}">
+                    <i class="fas fa-file-alt nav-icon"></i> Documents
+                </a>
+
+                <a href="{{ path('app_admin_document_new') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_document_new' ? 'active' }}">
+                    <i class="fas fa-plus-circle nav-icon"></i> Nouveau Document
+                </a>
+
+                <a href="{{ path('app_admin_document_stats') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_document_stats' ? 'active' }}">
+                    <i class="fas fa-chart-bar nav-icon"></i> Statistiques
+                </a>
+
+                <a href="{{ path('app_admin_categories') }}"
+                   class="nav-item {{ app.request.get('_route') == 'app_admin_categories' ? 'active' }}">
+                    <i class="fas fa-folder nav-icon"></i> Catégories
+                </a>
+
                 <span class="nav-item-soon">
-                    <i class="fas fa-file-alt nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Documents <span class="badge-soon">bientôt</span>
+                    <i class="fas fa-coins nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    Dépense <span class="badge-soon">bientôt</span>
                 </span>
 
                 <div class="nav-label">Exports</div>
@@ -235,5 +257,6 @@
 
     <script src="/js/templatemo-crypto-script.js"></script>
     {% block javascripts %}{% endblock %}
+
 </body>
 </html>

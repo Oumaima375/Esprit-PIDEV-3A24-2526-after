@@ -243,10 +243,23 @@
                     Services <span class="badge-soon">bientôt</span>
                 </span>
 
-                <span class="nav-item-soon">
-                    <i class="fas fa-file-alt nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Documents <span class="badge-soon">bientôt</span>
-                </span>
+                <div class="nav-label">Gestion Document</div>
+<a href="#" onclick="loadDocTab('documents'); return false;"
+   class="nav-item doc-tab-link" data-doc-tab="documents">
+    <i class="fas fa-file-alt nav-icon"></i> Documents
+</a>
+<a href="#" onclick="loadDocTab('document_new'); return false;"
+   class="nav-item doc-tab-link" data-doc-tab="document_new">
+    <i class="fas fa-plus-circle nav-icon"></i> Nouveau Document
+</a>
+<a href="#" onclick="loadDocTab('document_stats'); return false;"
+   class="nav-item doc-tab-link" data-doc-tab="document_stats">
+    <i class="fas fa-chart-bar nav-icon"></i> Statistiques
+</a>
+<a href="#" onclick="loadDocTab('categories'); return false;"
+   class="nav-item doc-tab-link" data-doc-tab="categories">
+    <i class="fas fa-folder nav-icon"></i> Catégories
+</a>
  <span class="nav-item-soon">
                     <i class="fas fa-concierge-bell nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
                     depense <span class="badge-soon">bientôt</span>
@@ -461,6 +474,24 @@
     </div>
 </div>
 {% endblock %}
+
+            {# ─── Document tab panel (loaded inline via AJAX) ─── #}
+            <div id="docTabContent" style="display:none;margin-top:24px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px">
+                    <span id="docTabTitle" style="font-size:1.1rem;font-weight:700;color:var(--text-primary)"></span>
+                    <button onclick="closeDocTab()"
+                            style="background:var(--bg-card-hover);border:1px solid var(--border);color:var(--text-primary);
+                                   padding:7px 16px;border-radius:8px;cursor:pointer;font-size:13px;font-weight:600">
+                        ✕ Fermer
+                    </button>
+                </div>
+                <div id="docTabBody">
+                    <div style="text-align:center;padding:60px;color:var(--text-secondary)">
+                        <i class="fas fa-spinner fa-spin" style="font-size:28px;margin-bottom:12px"></i>
+                        <p>Chargement…</p>
+                    </div>
+                </div>
+            </div>
 
             {# ═══════════════════════════════════════════════
                  USERS SECTION — always visible for admins
@@ -732,6 +763,81 @@
             else alert(j.message || 'Erreur');
         }).catch(function(){ btn.disabled=false; btn.textContent='Enregistrer'; alert('Erreur réseau'); });
     });
+    </script>
+
+    <script>
+    // ── Document tab AJAX loader ──
+    (function () {
+        var tabLabels = {
+            documents:      '📄 Documents',
+            document_new:   '➕ Nouveau Document',
+            document_stats: '📊 Statistiques Documents',
+            categories:     '📂 Catégories'
+        };
+
+        window.loadDocTab = function (tab) {
+            var panel = document.getElementById('docTabContent');
+            var body  = document.getElementById('docTabBody');
+            var title = document.getElementById('docTabTitle');
+
+            // Show panel & highlight nav link
+            panel.style.display = 'block';
+            title.textContent   = tabLabels[tab] || tab;
+            document.querySelectorAll('.doc-tab-link').forEach(function (el) {
+                el.classList.toggle('active', el.dataset.docTab === tab);
+            });
+
+            // Spinner
+            body.innerHTML = '<div style="text-align:center;padding:60px;color:var(--text-secondary)">'
+                + '<i class="fas fa-spinner fa-spin" style="font-size:32px;margin-bottom:14px;display:block"></i>'
+                + '<p>Chargement\u2026</p></div>';
+
+            // Smooth scroll to panel
+            setTimeout(function () {
+                panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 80);
+
+            // Fetch the admin page and extract just the .admin-card section
+            fetch('/admin?tab=' + encodeURIComponent(tab), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(function (r) {
+                if (!r.ok) throw new Error('HTTP ' + r.status);
+                return r.text();
+            })
+            .then(function (html) {
+                var tmp = document.createElement('div');
+                tmp.innerHTML = html;
+                var section = tmp.querySelector('.admin-card');
+                if (section) {
+                    body.innerHTML = '';
+                    var wrapper = document.createElement('div');
+                    wrapper.style.cssText = 'padding:24px;background:var(--bg-card);border:1px solid var(--border);border-radius:16px';
+                    wrapper.appendChild(section);
+                    body.appendChild(wrapper);
+
+                    // Re-execute inline scripts from fetched content
+                    wrapper.querySelectorAll('script').forEach(function (s) {
+                        var ns = document.createElement('script');
+                        ns.textContent = s.textContent;
+                        document.body.appendChild(ns);
+                    });
+                } else {
+                    body.innerHTML = '<p style="padding:24px;color:var(--text-secondary)">Aucun contenu trouv\u00e9 pour cet onglet.</p>';
+                }
+            })
+            .catch(function (err) {
+                body.innerHTML = '<p style="padding:24px;color:#ef4444">\u26a0\ufe0f Erreur de chargement : ' + err.message + '</p>';
+            });
+        };
+
+        window.closeDocTab = function () {
+            document.getElementById('docTabContent').style.display = 'none';
+            document.querySelectorAll('.doc-tab-link').forEach(function (el) {
+                el.classList.remove('active');
+            });
+        };
+    })();
     </script>
 </body>
 </html>

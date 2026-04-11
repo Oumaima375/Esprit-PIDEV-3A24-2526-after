@@ -1,0 +1,74 @@
+{% extends 'admin/base_admin.html.twig' %}
+{% block title %}Nouveau Document — Admin{% endblock %}
+{% block body %}
+
+<div class="header">
+    <div class="header-left">
+        <h1>➕ Nouveau Document</h1>
+        <p class="header-subtitle">Ajouter un document de voyage</p>
+    </div>
+    <div class="header-right">
+        <a href="{{ path('app_admin_documents') }}"
+           style="background:#e5e7eb;color:#374151;padding:9px 18px;border-radius:8px;text-decoration:none;font-size:13px;font-weight:600">
+            ← Retour aux documents
+        </a>
+    </div>
+</div>
+
+<section class="admin-card">
+    <div style="max-width:640px;margin:0 auto">
+        <div style="background:white;border-radius:16px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.08)">
+            <div style="background:linear-gradient(135deg,#1a2744,#2563eb);padding:20px 24px">
+                <h4 style="margin:0;color:white;font-size:16px">📄 Informations du Document</h4>
+            </div>
+            <div style="padding:28px">
+                {{ form_start(documentForm, {'attr': {'enctype': 'multipart/form-data', 'style': 'display:flex;flex-direction:column;gap:18px'}}) }}
+
+                <div>
+                    {{ form_label(documentForm.nomDocument, 'Nom du document', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                    {{ form_widget(documentForm.nomDocument, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box', 'placeholder': 'Ex: Passeport, Visa, Billet...'}}) }}
+                    {{ form_errors(documentForm.nomDocument) }}
+                </div>
+
+                <div>
+                    {{ form_label(documentForm.fichier, 'Fichier', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                    {{ form_widget(documentForm.fichier, {'attr': {'style': 'width:100%;padding:8px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                    {{ form_errors(documentForm.fichier) }}
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+                    <div>
+                        {{ form_label(documentForm.dateAjout, "Date d'ajout", {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                        {{ form_widget(documentForm.dateAjout, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                    </div>
+                    <div>
+                        {{ form_label(documentForm.dateExpiration, "Date d'expiration", {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                        {{ form_widget(documentForm.dateExpiration, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                    </div>
+                </div>
+
+                <div>
+                    {{ form_label(documentForm.categorie, 'Catégorie', {'label_attr': {'style': 'display:block;font-weight:600;margin-bottom:6px;color:#374151;font-size:14px'}}) }}
+                    {{ form_widget(documentForm.categorie, {'attr': {'style': 'width:100%;padding:10px 14px;border:1.5px solid #d1d5db;border-radius:8px;font-size:14px;box-sizing:border-box'}}) }}
+                    {{ form_errors(documentForm.categorie) }}
+                    <p style="font-size:12px;color:#6b7280;margin-top:4px">💡 Si vide, la catégorie sera détectée automatiquement par IA</p>
+                </div>
+
+                <div style="display:flex;gap:12px;padding-top:8px">
+                    <button type="submit"
+                            style="background:linear-gradient(135deg,#1a2744,#2563eb);color:white;padding:12px 28px;border-radius:8px;border:none;font-weight:600;font-size:14px;cursor:pointer">
+                        💾 Enregistrer
+                    </button>
+                    <a href="{{ path('app_admin_documents') }}"
+                       style="background:#f3f4f6;color:#374151;padding:12px 24px;border-radius:8px;text-decoration:none;font-size:14px">
+                        Annuler
+                    </a>
+                </div>
+
+                {{ form_end(documentForm) }}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}
