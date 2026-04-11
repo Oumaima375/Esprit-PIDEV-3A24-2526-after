@@ -1,8 +1,9 @@
 <?php
 
-namespace App\Entity\App\Repository;
+namespace App\Repository;
 
 use App\Entity\Paiement;
+use App\Entity\Reservation;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -16,28 +17,111 @@ class PaiementRepository extends ServiceEntityRepository
         parent::__construct($registry, Paiement::class);
     }
 
-    //    /**
-    //     * @return Paiement[] Returns an array of Paiement objects
-    //     */
-    //    public function findByExampleField($value): array
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->orderBy('p.id', 'ASC')
-    //            ->setMaxResults(10)
-    //            ->getQuery()
-    //            ->getResult()
-    //        ;
-    //    }
+    public function countAll(): int
+    {
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
 
-    //    public function findOneBySomeField($value): ?Paiement
-    //    {
-    //        return $this->createQueryBuilder('p')
-    //            ->andWhere('p.exampleField = :val')
-    //            ->setParameter('val', $value)
-    //            ->getQuery()
-    //            ->getOneOrNullResult()
-    //        ;
-    //    }
+    public function sumAllAmounts(): float
+    {
+        return (float) $this->createQueryBuilder('p')
+            ->select('COALESCE(SUM(p.montant), 0)')
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+
+    public function findById(int $id): ?Paiement
+    {
+        return $this->find($id);
+    }
+
+    public function findAll(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->orderBy('p.datePaiement', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function create(
+        string $reference,
+        float $montant,
+        string $devise,
+        string $methode,
+        string $statut,
+        string $datePaiement,
+        int $idReservation,
+    ): Paiement {
+        $em = $this->getEntityManager();
+
+        $paiement = new Paiement();
+        $paiement->setReference($reference);
+        $paiement->setMontant($montant);
+        $paiement->setDevise($devise);
+        $paiement->setMethode($methode);
+        $paiement->setStatut($statut);
+
+        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $datePaiement)
+            ?: \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $datePaiement)
+            ?: new \DateTimeImmutable();
+        $paiement->setDatePaiement($date);
+
+        /** @var \App\Entity\Reservation|null $reservation */
+        $reservation = $idReservation > 0 ? $em->getRepository(Reservation::class)->find($idReservation) : null;
+        $paiement->setReservation($reservation);
+
+        $em->persist($paiement);
+        $em->flush();
+
+        return $paiement;
+    }
+
+    public function update(
+        int $id,
+        string $reference,
+        float $montant,
+        string $devise,
+        string $methode,
+        string $statut,
+        string $datePaiement,
+        int $idReservation,
+    ): void {
+        $em = $this->getEntityManager();
+
+        $paiement = $this->find($id);
+        if (!$paiement) {
+            return;
+        }
+
+        $paiement->setReference($reference);
+        $paiement->setMontant($montant);
+        $paiement->setDevise($devise);
+        $paiement->setMethode($methode);
+        $paiement->setStatut($statut);
+
+        $date = \DateTimeImmutable::createFromFormat('Y-m-d', $datePaiement)
+            ?: \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $datePaiement);
+        if ($date !== false) {
+            $paiement->setDatePaiement($date);
+        }
+
+        /** @var \App\Entity\Reservation|null $reservation */
+        $reservation = $idReservation > 0 ? $em->getRepository(Reservation::class)->find($idReservation) : null;
+        $paiement->setReservation($reservation);
+
+        $em->flush();
+    }
+
+    public function delete(int $id): void
+    {
+        $em = $this->getEntityManager();
+        $paiement = $this->find($id);
+        if ($paiement) {
+            $em->remove($paiement);
+            $em->flush();
+        }
+    }
 }

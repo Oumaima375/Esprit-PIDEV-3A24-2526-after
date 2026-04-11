@@ -24,7 +24,6 @@ final class AdminController extends AbstractController
 
         $reservations = $reservationRepository->findAll();
         $payments = $paiementRepository->findAll();
-
         $reservationFilters = [
             'q' => trim((string) $request->query->get('reservation_q', '')),
             'status' => trim((string) $request->query->get('reservation_status', '')),

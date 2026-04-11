@@ -134,7 +134,51 @@
 
                 <a href="{{ path('app_home') }}" class="nav-item nav-link">Accueil</a>
 
-                <a href="#" class="nav-item nav-link">Réservation</a>
+                {# ── Voyage dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a href="{{ path('app_voyage') }}" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Voyage
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="{{ path('app_voyage') }}">
+                            <i class="fa fa-plane me-2 text-primary"></i>Tous les Voyages
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_destination') }}">
+                            <i class="fa fa-map-marker-alt me-2 text-primary"></i>Destinations
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_voyage_recommandations') }}">
+                            <i class="fa fa-star me-2 text-primary"></i>Recommandations
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_voyage_favoris') }}">
+                            <i class="fa fa-heart me-2 text-primary"></i>Mes Favoris
+                        </a></li>
+                    </ul>
+                </div>
+
+                {# ── Réservation & Paiement dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Réservation
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header"><i class="fa fa-calendar-check me-1"></i> Réservations</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations'}) }}">
+                            <i class="fa fa-list me-2 text-primary"></i>Mes Réservations
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations', modal: 'reservation'}) }}">
+                            <i class="fa fa-plus-circle me-2 text-primary"></i>Nouvelle Réservation
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="fa fa-credit-card me-1"></i> Paiements</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments'}) }}">
+                            <i class="fa fa-wallet me-2 text-primary"></i>Mes Paiements
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments', modal: 'payment'}) }}">
+                            <i class="fa fa-plus-circle me-2 text-primary"></i>Nouveau Paiement
+                        </a></li>
+                    </ul>
+                </div>
+
                 <a href="#" class="nav-item nav-link">Activité</a>
                 <a href="#" class="nav-item nav-link">Document</a>
                 <a href="#" class="nav-item nav-link">Services</a>
@@ -162,8 +206,8 @@
 
                             {% if is_granted('ROLE_ADMIN') %}
                             <li>
-                                <a class="dropdown-item" href="{{ path('app_dashboard') }}">
-                                    Admin
+                                <a class="dropdown-item" href="{{ path('app_admin_home') }}">
+                                    <i class="fa fa-tachometer-alt me-1"></i> Dashboard Admin
                                 </a>
                             </li>
                             {% endif %}
@@ -190,7 +234,9 @@
 {% block body %}{% endblock %}
 
 {% block javascripts %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ asset('js/main.js') }}"></script>
 
     <script>
         setTimeout(() => {

@@ -291,30 +291,30 @@ class Users implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    #[ORM\OneToMany(mappedBy: "id_user", targetEntity: Reservation::class)]
-    private Collection $reservations;
+    #[ORM\OneToMany(mappedBy: "user", targetEntity: Reservation::class)]
+private Collection $reservations;
 
     public function getReservations(): Collection
     {
         return $this->reservations;
     }
 
-    public function addReservation(Reservation $reservation): static
-    {
-        if (!$this->reservations->contains($reservation)) {
-            $this->reservations->add($reservation);
-            $reservation->setIdUser($this);
-        }
-        return $this;
+   public function addReservation(Reservation $reservation): static
+{
+    if (!$this->reservations->contains($reservation)) {
+        $this->reservations->add($reservation);
+        $reservation->setUser($this); // was setIdUser()
     }
+    return $this;
+}
 
-    public function removeReservation(Reservation $reservation): static
-    {
-        if ($this->reservations->removeElement($reservation)) {
-            if ($reservation->getIdUser() === $this) {
-                $reservation->setIdUser(null);
-            }
+public function removeReservation(Reservation $reservation): static
+{
+    if ($this->reservations->removeElement($reservation)) {
+        if ($reservation->getUser() === $this) { // was getIdUser()
+            $reservation->setUser(null);
         }
-        return $this;
     }
+    return $this;
+}
 }

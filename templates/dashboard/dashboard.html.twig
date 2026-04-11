@@ -224,16 +224,15 @@
 
                 <div class="nav-label">Autres Modules</div>
 
-                <span class="nav-item-soon">
-                    <i class="fas fa-calendar-check nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Réservations <span class="badge-soon">bientôt</span>
-                </span>
-
-                <span class="nav-item-soon">
-                    <i class="fas fa-wallet nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Dépenses <span class="badge-soon">bientôt</span>
-                </span>
-
+                 <div class="nav-label">Gestion Réservation & Paiement</div>
+<a href="{{ path('app_admin', {tab: 'reservations'}) }}"
+   class="nav-item {{ app.request.get('_route') == 'app_admin' and app.request.query.get('tab') == 'reservations' ? 'active' }}">
+    <i class="fas fa-calendar-check nav-icon"></i> Réservations
+</a>
+<a href="{{ path('app_admin', {tab: 'payments'}) }}"
+   class="nav-item {{ app.request.get('_route') == 'app_admin' and app.request.query.get('tab') == 'payments' ? 'active' }}">
+    <i class="fas fa-credit-card nav-icon"></i> Paiements
+</a>
                 <span class="nav-item-soon">
                     <i class="fas fa-hiking nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
                     Activités <span class="badge-soon">bientôt</span>
@@ -248,7 +247,10 @@
                     <i class="fas fa-file-alt nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
                     Documents <span class="badge-soon">bientôt</span>
                 </span>
-
+ <span class="nav-item-soon">
+                    <i class="fas fa-concierge-bell nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
+                    depense <span class="badge-soon">bientôt</span>
+                </span>
                 <div class="nav-label">Exports</div>
 
                 <a href="{{ path('users_export_csv') }}" class="nav-item export-csv">

@@ -1,30 +1,63 @@
-<div class="modal{% if openModal == 'payment' %} is-open{% endif %}" id="payment-modal" aria-hidden="{{ openModal == 'payment' ? 'false' : 'true' }}">
-    <a class="modal__backdrop" href="{{ path('app_dashboard', {view: 'payments'}) }}"></a>
-    <div class="modal__dialog">
-        <div class="modal__header">
-            <div class="modal__title">
-                <span class="modal__icon"><i data-lucide="wallet"></i></span>
-                <div>
-                    <h3>Effectuer un paiement</h3>
-                    <p>Enregistrez un paiement ou mettez a jour son statut.</p>
+<div class="modal fade" id="payment-modal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white rounded-top-3">
+                <h5 class="modal-title fw-bold" id="paymentModalLabel">
+                    <i class="fa fa-credit-card me-2"></i>Nouveau Paiement
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <form method="post" action="{{ path('app_payment_create') }}">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Référence</label>
+                            <input type="text" name="reference" class="form-control rounded-pill" placeholder="PAY-009" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Montant</label>
+                            <input type="number" name="montant" min="0" step="0.01" class="form-control rounded-pill" placeholder="1200" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Devise</label>
+                            <select name="devise" class="form-select rounded-pill" required>
+                                <option value="TND">TND</option>
+                                <option value="EUR">EUR</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Méthode</label>
+                            <select name="methode" class="form-select rounded-pill" required>
+                                <option value="Carte">Carte</option>
+                                <option value="Virement">Virement</option>
+                                <option value="Especes">Espèces</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Statut</label>
+                            <select name="statut" class="form-select rounded-pill" required>
+                                <option value="paye">Payé</option>
+                                <option value="En attente">En attente</option>
+                                <option value="Rembourse">Remboursé</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Numéro de Réservation</label>
+                            <input type="number" name="id_reservation" class="form-control rounded-pill" placeholder="102" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Date de Paiement</label>
+                            <input type="date" name="date_paiement" class="form-control rounded-pill" required>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <a href="{{ path('app_dashboard', {view: 'payments'}) }}" class="icon-button icon-button--light"><i data-lucide="x"></i></a>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fa fa-save me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
         </div>
-        <form class="modal__body" method="post" action="{{ path('app_payment_create') }}">
-            <div class="form-grid">
-                <label class="field-block"><span>Reference</span><input type="text" name="reference" placeholder="PAY-009" required></label>
-                <label class="field-block"><span>Montant</span><input type="number" name="montant" min="0" step="0.01" placeholder="1200" required></label>
-                <label class="field-block"><span>Devise</span><select name="devise" required><option value="TND">TND</option><option value="EUR">EUR</option></select></label>
-                <label class="field-block"><span>Methode</span><select name="methode" required><option value="Carte">Carte</option><option value="Virement">Virement</option><option value="Especes">Especes</option></select></label>
-                <label class="field-block"><span>Statut</span><select name="statut" required><option value="paye">paye</option><option value="En attente">En attente</option><option value="Rembourse">Rembourse</option></select></label>
-                <label class="field-block"><span>Numero de Reservation</span><input type="number" name="id_reservation" placeholder="102" required></label>
-                <label class="field-block field-block--full"><span>Date</span><input type="date" name="date_paiement" required></label>
-            </div>
-            <div class="modal__actions">
-                <a class="button button--outline-dark" href="{{ path('app_dashboard', {view: 'payments'}) }}">Annuler</a>
-                <button class="button button--primary" type="submit">Enregistrer</button>
-            </div>
-        </form>
     </div>
 </div>

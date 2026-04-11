@@ -1,46 +1,77 @@
-<div class="modal{% if openModal == 'reservation' %} is-open{% endif %}" id="reservation-modal" aria-hidden="{{ openModal == 'reservation' ? 'false' : 'true' }}">
-    <a class="modal__backdrop" href="{{ path('app_dashboard', {view: activeView|default('reservations')}) }}"></a>
-    <div class="modal__dialog">
-        <div class="modal__header">
-            <div class="modal__title">
-                <span class="modal__icon"><i data-lucide="plane"></i></span>
-                <div>
-                    <h3>Nouvelle Reservation</h3>
-                    <p>Creez une nouvelle fiche voyage client.</p>
+<div class="modal fade" id="reservation-modal" tabindex="-1" aria-labelledby="reservationModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content rounded-3 shadow">
+            <div class="modal-header bg-primary text-white rounded-top-3">
+                <h5 class="modal-title fw-bold" id="reservationModalLabel">
+                    <i class="fa fa-plane me-2"></i>Nouvelle Réservation
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <form method="post" action="{{ path('app_reservation_create') }}">
+                <div class="modal-body p-4">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Voyage</label>
+                            <select name="voyage_id" class="form-select rounded-pill" required>
+                                <option value="" disabled selected>-- Choisir un voyage --</option>
+                                {% for voyage in voyages %}
+                                <option value="{{ voyage.id }}">
+                                    {{ voyage.titre }}{% if voyage.dateDebut %} — {{ voyage.dateDebut|date('d/m/Y') }}{% endif %}{% if voyage.prix %} ({{ voyage.prix }} TND){% endif %}
+                                </option>
+                                {% else %}
+                                <option disabled>Aucun voyage disponible</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Client ID</label>
+                            <input type="number" name="utilisateur_id" class="form-control rounded-pill" placeholder="980" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date du voyage</label>
+                            <input type="date" name="date_reservation" class="form-control rounded-pill" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Nb Personnes</label>
+                            <input type="number" name="nb_personnes" min="1" class="form-control rounded-pill" placeholder="2" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Prix Total (TND)</label>
+                            <input type="number" name="prix_total" min="0" step="0.01" class="form-control rounded-pill" placeholder="1200" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Type</label>
+                            <select name="type" class="form-select rounded-pill" required>
+                                <option value="Hotel">Hôtel</option>
+                                <option value="Plage">Plage</option>
+                                <option value="Safari">Safari</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Statut</label>
+                            <select name="statut" class="form-select rounded-pill" required>
+                                <option value="En attente">En attente</option>
+                                <option value="Confirmée">Confirmée</option>
+                                <option value="Annulée">Annulée</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Lieu</label>
+                            <input type="text" name="lieu" class="form-control rounded-pill" placeholder="Destination ou lieu du séjour" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold">Description</label>
+                            <textarea name="description" class="form-control" rows="4" placeholder="Ajoutez les détails utiles de la réservation…"></textarea>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <a href="{{ path('app_dashboard', {view: activeView|default('reservations')}) }}" class="icon-button icon-button--light"><i data-lucide="x"></i></a>
+                <div class="modal-footer border-0 px-4 pb-4">
+                    <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="fa fa-save me-2"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
         </div>
-        <form class="modal__body" method="post" action="{{ path('app_reservation_create') }}">
-            <div class="form-grid">
-                <label class="field-block"><span>Voyage ID</span><input type="number" name="voyage_id" placeholder="1024" required></label>
-                <label class="field-block"><span>Client ID</span><input type="number" name="utilisateur_id" placeholder="980" required></label>
-                <label class="field-block"><span>Date du voyage</span><input type="date" name="date_reservation" required></label>
-                <label class="field-block"><span>Nb Personnes</span><input type="number" name="nb_personnes" min="1" placeholder="2" required></label>
-                <label class="field-block"><span>Prix Total (TND)</span><input type="number" name="prix_total" min="0" step="0.01" placeholder="1200" required></label>
-                <label class="field-block">
-                    <span>Type</span>
-                    <select name="type" required>
-                        <option value="Hotel">Hotel</option>
-                        <option value="Plage">Plage</option>
-                        <option value="Safari">Safari</option>
-                    </select>
-                </label>
-                <label class="field-block">
-                    <span>Statut</span>
-                    <select name="statut" required>
-                        <option value="En attente">En attente</option>
-                        <option value="Confirmée">Confirmée</option>
-                        <option value="Annulée">Annulée</option>
-                    </select>
-                </label>
-                <label class="field-block field-block--full"><span>Lieu</span><input type="text" name="lieu" placeholder="Destination ou lieu du sejour" required></label>
-                <label class="field-block field-block--full"><span>Description</span><textarea name="description" rows="5" placeholder="Ajoutez les details utiles de la reservation..."></textarea></label>
-            </div>
-            <div class="modal__actions">
-                <a class="button button--outline-dark" href="{{ path('app_dashboard', {view: activeView|default('reservations')}) }}">Annuler</a>
-                <button class="button button--primary" type="submit">Enregistrer</button>
-            </div>
-        </form>
     </div>
 </div>

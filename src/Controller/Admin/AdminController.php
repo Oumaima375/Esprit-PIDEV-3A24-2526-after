@@ -13,7 +13,7 @@ class AdminController extends AbstractController
  $allVoyages = $voyageRepo->findAll();
  $totalRevenue = 0;
  $totalPlaces = 0;
-foreach ($allVoyages as $v) { $totalPlaces += $v->getNb_places(); }
+foreach ($allVoyages as $v) { $totalPlaces += $v->getNbPlaces(); }
  foreach ($allVoyages as $v) { $totalRevenue += $v->getPrix(); }
  $prixMoyen = count($allVoyages) > 0 ? round($totalRevenue / count($allVoyages)) : 0;
  // Voyages par destination (stats)

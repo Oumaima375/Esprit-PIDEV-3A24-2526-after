@@ -106,14 +106,60 @@ class Paiement
         return $this;
     }
 
-    public function getDatePaiement(): \DateTimeInterface
+    /**
+     * Returns the raw DateTimeInterface (for Doctrine / Twig date filter).
+     */
+    public function getDatePaiementObject(): \DateTimeInterface
     {
         return $this->datePaiement;
+    }
+
+    /**
+     * Returns a Y-m-d string — used by AdminController implode() comparisons.
+     */
+    public function getDatePaiement(): string
+    {
+        return isset($this->datePaiement) ? $this->datePaiement->format('Y-m-d') : '';
     }
 
     public function setDatePaiement(\DateTimeInterface $datePaiement): self
     {
         $this->datePaiement = $datePaiement;
         return $this;
+    }
+
+    public function getReservationId(): int
+    {
+        return $this->reservation?->getId() ?? 0;
+    }
+
+    public function getReservationLieu(): ?string
+    {
+        return $this->reservation?->getLieu();
+    }
+
+    public function getDatePaiementFormatted(): string
+    {
+        return isset($this->datePaiement) ? $this->datePaiement->format('Y-m-d') : '';
+    }
+
+    public function getAmount(): string
+    {
+        return number_format($this->montant, 2, ',', ' ') . ' ' . $this->devise;
+    }
+
+    public function getStatus(): string
+    {
+        return $this->statut;
+    }
+
+    public function getRef(): string
+    {
+        return $this->reference;
+    }
+
+    public function getTrip(): string
+    {
+        return $this->reservation?->getDestination() ?? 'Reservation #' . $this->getReservationId();
     }
 }

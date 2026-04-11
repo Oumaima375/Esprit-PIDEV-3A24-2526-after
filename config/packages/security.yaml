@@ -23,7 +23,9 @@ security:
                 password_parameter: _password
                 csrf_parameter: _csrf_token
                 csrf_token_id: authenticate
-                default_target_path: app_dashboard
+                # After login, redirect to LoginController which handles role-based routing
+                default_target_path: app_login
+                always_use_default_target_path: true
             logout:
                 path: /logout
                 target: app_login
@@ -37,7 +39,8 @@ security:
         - { path: ^/css/, roles: PUBLIC_ACCESS }
         - { path: ^/js/, roles: PUBLIC_ACCESS }
         - { path: ^/uploads/, roles: PUBLIC_ACCESS }
-        - { path: ^/dashboard, roles: ROLE_USER }
+        - { path: ^/mes-reservations, roles: ROLE_USER }
+        - { path: ^/admin-home, roles: ROLE_ADMIN }
         - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/user, roles: ROLE_ADMIN }
         - { path: ^/users/, roles: ROLE_ADMIN }
