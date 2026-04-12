@@ -34,7 +34,21 @@
                 <a href="{{ path('app_voyage_favoris') }}" class="nav-item nav-link">❤ Favoris</a>
                 <a href="{{ path('app_voyage_recommandations') }}" class="nav-item nav-link">Recommandations</a>
                 <a href="{{ path('app_voyage_recommandations_ia') }}" class="nav-item nav-link">🤖 IA</a>
-                <a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
+                <div class="nav-item dropdown">
+    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Services</a>
+    <div class="dropdown-menu m-0">
+        <a href="{{ path('app_service_index') }}" class="dropdown-item">Liste des Services</a>
+        <a href="{{ path('app_service_new') }}" class="dropdown-item">Ajouter un Service</a>
+    </div>
+</div>
+<div class="nav-item dropdown">
+    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">Offres</a>
+    <div class="dropdown-menu m-0">
+        <a href="{{ path('app_offre_index') }}" class="dropdown-item">Liste des Offres</a>
+        <a href="{{ path('app_offre_new') }}" class="dropdown-item">Ajouter une Offre</a>
+    </div>
+</div>
+<a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
             </div>
             
         </div>

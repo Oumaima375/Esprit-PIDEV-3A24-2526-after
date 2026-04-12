@@ -1,96 +1,54 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
-use App\Entity\Offre;
+use Doctrine\Common\Collections\ArrayCollection;
+use Symfony\Component\Validator\Constraints as Assert;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 #[ORM\Entity]
+#[UniqueEntity(fields: ['titre'], message: 'Un service avec ce titre existe déjà.')]
 class Service
 {
-
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private int $id_service;
+    private ?int $id = null;
 
-    #[ORM\Column(type: "string", length: 100)]
-    private string $nom_service;
+    #[ORM\Column(type: "string", length: 255, unique: true)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le titre doit avoir au moins 3 caractères.', maxMessage: 'Le titre ne peut pas dépasser 255 caractères.')]
+    private ?string $titre = null;
 
-    #[ORM\Column(type: "string", length: 255)]
-    private string $description;
+    #[ORM\Column(type: "text")]
+    #[Assert\NotBlank(message: 'La description est obligatoire.')]
+    #[Assert\Length(max: 1000, maxMessage: 'La description ne peut pas dépasser 1000 caractères.')]
+    private ?string $description = null;
 
-    #[ORM\Column(type: "string", length: 100)]
-    private string $categorie;
+    #[ORM\Column(type: "datetime")]
+    private \DateTimeInterface $createdAt;
 
-    public function getId_service()
-    {
-        return $this->id_service;
-    }
-
-    public function setId_service($value)
-    {
-        $this->id_service = $value;
-    }
-
-    public function getNom_service()
-    {
-        return $this->nom_service;
-    }
-
-    public function setNom_service($value)
-    {
-        $this->nom_service = $value;
-    }
-
-    public function getDescription()
-    {
-        return $this->description;
-    }
-
-    public function setDescription($value)
-    {
-        $this->description = $value;
-    }
-
-    public function getCategorie()
-    {
-        return $this->categorie;
-    }
-
-    public function setCategorie($value)
-    {
-        $this->categorie = $value;
-    }
-
-    #[ORM\OneToMany(mappedBy: "id_service", targetEntity: Offre::class)]
+    #[ORM\OneToMany(mappedBy: "service", targetEntity: Offre::class)]
     private Collection $offres;
 
-        public function getOffres(): Collection
-        {
-            return $this->offres;
-        }
-    
-        public function addOffre(Offre $offre): self
-        {
-            if (!$this->offres->contains($offre)) {
-                $this->offres[] = $offre;
-                $offre->setId_service($this);
-            }
-    
-            return $this;
-        }
-    
-        public function removeOffre(Offre $offre): self
-        {
-            if ($this->offres->removeElement($offre)) {
-                // set the owning side to null (unless already changed)
-                if ($offre->getId_service() === $this) {
-                    $offre->setId_service(null);
-                }
-            }
-    
-            return $this;
-        }
+    public function __construct()
+    {
+        $this->offres = new ArrayCollection();
+        $this->createdAt = new \DateTime();
+    }
+
+    public function getId(): ?int { return $this->id; }
+
+    public function getTitre(): ?string { return $this->titre; }
+    public function setTitre(string $titre): static { $this->titre = $titre; return $this; }
+
+    public function getDescription(): ?string { return $this->description; }
+    public function setDescription(string $description): static { $this->description = $description; return $this; }
+
+    public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
+
+    public function getOffres(): Collection { return $this->offres; }
+
+    public function __toString(): string { return $this->titre ?? ''; }
 }

@@ -1,0 +1,39 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Liste des Services{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Liste des Services</h1>
+    <a href="{{ path('app_service_new') }}" class="btn btn-primary mb-3">
+        Ajouter un service
+    </a>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Titre</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for service in services %}
+            <tr>
+                <td>{{ service.id }}</td>
+                <td>{{ service.titre }}</td>
+                <td>{{ service.description }}</td>
+                <td>
+                    <a href="{{ path('app_service_show', {'id': service.id}) }}" class="btn btn-sm btn-info">Voir</a>
+                    <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="4">Aucun service trouvé</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

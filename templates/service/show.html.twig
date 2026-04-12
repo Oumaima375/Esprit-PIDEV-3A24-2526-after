@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Service — {{ service.titre }}{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>{{ service.titre }}</h1>
+    <table class="table table-bordered">
+        <tr>
+            <th>ID</th>
+            <td>{{ service.id }}</td>
+        </tr>
+        <tr>
+            <th>Titre</th>
+            <td>{{ service.titre }}</td>
+        </tr>
+        <tr>
+            <th>Description</th>
+            <td>{{ service.description }}</td>
+        </tr>
+    </table>
+
+    <h3>Offres liées</h3>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Titre</th>
+                <th>Prix</th>
+                <th>Durée</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for offre in service.offres %}
+            <tr>
+                <td>{{ offre.titre }}</td>
+                <td>{{ offre.prix }} €</td>
+                <td>{{ offre.duree }} jours</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="3">Aucune offre liée</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-warning">Modifier</a>
+    <a href="{{ path('app_service_index') }}" class="btn btn-secondary">Retour</a>
+</div>
+{% endblock %}

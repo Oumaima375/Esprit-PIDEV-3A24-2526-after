@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Service{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Modifier le service</h1>
+    {{ form_start(form) }}
+    {{ form_widget(form) }}
+    <button type="submit" class="btn btn-warning mt-3">Modifier</button>
+    <a href="{{ path('app_service_index') }}" class="btn btn-secondary mt-3">Annuler</a>
+    {{ form_end(form) }}
+
+    <hr>
+    {{ include('service/_delete_form.html.twig') }}
+</div>
+{% endblock %}

@@ -1,79 +1,61 @@
 <?php
-
 namespace App\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-
-use App\Entity\Service;
+use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity]
 class Offre
 {
-
     #[ORM\Id]
+    #[ORM\GeneratedValue]
     #[ORM\Column(type: "integer")]
-    private int $id_offre;
+    private ?int $id = null;
 
-    #[ORM\Column(type: "string", length: 100)]
-    private string $titre;
+    #[ORM\Column(type: "string", length: 255)]
+    #[Assert\NotBlank(message: 'Le titre est obligatoire.')]
+    #[Assert\Length(min: 3, max: 255, minMessage: 'Le titre doit avoir au moins 3 caractères.')]
+    private ?string $titre = null;
 
     #[ORM\Column(type: "float")]
-    private float $prix;
+    #[Assert\NotBlank(message: 'Le prix est obligatoire.')]
+    #[Assert\PositiveOrZero(message: 'Le prix doit être positif.')]
+    #[Assert\GreaterThanOrEqual(value: 10, message: 'Le prix minimum est 10 €.')]
+    private ?float $prix = null;
 
     #[ORM\Column(type: "integer")]
-    private int $duree;
+    #[Assert\NotBlank(message: 'La durée est obligatoire.')]
+    #[Assert\PositiveOrZero(message: 'La durée ne peut pas être négative.')]
+    private ?int $duree = null;
 
-        #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: "offres")]
-    #[ORM\JoinColumn(name: 'id_service', referencedColumnName: 'id_service', onDelete: 'CASCADE')]
-    private Service $id_service;
+    #[ORM\Column(type: "datetime")]
+    private \DateTimeInterface $createdAt;
 
-    public function getId_offre()
+    #[ORM\ManyToOne(targetEntity: Service::class, inversedBy: "offres")]
+    #[ORM\JoinColumn(nullable: false)]
+    #[Assert\NotNull(message: 'Veuillez choisir un service.')]
+    private ?Service $service = null;
+
+    public function __construct()
     {
-        return $this->id_offre;
+        $this->createdAt = new \DateTime();
     }
 
-    public function setId_offre($value)
-    {
-        $this->id_offre = $value;
-    }
+    public function getId(): ?int { return $this->id; }
 
-    public function getTitre()
-    {
-        return $this->titre;
-    }
+    public function getTitre(): ?string { return $this->titre; }
+    public function setTitre(string $titre): static { $this->titre = $titre; return $this; }
 
-    public function setTitre($value)
-    {
-        $this->titre = $value;
-    }
+    public function getPrix(): ?float { return $this->prix; }
+    public function setPrix(float $prix): static { $this->prix = $prix; return $this; }
 
-    public function getPrix()
-    {
-        return $this->prix;
-    }
+    public function getDuree(): ?int { return $this->duree; }
+    public function setDuree(int $duree): static { $this->duree = $duree; return $this; }
 
-    public function setPrix($value)
-    {
-        $this->prix = $value;
-    }
+    public function getCreatedAt(): \DateTimeInterface { return $this->createdAt; }
 
-    public function getDuree()
-    {
-        return $this->duree;
-    }
+    public function getService(): ?Service { return $this->service; }
+    public function setService(?Service $service): static { $this->service = $service; return $this; }
 
-    public function setDuree($value)
-    {
-        $this->duree = $value;
-    }
-
-    public function getId_service()
-    {
-        return $this->id_service;
-    }
-
-    public function setId_service($value)
-    {
-        $this->id_service = $value;
-    }
+    public function __toString(): string { return $this->titre ?? ''; }
 }
