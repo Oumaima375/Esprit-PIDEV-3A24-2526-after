@@ -1,43 +1,61 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Liste des Offres{% endblock %}
-
+{% block title %}Nos Offres{% endblock %}
 {% block body %}
-<div class="container mt-4">
-    <h1>Liste des Offres</h1>
-    <a href="{{ path('app_offre_new') }}" class="btn btn-primary mb-3">
-        Ajouter une offre
-    </a>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Titre</th>
-                <th>Prix (€)</th>
-                <th>Durée (jours)</th>
-                <th>Service</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+<div class="container-fluid page-header py-5 mb-5">
+    <h1 class="text-white display-3 mb-0 animated slideInDown">Nos Offres</h1>
+</div>
+<div class="container mb-5">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <form method="get" action="{{ path('app_offre_index') }}" class="d-flex gap-2">
+                <input type="text" name="search" value="{{ app.request.get('search') }}"
+                    class="form-control" placeholder="Rechercher une offre...">
+                <select name="service_id" class="form-select" style="max-width:200px">
+                    <option value="">Tous les services</option>
+                    {% for service in services %}
+                        <option value="{{ service.id }}" {% if app.request.get('service_id') == service.id ~ '' %}selected{% endif %}>
+                            {{ service.titre }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn btn-primary">🔍</button>
+                {% if app.request.get('search') or app.request.get('service_id') %}
+                    <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">✕</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ path('app_offre_new') }}" class="btn btn-primary">➕ Ajouter une offre</a>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row g-4">
         {% for offre in offres %}
-            <tr>
-                <td>{{ offre.id }}</td>
-                <td>{{ offre.titre }}</td>
-                <td>{{ offre.prix }}</td>
-                <td>{{ offre.duree }}</td>
-                <td>{{ offre.service.titre }}</td>
-                <td>
-                    <a href="{{ path('app_offre_show', {'id': offre.id}) }}" class="btn btn-sm btn-info">Voir</a>
-                    <a href="{{ path('app_offre_edit', {'id': offre.id}) }}" class="btn btn-sm btn-warning">Modifier</a>
-                </td>
-            </tr>
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header text-white" style="background-color: #1a3a6e;">
+                    <h5 class="mb-0">{{ offre.titre }}</h5>
+                </div>
+                <div class="card-body">
+                    <p><strong>Prix :</strong> {{ offre.prix }} €</p>
+                    <p><strong>Durée :</strong> {{ offre.duree }} jours</p>
+                    <p><strong>Service :</strong> <span class="badge bg-primary">{{ offre.service.titre }}</span></p>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2">
+                    <a href="{{ path('app_offre_show', {'id': offre.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                    <a href="{{ path('app_offre_edit', {'id': offre.id}) }}" class="btn btn-sm btn-outline-warning">Modifier</a>
+                </div>
+            </div>
+        </div>
         {% else %}
-            <tr>
-                <td colspan="6">Aucune offre trouvée</td>
-            </tr>
+        <div class="col-12 text-center py-5">
+            <h4 class="text-muted">Aucune offre trouvée</h4>
+        </div>
         {% endfor %}
-        </tbody>
-    </table>
+    </div>
 </div>
 {% endblock %}

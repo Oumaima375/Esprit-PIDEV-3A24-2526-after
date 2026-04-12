@@ -2,6 +2,7 @@
 namespace App\Controller;
 
 use App\Entity\Offre;
+use App\Entity\Service;
 use App\Form\OffreType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,11 +14,29 @@ use Symfony\Component\Routing\Annotation\Route;
 class OffreController extends AbstractController
 {
     #[Route('/', name: 'app_offre_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): Response
+    public function index(Request $request, EntityManagerInterface $em): Response
     {
-        $offres = $em->getRepository(Offre::class)->findAll();
+        $search = $request->query->get('search', '');
+        $serviceId = $request->query->get('service_id', '');
+
+        $qb = $em->getRepository(Offre::class)->createQueryBuilder('o');
+
+        if ($search) {
+            $qb->andWhere('o.titre LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+
+        if ($serviceId) {
+            $qb->andWhere('o.service = :service')
+               ->setParameter('service', $serviceId);
+        }
+
+        $offres = $qb->getQuery()->getResult();
+        $services = $em->getRepository(Service::class)->findAll();
+
         return $this->render('offre/index.html.twig', [
             'offres' => $offres,
+            'services' => $services,
         ]);
     }
 

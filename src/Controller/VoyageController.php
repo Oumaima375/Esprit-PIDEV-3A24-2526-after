@@ -271,7 +271,7 @@ public function recommandationsIA(Request $request, VoyageRepository $voyageRepo
             $client = \Symfony\Component\HttpClient\HttpClient::create();
             $response = $client->request('POST', 'https://api.groq.com/openai/v1/chat/completions', [
                 'headers' => [
-                    'Authorization' => 'Bearer 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',
+                    'Authorization' => 'api_key',
                     'Content-Type' => 'application/json',
                 ],
                 'json' => [

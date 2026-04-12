@@ -13,9 +13,19 @@ use Symfony\Component\Routing\Annotation\Route;
 class ServiceController extends AbstractController
 {
     #[Route('/', name: 'app_service_index', methods: ['GET'])]
-    public function index(EntityManagerInterface $em): Response
+    public function index(Request $request, EntityManagerInterface $em): Response
     {
-        $services = $em->getRepository(Service::class)->findAll();
+        $search = $request->query->get('search', '');
+        
+        $qb = $em->getRepository(Service::class)->createQueryBuilder('s');
+        
+        if ($search) {
+            $qb->where('s.titre LIKE :search OR s.description LIKE :search')
+               ->setParameter('search', '%' . $search . '%');
+        }
+        
+        $services = $qb->getQuery()->getResult();
+        
         return $this->render('service/index.html.twig', [
             'services' => $services,
         ]);
@@ -69,6 +79,11 @@ class ServiceController extends AbstractController
     #[Route('/{id}/delete', name: 'app_service_delete', methods: ['POST'])]
     public function delete(Request $request, Service $service, EntityManagerInterface $em): Response
     {
+        if ($service->getOffres()->count() > 0) {
+            $this->addFlash('error', 'Impossible de supprimer ce service car il contient des offres !');
+            return $this->redirectToRoute('app_service_index');
+        }
+
         if ($this->isCsrfTokenValid('delete'.$service->getId(), $request->request->get('_token'))) {
             $em->remove($service);
             $em->flush();
