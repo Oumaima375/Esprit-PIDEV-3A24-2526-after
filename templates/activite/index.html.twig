@@ -12,33 +12,18 @@
 </div>
 <!-- Spinner End -->
 
-
-
 <!-- Header Start -->
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
         <h3 class="text-white display-3 mb-4">Nos Activités</h3>
-        <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
-            <li class="breadcrumb-item active text-white">Activités</li>
-        </ol>
+         <p class="text-white fs-5">Explorez nos activités et créez des souvenirs uniques </p>
     </div>
-    <div class="container d-flex justify-content-center my-3">
-        <a href="{{ path('app_planning') }}" class="btn btn-primary rounded-pill py-2 px-4">
-            <i class="fa fa-calendar-alt me-2"></i>Planning
-        </a>
-    </div>
-    <div class="container my-4 text-center">
-        <div class="card shadow p-4 border-0 rounded">
-            <h4 class="mb-3">Scanner pour voir la liste des activités</h4>
-            <img src="{{ path('app_activite_qr') }}" alt="QR Code" width="200" class="img-fluid">
-            <p class="mt-3 text-muted">Utilisez votre téléphone pour accéder rapidement aux activités 📱</p>
-        </div>
-    </div>
+   
+  
 </div>
 <!-- Header End -->
 
-<!-- MODAL -->
+<!-- MODAL DESCRIPTION -->
 <div class="modal fade" id="activiteModal" tabindex="-1" aria-labelledby="activiteModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content rounded-4 shadow">
@@ -77,6 +62,58 @@
     </div>
 </div>
 
+<!-- MODAL CALENDRIER -->
+<div class="modal fade" id="calendarModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 520px;">
+        <div class="modal-content rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold">📅 <span id="cal-titre"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body px-4 pb-4">
+                <div class="d-flex gap-3 mb-3">
+                    <span><span style="background:#3b82f6;color:white;padding:2px 10px;border-radius:20px;">●</span> Disponible</span>
+                    <span><span style="background:#ef4444;color:white;padding:2px 10px;border-radius:20px;">●</span> Réservé</span>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <button id="cal-prev" class="btn btn-sm btn-outline-secondary rounded-pill px-3">← Préc</button>
+                    <strong id="cal-month-label" style="font-size:1rem;"></strong>
+                    <button id="cal-next" class="btn btn-sm btn-outline-secondary rounded-pill px-3">Suiv →</button>
+                </div>
+                <div style="display:grid; grid-template-columns: repeat(7,1fr); gap:4px; margin-bottom:4px;">
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Lun</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Mar</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Mer</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Jeu</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Ven</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Sam</div>
+                    <div style="text-align:center;font-size:0.75rem;font-weight:600;color:#888;">Dim</div>
+                </div>
+                <div id="cal-grid" style="display:grid; grid-template-columns: repeat(7,1fr); gap:4px;"></div>
+                <div id="no-dates-msg" style="display:none;" class="alert alert-warning mt-3">
+                    ⚠️ Aucun planning pour cette activité.
+                </div>
+                <div id="reservation-form" style="display:none;" class="mt-3">
+                    <hr>
+                    <h6 class="fw-bold mb-3">✍️ Réserver le <span id="selected-date-label" class="text-primary"></span></h6>
+                    <div class="mb-2">
+                        <input type="text" id="res-nom" class="form-control" placeholder="Nom">
+                    </div>
+                    <div class="mb-3">
+                        <input type="text" id="res-prenom" class="form-control" placeholder="Prénom">
+                    </div>
+                    <button id="btn-confirmer" class="btn btn-success rounded-pill px-4">✅ Confirmer</button>
+                    <button class="btn btn-outline-secondary rounded-pill px-4 ms-2"
+                            onclick="document.getElementById('reservation-form').style.display='none'">Annuler</button>
+                </div>
+                <div id="reservation-success" style="display:none;" class="alert alert-success mt-3">
+                    🎉 Réservation confirmée avec succès !
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Activités Start -->
 <div class="container-fluid blog py-5">
     <div class="container py-5">
@@ -104,13 +141,30 @@
             <div id="activite-tbody-all" style="display: contents;">
                 {% for activite in activites %}
                     <div class="col-lg-4 col-md-6">
-                        {# La carte — sans onclick, on gère ça en JS proprement #}
                         <div class="blog-item activite-card"
                              data-id="{{ activite.idActivite }}"
                              data-nom="{{ activite.nom }}"
                              data-categorie="{{ activite.categorie ?? '' }}"
                              data-lieu="{{ activite.lieu ?? '' }}"
                              data-description="{{ activite.description ?? '' }}">
+
+                            <div style="position:relative;">
+                                {% if activite.image %}
+                                    <img src="{{ asset('uploads/activites/' ~ activite.image) }}"
+                                         alt="{{ activite.nom }}"
+                                         style="width:100%; height:200px; object-fit:cover; border-radius:12px 12px 0 0;">
+                                {% else %}
+                                    <img src="{{ asset('img/blog-1.jpg') }}"
+                                         alt="Image par défaut"
+                                         style="width:100%; height:200px; object-fit:cover; border-radius:12px 12px 0 0;">
+                                {% endif %}
+                                <span class="disponibilite-indicator"
+                                      data-id="{{ activite.idActivite }}"
+                                      style="position:absolute; top:10px; right:10px;
+                                             width:16px; height:16px; border-radius:50%;
+                                             background:#ccc; border:2px solid white; display:inline-block;"
+                                      title="Chargement..."></span>
+                            </div>
 
                             <div class="blog-content border rounded p-4 h-100 transition-card">
 
@@ -135,68 +189,49 @@
                                     <div class="zone-interactive mb-3">
                                         <small class="text-muted">💱 Convertir en :</small>
                                         <div class="d-flex gap-1 flex-wrap mt-1">
-                                            <button class="btn btn-xs btn-outline-primary btn-convert"
-                                                    data-id="{{ activite.idActivite }}"
-                                                    data-prix="{{ activite.prix }}"
-                                                    data-devise="EUR">💶 EUR</button>
-                                            <button class="btn btn-xs btn-outline-primary btn-convert"
-                                                    data-id="{{ activite.idActivite }}"
-                                                    data-prix="{{ activite.prix }}"
-                                                    data-devise="USD">💵 USD</button>
-                                            <button class="btn btn-xs btn-outline-primary btn-convert"
-                                                    data-id="{{ activite.idActivite }}"
-                                                    data-prix="{{ activite.prix }}"
-                                                    data-devise="GBP">💷 GBP</button>
-                                            <button class="btn btn-xs btn-outline-primary btn-convert"
-                                                    data-id="{{ activite.idActivite }}"
-                                                    data-prix="{{ activite.prix }}"
-                                                    data-devise="TND">🔄 TND</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert" data-id="{{ activite.idActivite }}" data-prix="{{ activite.prix }}" data-devise="EUR">💶 EUR</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert" data-id="{{ activite.idActivite }}" data-prix="{{ activite.prix }}" data-devise="USD">💵 USD</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert" data-id="{{ activite.idActivite }}" data-prix="{{ activite.prix }}" data-devise="GBP">💷 GBP</button>
+                                            <button class="btn btn-xs btn-outline-primary btn-convert" data-id="{{ activite.idActivite }}" data-prix="{{ activite.prix }}" data-devise="TND">🔄 TND</button>
                                         </div>
                                     </div>
                                 {% endif %}
 
                                 <p class="text-muted small mb-3">
-                                    <i class="fa fa-info-circle me-1"></i>
-                                    Cliquez pour voir la description
+                                    <i class="fa fa-info-circle me-1"></i>Cliquez pour voir la description
                                 </p>
 
-                                {# ══ LIKE / DISLIKE ══ #}
                                 <div class="zone-interactive d-flex align-items-center gap-3 mb-3">
-                                    <button class="btn-reaction btn-like"
-                                            data-id="{{ activite.idActivite }}"
-                                            type="button">
+                                    <button class="btn-reaction btn-like" data-id="{{ activite.idActivite }}" type="button">
                                         👍 <span class="reaction-count like-count-{{ activite.idActivite }}">0</span>
                                     </button>
-                                    <button class="btn-reaction btn-dislike"
-                                            data-id="{{ activite.idActivite }}"
-                                            type="button">
+                                    <button class="btn-reaction btn-dislike" data-id="{{ activite.idActivite }}" type="button">
                                         👎 <span class="reaction-count dislike-count-{{ activite.idActivite }}">0</span>
                                     </button>
                                 </div>
 
-                                {# ══ PARTAGE SOCIAL ══ #}
                                 <div class="zone-interactive d-flex align-items-center gap-2 mb-3">
                                     <small class="text-muted">Partager :</small>
-                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ (app.request.schemeAndHttpHost ~ path('app_activite'))|url_encode }}&quote={{ (activite.nom ~ ' - ' ~ activite.lieu ~ ' - ' ~ activite.prix ~ ' TND')|url_encode }}"
-                                       target="_blank" class="btn-social btn-facebook">
-                                        <i class="fab fa-facebook-f"></i>
-                                    </a>
-                                    <a href="https://www.instagram.com/"
-                                       target="_blank" class="btn-social btn-instagram">
-                                        <i class="fab fa-instagram"></i>
-                                    </a>
-                                    <a href="https://api.whatsapp.com/send?text={{ ('🏃 ' ~ activite.nom ~ ' 📍 ' ~ activite.lieu ~ ' 💰 ' ~ activite.prix ~ ' TND - After Travel!')|url_encode }}"
-                                       target="_blank" class="btn-social btn-whatsapp">
-                                        <i class="fab fa-whatsapp"></i>
-                                    </a>
+                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ (app.request.schemeAndHttpHost ~ path('app_activite'))|url_encode }}&quote={{ (activite.nom ~ ' - ' ~ activite.lieu ~ ' - ' ~ activite.prix ~ ' TND')|url_encode }}" target="_blank" class="btn-social btn-facebook"><i class="fab fa-facebook-f"></i></a>
+                                    <a href="https://www.instagram.com/" target="_blank" class="btn-social btn-instagram"><i class="fab fa-instagram"></i></a>
+                                    <a href="https://api.whatsapp.com/send?text={{ ('🏃 ' ~ activite.nom ~ ' 📍 ' ~ activite.lieu ~ ' 💰 ' ~ activite.prix ~ ' TND - After Travel!')|url_encode }}" target="_blank" class="btn-social btn-whatsapp"><i class="fab fa-whatsapp"></i></a>
                                 </div>
 
-                                {# ══ BOUTON PDF ══ #}
-                                <div class="zone-interactive d-flex gap-2 flex-wrap">
-                                    <a href="{{ path('app_activite_pdf', {'id': activite.idActivite}) }}"
-                                       class="btn btn-sm btn-success" target="_blank">
+                                <div class="zone-interactive d-flex gap-2 flex-wrap align-items-center">
+                                    <a href="{{ path('app_activite_pdf', {'id': activite.idActivite}) }}" class="btn btn-sm btn-success" target="_blank">
                                         <i class="fa fa-file-pdf"></i> PDF
                                     </a>
+                                    <a href="{{ path('app_avis_liste', {id: activite.idActivite}) }}" class="btn btn-outline-info rounded-pill btn-sm">
+                                        💬 Voir les avis
+                                        {% if activite.avis|length > 0 %}
+                                            <span class="badge bg-info ms-1">{{ activite.avis|length }}</span>
+                                        {% endif %}
+                                    </a>
+                                    <button class="btn btn-outline-primary rounded-pill btn-sm btn-calendar"
+                                            data-id="{{ activite.idActivite }}"
+                                            data-nom="{{ activite.nom }}">
+                                        📅 Réserver
+                                    </button>
                                 </div>
 
                             </div>
@@ -208,12 +243,10 @@
                     </div>
                 {% endfor %}
             </div>
-
             <div id="activite-tbody-search" class="row g-4 justify-content-center"></div>
         </div>
     </div>
 </div>
-
 
 {% endblock %}
 
@@ -221,61 +254,68 @@
 {{ parent() }}
 <style>
 .btn-xs { padding: 2px 8px; font-size: 0.75rem; border-radius: 20px; }
-
 .transition-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
-.activite-card:hover .transition-card {
-    transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
-}
+.activite-card:hover .transition-card { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important; }
 .activite-card { cursor: pointer; }
-
-/* Like / Dislike */
-.btn-reaction {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    background: #f8f9fa;
-    border: 1.5px solid #dee2e6;
-    border-radius: 20px;
-    padding: 4px 14px;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    color: #555;
-    outline: none;
-}
-.btn-reaction:hover     { border-color: #adb5bd; background: #e9ecef; }
-.btn-like.active        { background: #d4edda; border-color: #28a745; color: #28a745; font-weight: 700; }
-.btn-dislike.active     { background: #f8d7da; border-color: #dc3545; color: #dc3545; font-weight: 700; }
-.reaction-count         { font-size: 0.85rem; font-weight: 600; min-width: 18px; text-align: center; }
-
-/* Social */
-.btn-social {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    font-size: 0.85rem;
-    color: #fff !important;
-    text-decoration: none;
-    transition: transform 0.2s;
-}
-.btn-social:hover   { transform: scale(1.18); }
-.btn-facebook       { background: #1877F2; }
-.btn-instagram      { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
-.btn-whatsapp       { background: #25D366; }
+.btn-reaction { display: inline-flex; align-items: center; gap: 5px; background: #f8f9fa; border: 1.5px solid #dee2e6; border-radius: 20px; padding: 4px 14px; font-size: 1rem; cursor: pointer; transition: all 0.2s ease; color: #555; outline: none; }
+.btn-reaction:hover { border-color: #adb5bd; background: #e9ecef; }
+.btn-like.active { background: #d4edda; border-color: #28a745; color: #28a745; font-weight: 700; }
+.btn-dislike.active { background: #f8d7da; border-color: #dc3545; color: #dc3545; font-weight: 700; }
+.reaction-count { font-size: 0.85rem; font-weight: 600; min-width: 18px; text-align: center; }
+.btn-social { display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; font-size: 0.85rem; color: #fff !important; text-decoration: none; transition: transform 0.2s; }
+.btn-social:hover { transform: scale(1.18); }
+.btn-facebook { background: #1877F2; }
+.btn-instagram { background: linear-gradient(45deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888); }
+.btn-whatsapp { background: #25D366; }
+#cal-grid div { min-height: 36px; display: flex; align-items: center; justify-content: center; }
 </style>
-
+<!-- Footer -->
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">After Travel</h4>
+                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Liens Rapides</h4>
+                <div class="d-flex flex-column">
+                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
+                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
+                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
+                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <h4 class="mb-4 text-white">Contact</h4>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="container-fluid copyright text-body py-4">
+    <div class="container text-center">
+        <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+    </div>
+</div>
 <script>
 $(document).ready(function () {
 
     var originalDescription = '';
     var tauxConversion = { 'EUR': 0.30, 'USD': 0.32, 'GBP': 0.25, 'TND': 1.00 };
+    var selectedPlanningId = null;
+    var calPlannings       = [];
+    var calCurrentDate     = new Date();
+    var urlPlannings       = '{{ path("app_activite_plannings", {"id": 0}) }}';
+    var urlReservation     = '{{ path("app_reservation_new") }}';
 
-    /* ══════════════════════════════════════
-       CHARGER REACTIONS
-    ══════════════════════════════════════ */
+    function getPlanningsUrl(id) {
+        return urlPlannings.replace('/0/', '/' + id + '/');
+    }
+
+    // ══ REACTIONS ══
     function loadReactions() {
         $('.btn-like, .btn-dislike').each(function () {
             var id = $(this).attr('data-id');
@@ -291,12 +331,152 @@ $(document).ready(function () {
     }
     loadReactions();
 
-    /* ══════════════════════════════════════
-       CLIC SUR LA CARTE → MODAL
-       (seulement si pas zone-interactive)
-    ══════════════════════════════════════ */
+    // ══ INDICATEURS ══
+    function chargerIndicateurs() {
+        $('.disponibilite-indicator').each(function () {
+            var id  = $(this).attr('data-id');
+            var dot = $(this);
+            $.ajax({
+                url: getPlanningsUrl(id),
+                type: 'GET',
+                dataType: 'json',
+                success: function (plannings) {
+                    var hasDisponible = plannings.some(function(p) { return p.disponible; });
+                    dot.css('background', hasDisponible ? '#22c55e' : '#ef4444');
+                    dot.attr('title', hasDisponible ? 'Dates disponibles' : 'Complet');
+                }
+            });
+        });
+    }
+    chargerIndicateurs();
+
+    // ══ CALENDRIER RENDER ══
+    function renderCalendar(year, month) {
+        var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin',
+                          'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+        $('#cal-month-label').text(monthNames[month] + ' ' + year);
+
+        var grid = $('#cal-grid');
+        grid.empty();
+
+        var firstDay    = new Date(year, month, 1).getDay();
+        var offset      = (firstDay === 0) ? 6 : firstDay - 1;
+        var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        for (var i = 0; i < offset; i++) {
+            grid.append('<div></div>');
+        }
+
+        for (var d = 1; d <= daysInMonth; d++) {
+            var dateStr = year + '-' +
+                String(month + 1).padStart(2, '0') + '-' +
+                String(d).padStart(2, '0');
+
+            var planning = calPlannings.find(function(p) { return p.date === dateStr; });
+
+            var cell = $('<div>').text(d).css({
+                textAlign: 'center', padding: '8px 4px',
+                borderRadius: '8px', fontSize: '0.85rem',
+                fontWeight: '500', cursor: 'default', userSelect: 'none'
+            });
+
+            if (planning) {
+                if (planning.disponible) {
+                    cell.css({ background: '#3b82f6', color: 'white', cursor: 'pointer' });
+                    cell.attr('data-date', dateStr);
+                    cell.attr('data-pid', planning.id);
+                    cell.on('click', function () {
+                        selectedPlanningId = $(this).attr('data-pid');
+                        $('#selected-date-label').text($(this).attr('data-date'));
+                        $('#reservation-form').show();
+                        $('#reservation-success').hide();
+                    });
+                } else {
+                    cell.css({ background: '#ef4444', color: 'white' });
+                }
+            } else {
+                cell.css({ background: '#f3f4f6', color: '#9ca3af' });
+            }
+
+            grid.append(cell);
+        }
+    }
+
+    // ══ OUVRIR CALENDRIER ══
+    $(document).on('click', '.btn-calendar', function (e) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+        var id  = $(this).attr('data-id');
+        var nom = $(this).attr('data-nom');
+
+        selectedPlanningId = null;
+        $('#reservation-form').hide();
+        $('#reservation-success').hide();
+        $('#no-dates-msg').hide();
+        $('#res-nom').val('');
+        $('#res-prenom').val('');
+        $('#cal-titre').text(nom);
+
+        $.ajax({
+            url: getPlanningsUrl(id),
+            type: 'GET',
+            dataType: 'json',
+            success: function (plannings) {
+                if (plannings.length === 0) {
+                    $('#no-dates-msg').show();
+                    $('#calendarModal').modal('show');
+                    return;
+                }
+                calPlannings = plannings;
+                var firstDate = new Date(plannings[0].date);
+                calCurrentDate = new Date(firstDate.getFullYear(), firstDate.getMonth(), 1);
+                renderCalendar(calCurrentDate.getFullYear(), calCurrentDate.getMonth());
+                $('#calendarModal').modal('show');
+            },
+            error: function () { alert('Erreur chargement des dates.'); }
+        });
+    });
+
+    $('#cal-prev').on('click', function () {
+        calCurrentDate.setMonth(calCurrentDate.getMonth() - 1);
+        renderCalendar(calCurrentDate.getFullYear(), calCurrentDate.getMonth());
+    });
+
+    $('#cal-next').on('click', function () {
+        calCurrentDate.setMonth(calCurrentDate.getMonth() + 1);
+        renderCalendar(calCurrentDate.getFullYear(), calCurrentDate.getMonth());
+    });
+
+    // ══ CONFIRMER RÉSERVATION ══
+    $('#btn-confirmer').on('click', function () {
+        var nom    = $('#res-nom').val().trim();
+        var prenom = $('#res-prenom').val().trim();
+        if (!nom || !prenom) { alert('Veuillez entrer votre nom et prénom.'); return; }
+        if (!selectedPlanningId) return;
+
+        $.ajax({
+            url: urlReservation,
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ planningId: selectedPlanningId, nom: nom, prenom: prenom }),
+            success: function () {
+                $('#reservation-form').hide();
+                $('#reservation-success').show();
+                calPlannings = calPlannings.map(function(p) {
+                    if (p.id == selectedPlanningId) p.disponible = false;
+                    return p;
+                });
+                renderCalendar(calCurrentDate.getFullYear(), calCurrentDate.getMonth());
+                chargerIndicateurs();
+            },
+            error: function () { alert('Erreur lors de la réservation.'); }
+        });
+    });
+
+    // ══ MODAL DESCRIPTION ══
     $(document).on('click', '.activite-card', function (e) {
         if ($(e.target).closest('.zone-interactive').length > 0) return;
+        if ($(e.target).is('img')) return;
 
         var nom         = $(this).attr('data-nom');
         var categorie   = $(this).attr('data-categorie');
@@ -306,9 +486,7 @@ $(document).ready(function () {
         originalDescription = description;
         $('#activiteModalLabel').text(nom);
         $('#modal-lieu').text(lieu || 'Non précisé');
-        $('#modal-description')
-            .text(description || 'Aucune description disponible.')
-            .attr('dir', 'ltr').css('text-align', 'left');
+        $('#modal-description').text(description || 'Aucune description disponible.').attr('dir', 'ltr').css('text-align', 'left');
 
         if (categorie) { $('#modal-categorie').text(categorie).show(); }
         else           { $('#modal-categorie').hide(); }
@@ -320,20 +498,15 @@ $(document).ready(function () {
         $('#activiteModal').modal('show');
     });
 
-    /* ══════════════════════════════════════
-       LIKE
-    ══════════════════════════════════════ */
+    // ══ LIKE ══
     $(document).on('click', '.btn-like', function (e) {
         e.stopImmediatePropagation();
         e.preventDefault();
-
         var id = String($(this).attr('data-id'));
         if (!id || id === 'undefined') return false;
-
         var userVote = localStorage.getItem('vote_' + id);
         var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
         var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
-
         if (userVote === 'like') {
             likes = Math.max(0, likes - 1);
             localStorage.removeItem('vote_' + id);
@@ -354,20 +527,15 @@ $(document).ready(function () {
         return false;
     });
 
-    /* ══════════════════════════════════════
-       DISLIKE
-    ══════════════════════════════════════ */
+    // ══ DISLIKE ══
     $(document).on('click', '.btn-dislike', function (e) {
         e.stopImmediatePropagation();
         e.preventDefault();
-
         var id = String($(this).attr('data-id'));
         if (!id || id === 'undefined') return false;
-
         var userVote = localStorage.getItem('vote_' + id);
         var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
         var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
-
         if (userVote === 'dislike') {
             dislikes = Math.max(0, dislikes - 1);
             localStorage.removeItem('vote_' + id);
@@ -388,9 +556,7 @@ $(document).ready(function () {
         return false;
     });
 
-    /* ══════════════════════════════════════
-       TRADUCTION
-    ══════════════════════════════════════ */
+    // ══ TRADUCTION ══
     $(document).on('click', '.modal-btn-translate', function () {
         var lang = $(this).attr('data-lang');
         var btn  = $(this);
@@ -411,9 +577,7 @@ $(document).ready(function () {
         });
     });
 
-    /* ══════════════════════════════════════
-       CONVERSION PRIX
-    ══════════════════════════════════════ */
+    // ══ CONVERSION PRIX ══
     $(document).on('click', '.btn-convert', function (e) {
         e.stopImmediatePropagation();
         var id        = $(this).attr('data-id');
@@ -424,9 +588,7 @@ $(document).ready(function () {
         return false;
     });
 
-    /* ══════════════════════════════════════
-       RECHERCHE AJAX
-    ══════════════════════════════════════ */
+    // ══ RECHERCHE AJAX ══
     $('#search').keyup(function () {
         var value = $(this).val();
         if (value.trim() === '') {
@@ -445,9 +607,7 @@ $(document).ready(function () {
         });
     });
 
-    /* ══════════════════════════════════════
-       TRI AJAX
-    ══════════════════════════════════════ */
+    // ══ TRI AJAX ══
     $('#sort').change(function () {
         var sortBy = $(this).val();
         if (sortBy === '') {
@@ -466,9 +626,7 @@ $(document).ready(function () {
         });
     });
 
-    /* ══════════════════════════════════════
-       AFFICHAGE AJAX
-    ══════════════════════════════════════ */
+    // ══ AFFICHAGE AJAX ══
     function afficherResultats(retour) {
         $('#activite-tbody-search').empty();
         $('#activite-tbody-all').hide();
@@ -483,29 +641,29 @@ $(document).ready(function () {
                 var dislikeCls = userVote === 'dislike' ? 'active' : '';
                 var shareUrl   = encodeURIComponent(window.location.href);
                 var shareText  = encodeURIComponent('🏃 ' + (obj.nom||'') + ' 📍 ' + (obj.lieu||'') + ' 💰 ' + (obj.prix||'') + ' TND - After Travel!');
+                var imgSrc     = obj.image
+                    ? '{{ asset("uploads/activites/") }}' + obj.image
+                    : '{{ asset("img/blog-1.jpg") }}';
 
                 $('#activite-tbody-search').append(
                     '<div class="col-lg-4 col-md-6">' +
-                    '<div class="activite-card blog-item" ' +
-                        'data-id="'          + id + '" ' +
-                        'data-nom="'         + (obj.nom||'').replace(/"/g,'&quot;') + '" ' +
-                        'data-categorie="'   + (obj.categorie||'') + '" ' +
-                        'data-lieu="'        + (obj.lieu||'') + '" ' +
-                        'data-description="' + (obj.description||'').replace(/"/g,'&quot;') + '">' +
+                    '<div class="activite-card blog-item" data-id="' + id + '" data-nom="' + (obj.nom||'').replace(/"/g,'&quot;') + '" data-categorie="' + (obj.categorie||'') + '" data-lieu="' + (obj.lieu||'') + '" data-description="' + (obj.description||'').replace(/"/g,'&quot;') + '">' +
+                    '<div style="position:relative;">' +
+                        '<img src="' + imgSrc + '" alt="' + (obj.nom||'') + '" style="width:100%; height:200px; object-fit:cover; border-radius:12px 12px 0 0;">' +
+                        '<span class="disponibilite-indicator" data-id="' + id + '" style="position:absolute; top:10px; right:10px; width:16px; height:16px; border-radius:50%; background:#ccc; border:2px solid white; display:inline-block;" title="Chargement..."></span>' +
+                    '</div>' +
                     '<div class="blog-content border rounded p-4 h-100 transition-card">' +
                         (obj.categorie ? '<span class="badge bg-primary mb-2">' + obj.categorie + '</span>' : '') +
                         '<h4 class="mb-2">' + (obj.nom||'') + '</h4>' +
                         (obj.lieu ? '<p class="mb-2"><i class="fa fa-map-marker-alt text-primary me-2"></i>' + obj.lieu + '</p>' : '') +
                         (obj.prix ?
                             '<p class="mb-1"><i class="fa fa-tag text-primary me-2"></i><strong id="prix-' + id + '">' + obj.prix + ' TND</strong></p>' +
-                            '<div class="zone-interactive mb-3"><small class="text-muted">💱 Convertir en :</small>' +
-                            '<div class="d-flex gap-1 flex-wrap mt-1">' +
+                            '<div class="zone-interactive mb-3"><small class="text-muted">💱 Convertir en :</small><div class="d-flex gap-1 flex-wrap mt-1">' +
                                 '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="EUR">💶 EUR</button>' +
                                 '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="USD">💵 USD</button>' +
                                 '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="GBP">💷 GBP</button>' +
                                 '<button class="btn btn-xs btn-outline-primary btn-convert" data-id="' + id + '" data-prix="' + obj.prix + '" data-devise="TND">🔄 TND</button>' +
-                            '</div></div>'
-                        : '') +
+                            '</div></div>' : '') +
                         '<p class="text-muted small mb-3"><i class="fa fa-info-circle me-1"></i>Cliquez pour voir la description</p>' +
                         '<div class="zone-interactive d-flex align-items-center gap-3 mb-3">' +
                             '<button class="btn-reaction btn-like ' + likeCls + '" data-id="' + id + '" type="button">👍 <span class="reaction-count like-count-' + id + '">' + likes + '</span></button>' +
@@ -517,12 +675,15 @@ $(document).ready(function () {
                             '<a href="https://www.instagram.com/" target="_blank" class="btn-social btn-instagram"><i class="fab fa-instagram"></i></a>' +
                             '<a href="https://api.whatsapp.com/send?text=' + shareText + '" target="_blank" class="btn-social btn-whatsapp"><i class="fab fa-whatsapp"></i></a>' +
                         '</div>' +
-                        '<div class="zone-interactive d-flex gap-2">' +
-                            '<a href="/after-symfony/after-symfony/public/index.php/activite/pdf/' + id + '" class="btn btn-sm btn-success" target="_blank"><i class="fa fa-file-pdf"></i> PDF</a>' +
+                        '<div class="zone-interactive d-flex gap-2 flex-wrap align-items-center">' +
+                            '<a href="{{ path("app_activite_pdf", {"id": 0}) }}'.replace('/0', '/' + id) + '" class="btn btn-sm btn-success" target="_blank"><i class="fa fa-file-pdf"></i> PDF</a>' +
+                            '<a href="{{ path("app_avis_liste", {"id": 0}) }}'.replace('/0', '/' + id) + '" class="btn btn-outline-info rounded-pill btn-sm"><i class="fa fa-comments"></i> Voir les avis</a>' +
+                            '<button class="btn btn-outline-primary rounded-pill btn-sm btn-calendar" data-id="' + id + '" data-nom="' + (obj.nom||'') + '">📅 Réserver</button>' +
                         '</div>' +
                     '</div></div></div>'
                 );
             });
+            chargerIndicateurs();
         } else {
             $('#activite-tbody-search').append('<div class="col-12 text-center"><p>Aucune activité trouvée.</p></div>');
         }

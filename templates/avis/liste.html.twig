@@ -1,0 +1,81 @@
+{% extends 'base.html.twig' %}
+{% block body %}
+<div class="container py-5" style="max-width:700px;">
+
+    <h2 class="mb-1">💬 Avis sur <strong>{{ activite.nom }}</strong></h2>
+    <p class="text-muted mb-4">📍 {{ activite.lieu }}</p>
+
+    {% if app.user %}
+    <div class="card border-0 shadow-sm mb-4 p-4">
+        <h5 class="mb-3">✍️ Laisser un avis</h5>
+        <form method="post" action="{{ path('app_avis_new', {id: activite.idActivite}) }}">
+            <div class="mb-3">
+                <label class="form-label fw-bold">Note</label>
+                <div id="stars" class="d-flex gap-2 mb-2" style="font-size:2rem; cursor:pointer;">
+                    {% for i in 1..5 %}
+                        <span class="star" data-value="{{ i }}" style="color:#ddd;">★</span>
+                    {% endfor %}
+                </div>
+                <input type="hidden" name="note" id="noteInput" value="5">
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Commentaire</label>
+                <textarea name="commentaire" class="form-control" rows="3"
+                          placeholder="Partagez votre expérience..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-success rounded-pill px-4">
+                ✅ Publier mon avis
+            </button>
+        </form>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        <a href="{{ path('app_login') }}">Connectez-vous</a> pour laisser un avis.
+    </div>
+    {% endif %}
+
+    {# Liste des avis #}
+    {% for av in avis %}
+    <div class="card border-0 shadow-sm mb-3 p-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+            <strong>{{ av.auteur.email ?? av.auteur.nom ?? 'Anonyme' }}</strong>
+            <small class="text-muted">{{ av.createdAt|date('d/m/Y') }}</small>
+        </div>
+        <div style="color:#f4c542; font-size:1.2rem;">
+            {% for i in 1..5 %}
+                {{ i <= av.note ? '★' : '☆' }}
+            {% endfor %}
+            <small class="text-muted ms-1">({{ av.note }}/5)</small>
+        </div>
+        <p class="mt-2 mb-0">{{ av.commentaire }}</p>
+    </div>
+    {% else %}
+    <p class="text-muted text-center py-3">
+        Aucun avis pour cette activité. Soyez le premier ! 🌟
+    </p>
+    {% endfor %}
+
+    <a href="{{ path('app_activite') }}" class="btn btn-outline-secondary rounded-pill mt-3">
+        ← Retour aux activités
+    </a>
+</div>
+
+<script>
+const stars = document.querySelectorAll('.star');
+stars.forEach(s => s.style.color = '#f4c542');
+
+stars.forEach(star => {
+    star.addEventListener('mouseover', () => {
+        stars.forEach(s => s.style.color = s.dataset.value <= star.dataset.value ? '#f4c542' : '#ddd');
+    });
+    star.addEventListener('mouseout', () => {
+        const current = document.getElementById('noteInput').value;
+        stars.forEach(s => s.style.color = s.dataset.value <= current ? '#f4c542' : '#ddd');
+    });
+    star.addEventListener('click', () => {
+        document.getElementById('noteInput').value = star.dataset.value;
+        stars.forEach(s => s.style.color = s.dataset.value <= star.dataset.value ? '#f4c542' : '#ddd');
+    });
+});
+</script>
+{% endblock %}

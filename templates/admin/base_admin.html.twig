@@ -155,11 +155,11 @@
                    class="nav-item {{ app.request.get('_route') == 'app_admin_payments' ? 'active' }}">
                     <i class="fas fa-credit-card nav-icon"></i> Paiements
                 </a>
-
-                <span class="nav-item-soon">
-                    <i class="fas fa-hiking nav-icon" style="width:20px;height:20px;opacity:0.4"></i>
-                    Activités <span class="badge-soon">bientôt</span>
-                </span>
+                  <div class="nav-label">Gestion Activites & Plannings</div>
+                <a href="{{ path('admin_activites_dashboard') }}"
+                    class="nav-item {{ app.request.get('_route') starts with 'admin_activites' or app.request.get('_route') starts with 'app_activite' ? 'active' }}">
+                     <i class="fas fa-hiking nav-icon"></i> Activités
+                </a>
 
                 <span class="nav-item-soon">
                     <i class="fas fa-concierge-bell nav-icon" style="width:20px;height:20px;opacity:0.4"></i>

@@ -388,7 +388,14 @@
                     </svg>
                     Destinations
                 </a>
-
+                  <!-- Activités -->
+<a href="{{ path('admin_activites_dashboard') }}"
+   class="nav-item {{ app.request.get('_route') starts with 'admin_activites' or app.request.get('_route') starts with 'app_activite' ? 'active' }}">
+    <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+    </svg>
+    Activités
+</a>
                 {% if is_granted('ROLE_ADMIN') %}
                 <!-- ADMIN SECTION -->
                 <div class="sidebar-divider"></div>

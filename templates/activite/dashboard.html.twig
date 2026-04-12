@@ -1,0 +1,492 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Smart Dashboard — Activités{% endblock %}
+
+{% block stylesheets %}
+<style>
+.sd-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+    padding: 20px 24px 0;
+}
+.sd-header-left { display: flex; align-items: center; gap: 12px; }
+.sd-icon { font-size: 22px; color: #1A2F4A; }
+.sd-title { margin: 0; font-size: 22px; font-weight: 700; color: #1A2F4A; }
+.sd-sub { margin: 2px 0 0; font-size: 12px; color: #4A5568; }
+.sd-btn {
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.2s, transform 0.15s;
+}
+.sd-btn:hover { opacity: 0.88; transform: translateY(-1px); }
+.sd-btn-green { background: #4CAF50; color: white; }
+.sd-divider { height: 1.5px; background: #D4C9B5; margin: 14px 24px 20px; }
+.sd-kpi-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 0 24px;
+    margin-bottom: 24px;
+}
+.sd-kpi-card {
+    flex: 1;
+    min-width: 130px;
+    background: #FFFFFF;
+    border: 1px solid #E8E0D0;
+    border-radius: 12px;
+    padding: 16px 14px 14px;
+    box-shadow: 0 3px 10px rgba(0,0,0,.08);
+}
+.sd-kpi-value { font-size: 24px; font-weight: 700; line-height: 1.1; margin-bottom: 6px; }
+.sd-kpi-label { font-size: 11px; color: #4A5568; display: flex; align-items: center; gap: 4px; }
+.sd-kpi-icon { color: #7A8A9A; }
+.sd-charts-row { display: flex; gap: 16px; padding: 0 24px; margin-bottom: 16px; }
+.sd-chart-card {
+    flex: 1;
+    background: #FFFFFF;
+    border: 1px solid #E8E0D0;
+    border-radius: 14px;
+    padding: 18px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.sd-line-card { margin: 0 24px 24px; }
+.sd-chart-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #1A2F4A;
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #E8E0D0;
+}
+.sd-chart-body { display: flex; justify-content: center; }
+.sd-table-section {
+    margin: 0 24px 24px;
+    background: #FFFFFF;
+    border: 1px solid #E8E0D0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+.sd-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid #F0EAE0;
+}
+.sd-section-title { margin: 0; font-size: 16px; font-weight: 700; color: #1A2F4A; }
+.sd-section-sub { margin: 2px 0 0; font-size: 12px; color: #7A8A9A; }
+.sd-table-wrapper { overflow-x: auto; }
+.sd-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.sd-table thead tr { background: #F5F0E8; }
+.sd-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 700;
+    color: #1A2F4A;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #E8E0D0;
+}
+.sd-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #F5F0E8;
+    color: #4A5568;
+    vertical-align: middle;
+}
+.sd-table tbody tr:hover { background: #FDFAF6; }
+.sd-table tbody tr:last-child td { border-bottom: none; }
+.td-id { color: #aaa; font-size: 12px; width: 40px; }
+.td-nom { font-weight: 600; color: #1A2F4A; }
+.td-lieu { color: #7A8A9A; }
+.sd-badge {
+    background: #EEF2FF;
+    color: #1A2F4A;
+    border-radius: 20px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+}
+.sd-actions { display: flex; gap: 6px; }
+.sd-btn-action {
+    padding: 5px 12px;
+    border-radius: 16px;
+    font-size: 11px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    transition: opacity 0.2s;
+}
+.sd-btn-action:hover { opacity: 0.82; }
+.sd-btn-edit { background: #FFF3CD; color: #856404; border: 1px solid #FFEAA7; }
+.sd-btn-delete { background: #F8D7DA; color: #842029; border: 1px solid #F5C6CB; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+{# Header #}
+<div class="sd-header">
+    <div class="sd-header-left">
+        <span class="sd-icon">⬛</span>
+        <div>
+            <h2 class="sd-title">Smart Dashboard</h2>
+            <p class="sd-sub">
+                {{ activites|length }} activités &nbsp;•&nbsp;
+                {{ plannings|length }} plannings &nbsp;•&nbsp;
+                Mis à jour maintenant
+            </p>
+        </div>
+    </div>
+    <div>
+        <a href="{{ path('app_activite_add') }}" class="sd-btn sd-btn-green">
+            ＋ Ajouter Activité
+        </a>
+    </div>
+</div>
+
+<div class="sd-divider"></div>
+
+{# KPI Cards #}
+<div class="sd-kpi-row">
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#4A5568;">{{ activites|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">☐</span> Total activités</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#2196F3;">{{ prixMoyen }} TND</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">⊟</span> Prix moyen</div>
+    </div>
+
+    {% set prixMin = 0 %}
+    {% for a in activites %}
+        {% if a.prix and (prixMin == 0 or a.prix < prixMin) %}
+            {% set prixMin = a.prix %}
+        {% endif %}
+    {% endfor %}
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#4CAF50;">{{ prixMin }} TND</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">↓</span> Prix min</div>
+    </div>
+
+    {% set prixMax = 0 %}
+    {% for a in activites %}
+        {% if a.prix and a.prix > prixMax %}
+            {% set prixMax = a.prix %}
+        {% endif %}
+    {% endfor %}
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#FF9800;">{{ prixMax }} TND</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">↑</span> Prix max</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#9C27B0;">{{ totalCategories }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">≡</span> Catégories</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#00BCD4;">{{ plannings|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">≡</span> Total plannings</div>
+    </div>
+
+    <div class="sd-kpi-card">
+        <div class="sd-kpi-value" style="color:#F44336;">{{ dernieres|length }}</div>
+        <div class="sd-kpi-label"><span class="sd-kpi-icon">●</span> Récentes</div>
+    </div>
+
+</div>
+
+{# Charts Row #}
+<div class="sd-charts-row">
+    <div class="sd-chart-card">
+        <div class="sd-chart-title">📊 Activités par catégorie</div>
+        <div class="sd-chart-body">
+            <canvas id="pieChart" width="420" height="280"></canvas>
+        </div>
+    </div>
+    <div class="sd-chart-card">
+        <div class="sd-chart-title">📅 Plannings par mois</div>
+        <div class="sd-chart-body">
+            <canvas id="barChart" width="380" height="280"></canvas>
+        </div>
+    </div>
+</div>
+
+{# Line Chart #}
+<div class="sd-chart-card sd-line-card">
+    <div class="sd-chart-title">📈 Évolution des plannings</div>
+    <div class="sd-chart-body">
+        <canvas id="lineChart" height="100"></canvas>
+    </div>
+</div>
+
+{# Tableau Activités #}
+<div id="activites" class="sd-table-section">
+    <div class="sd-section-header">
+        <div>
+            <h3 class="sd-section-title">📋 Liste des Activités</h3>
+            <p class="sd-section-sub">Gérer, modifier ou supprimer les activités</p>
+        </div>
+        <a href="{{ path('admin_activite_add') }}" class="sd-btn sd-btn-green">
+            ＋ Nouvelle Activité
+        </a>
+    </div>
+    <div class="sd-table-wrapper">
+        <table class="sd-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Nom</th>
+                    <th>Catégorie</th>
+                    <th>Lieu</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for activite in activites %}
+                <tr>
+                    <td class="td-id">{{ loop.index }}</td>
+                    <td class="td-nom">{{ activite.nom }}</td>
+                    <td><span class="sd-badge">{{ activite.categorie ?? 'N/A' }}</span></td>
+                    <td class="td-lieu">{{ activite.lieu ?? '-' }}</td>
+                    <td><strong style="color:#2196F3;">{{ activite.prix ?? '-' }} TND</strong></td>
+                    <td>
+                        <div class="sd-actions">
+                            <a href="{{ path('admin_activite_edit', {'id': activite.idActivite}) }}"
+                               class="sd-btn-action sd-btn-edit">
+                                <i class="fa fa-edit"></i> Modifier
+                            </a>
+                            <a href="{{ path('admin_activite_delete', {'id': activite.idActivite}) }}"
+                               class="sd-btn-action sd-btn-delete"
+                               onclick="return confirm('Supprimer cette activité ?')">
+                                <i class="fa fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center;color:#7A8A9A;padding:32px;">
+                        Aucune activité pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{# Tableau Plannings #}
+<div id="plannings" class="sd-table-section">
+    <div class="sd-section-header">
+        <div>
+            <h3 class="sd-section-title">📅 Liste des Plannings</h3>
+            <p class="sd-section-sub">Vue d'ensemble de tous les plannings</p>
+        </div>
+        <a href="{{ path('admin_planning_add') }}" class="sd-btn sd-btn-green">
+            ＋ Nouveau Planning
+        </a>
+    </div>
+    <div class="sd-table-wrapper">
+        <table class="sd-table">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Activité</th>
+                    <th>Date</th>
+                    <th>Heure Début</th>
+                    <th>Durée</th>
+                    <th>Prix</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for planning in plannings %}
+                <tr>
+                    <td class="td-id">{{ loop.index }}</td>
+                    <td class="td-nom">{{ planning.activite.nom }}</td>
+                    <td>{{ planning.dateActivite|date('d/m/Y') }}</td>
+                    <td>{{ planning.heureDebut ? planning.heureDebut|date('H:i') : '—' }}</td>
+                    <td>{{ planning.duree }} min</td>
+                    <td><strong style="color:#4CAF50;">{{ planning.activite.prix }} TND</strong></td>
+                    <td>
+                        <div class="sd-actions">
+                            <a href="{{ path('admin_planning_edit', {'id': planning.idPlanning}) }}"
+                               class="sd-btn-action sd-btn-edit">
+                                <i class="fa fa-edit"></i> Modifier
+                            </a>
+                            <a href="{{ path('admin_planning_delete', {'id': planning.idPlanning}) }}"
+                               class="sd-btn-action sd-btn-delete"
+                               onclick="return confirm('Supprimer ce planning ?')">
+                                <i class="fa fa-trash"></i> Supprimer
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align:center;color:#7A8A9A;padding:32px;">
+                        Aucun planning pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+const bgColors = ['#2196F3','#4CAF50','#FF9800','#9C27B0','#00BCD4','#F44336','#b87333','#607D8B'];
+
+// Pie chart data
+const pieLabels = {{ prixParCategorieKeys|json_encode|raw }};
+const pieData   = {{ prixParCategorieKeys|map(k => categories[k])|json_encode|raw }};
+
+// Bar chart — plannings par mois
+const barLabels = ['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+const barData   = [0,0,0,0,0,0,0,0,0,0,0,0];
+{% for p in plannings %}
+    barData[{{ p.dateActivite|date('n') }} - 1]++;
+{% endfor %}
+
+// Line chart — plannings par jour
+const lineRaw = {};
+{% for p in plannings %}
+    {% set d = p.dateActivite|date('Y-m-d') %}
+    lineRaw['{{ d }}'] = (lineRaw['{{ d }}'] || 0) + 1;
+{% endfor %}
+const lineLabels = Object.keys(lineRaw).sort();
+const lineData   = lineLabels.map(k => lineRaw[k]);
+
+const gridColor  = 'rgba(0,0,0,0.07)';
+const tickColor  = '#4A5568';
+
+// Plugin numéros sur le doughnut
+const doughnutNumbersPlugin = {
+    id: 'doughnutNumbers',
+    afterDatasetDraw(chart) {
+        const { ctx, data } = chart;
+        chart.getDatasetMeta(0).data.forEach((arc, index) => {
+            const { x, y } = arc.tooltipPosition();
+            const value = data.datasets[0].data[index];
+            const total = data.datasets[0].data.reduce((a, b) => a + b, 0);
+            const pct   = ((value / total) * 100).toFixed(0);
+            ctx.save();
+            ctx.fillStyle    = '#FFFFFF';
+            ctx.font         = 'bold 13px sans-serif';
+            ctx.textAlign    = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor  = 'rgba(0,0,0,0.4)';
+            ctx.shadowBlur   = 3;
+            ctx.fillText(value + ' (' + pct + '%)', x, y);
+            ctx.restore();
+        });
+    }
+};
+
+new Chart(document.getElementById('pieChart'), {
+    type: 'doughnut',
+    plugins: [doughnutNumbersPlugin],
+    data: {
+        labels: pieLabels,
+        datasets: [{
+            data: pieData,
+            backgroundColor: bgColors,
+            borderWidth: 3,
+            borderColor: '#FFFFFF',
+            hoverOffset: 8
+        }]
+    },
+    options: {
+        responsive: false,
+        cutout: '45%',
+        plugins: {
+            legend: {
+                position: 'right',
+                labels: {
+                    font: { size: 12 }, color: '#1A2F4A', padding: 14,
+                    generateLabels: function(chart) {
+                        return chart.data.labels.map((label, i) => ({
+                            text: label + '  (' + chart.data.datasets[0].data[i] + ')',
+                            fillStyle: bgColors[i % bgColors.length],
+                            strokeStyle: '#fff', lineWidth: 2, index: i
+                        }));
+                    }
+                }
+            }
+        }
+    }
+});
+
+new Chart(document.getElementById('barChart'), {
+    type: 'bar',
+    data: {
+        labels: barLabels,
+        datasets: [{
+            label: 'Plannings',
+            data: barData,
+            backgroundColor: 'rgba(33,150,243,0.75)',
+            borderRadius: 6,
+            borderSkipped: false
+        }]
+    },
+    options: {
+        responsive: false,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+            y: { grid: { color: gridColor }, ticks: { color: tickColor, stepSize: 1 }, beginAtZero: true }
+        }
+    }
+});
+
+new Chart(document.getElementById('lineChart'), {
+    type: 'line',
+    data: {
+        labels: lineLabels,
+        datasets: [{
+            label: 'Plannings',
+            data: lineData,
+            borderColor: '#b87333',
+            backgroundColor: 'rgba(184,115,51,0.12)',
+            borderWidth: 2.5,
+            pointRadius: 6,
+            pointBackgroundColor: '#b87333',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 2,
+            tension: 0.35,
+            fill: true
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { size: 11 } } },
+            y: { grid: { color: gridColor }, ticks: { color: tickColor, stepSize: 1 }, beginAtZero: true }
+        }
+    }
+});
+</script>
+{% endblock %}

@@ -37,3 +37,6 @@ services:
         arguments:
             $apiKey:    '%env(MAILJET_API_KEY)%'
             $apiSecret: '%env(MAILJET_API_SECRET)%'
+    App\Service\ChatbotService:
+        arguments:
+            $apiKey: '%env(GROQ_API_KEY)%'

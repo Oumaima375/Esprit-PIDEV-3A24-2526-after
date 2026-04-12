@@ -2,6 +2,8 @@
 
 namespace App\Entity;
 
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
 use App\Repository\PlanningRepository;
 use Symfony\Component\Validator\Constraints as Assert;
@@ -17,58 +19,20 @@ class Planning
     #[Groups(['plannings'])]
     private ?int $id_planning = null;
 
-    public function getIdPlanning(): ?int
-    {
-        return $this->id_planning;
-    }
-
     #[ORM\Column(type: 'integer', nullable: false)]
     #[Groups(['plannings'])]
     private ?int $id_user = null;
-
-    public function getIdUser(): ?int
-    {
-        return $this->id_user;
-    }
-
-    public function setIdUser(int $id_user): self
-    {
-        $this->id_user = $id_user;
-        return $this;
-    }
 
     #[ORM\ManyToOne(targetEntity: Activite::class, inversedBy: 'plannings')]
     #[ORM\JoinColumn(name: 'id_activite', referencedColumnName: 'id_activite')]
     #[Groups(['plannings'])]
     private ?Activite $activite = null;
 
-    public function getActivite(): ?Activite
-    {
-        return $this->activite;
-    }
-
-    public function setActivite(?Activite $activite): self
-    {
-        $this->activite = $activite;
-        return $this;
-    }
-
     #[ORM\Column(type: 'date', nullable: false)]
     #[Assert\NotBlank(message: "La date est obligatoire")]
     #[Assert\GreaterThanOrEqual("today", message: "La date doit être aujourd'hui ou future")]
     #[Groups(['plannings'])]
     private ?\DateTimeInterface $date_activite = null;
-
-    public function getDateActivite(): ?\DateTimeInterface
-    {
-        return $this->date_activite;
-    }
-
-    public function setDateActivite(?\DateTimeInterface $date_activite): self
-    {
-        $this->date_activite = $date_activite;
-        return $this;
-    }
 
     #[ORM\Column(type: 'string', nullable: false)]
     #[Assert\NotBlank(message: "L'heure de début est obligatoire")]
@@ -79,17 +43,6 @@ class Planning
     #[Groups(['plannings'])]
     private ?string $heure_debut = null;
 
-    public function getHeureDebut(): ?string
-    {
-        return $this->heure_debut;
-    }
-
-    public function setHeureDebut(?string $heure_debut): self
-    {
-        $this->heure_debut = $heure_debut;
-        return $this;
-    }
-
     #[ORM\Column(type: 'integer', nullable: false)]
     #[Assert\NotBlank(message: "La durée est obligatoire")]
     #[Assert\Positive(message: "La durée doit être un nombre positif")]
@@ -97,15 +50,44 @@ class Planning
     #[Groups(['plannings'])]
     private ?int $duree = null;
 
-    public function getDuree(): ?int
+    #[ORM\OneToMany(targetEntity: ReservationActivite::class, mappedBy: 'planning')]
+    private Collection $reservations;
+
+    public function __construct()
     {
-        return $this->duree;
+        $this->reservations = new ArrayCollection();
     }
 
-    public function setDuree(?int $duree): self
+    public function getIdPlanning(): ?int { return $this->id_planning; }
+    public function getIdUser(): ?int { return $this->id_user; }
+    public function setIdUser(int $id_user): self { $this->id_user = $id_user; return $this; }
+    public function getActivite(): ?Activite { return $this->activite; }
+    public function setActivite(?Activite $activite): self { $this->activite = $activite; return $this; }
+    public function getDateActivite(): ?\DateTimeInterface { return $this->date_activite; }
+    public function setDateActivite(?\DateTimeInterface $date_activite): self { $this->date_activite = $date_activite; return $this; }
+    public function getHeureDebut(): ?string { return $this->heure_debut; }
+    public function setHeureDebut(?string $heure_debut): self { $this->heure_debut = $heure_debut; return $this; }
+    public function getDuree(): ?int { return $this->duree; }
+    public function setDuree(?int $duree): self { $this->duree = $duree; return $this; }
+
+    public function getReservations(): Collection { return $this->reservations; }
+
+    public function addReservation(ReservationActivite $reservation): static
     {
-        $this->duree = $duree;
+        if (!$this->reservations->contains($reservation)) {
+            $this->reservations->add($reservation);
+            $reservation->setPlanning($this);
+        }
         return $this;
     }
-    
+
+    public function removeReservation(ReservationActivite $reservation): static
+    {
+        if ($this->reservations->removeElement($reservation)) {
+            if ($reservation->getPlanning() === $this) {
+                $reservation->setPlanning(null);
+            }
+        }
+        return $this;
+    }
 }

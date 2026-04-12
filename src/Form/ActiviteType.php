@@ -13,7 +13,7 @@ use Symfony\Component\OptionsResolver\OptionsResolver;
 use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\Positive;
-
+use Symfony\Component\Form\Extension\Core\Type\FileType;
 class ActiviteType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -68,6 +68,15 @@ class ActiviteType extends AbstractType
                     new Positive(['message' => 'Le prix doit être un nombre positif'])
                 ]
             ])
+            ->add('image', FileType::class, [
+                'label' => 'Photo de l\'activité',
+                'mapped' => false,
+                'required' => false,
+                'attr' => [
+                'accept' => 'image/*',
+                 'class' => 'form-control'
+                ],
+            ])
             ->add('save', SubmitType::class, [
                 'label' => 'Enregistrer',
                 'attr' => ['class' => 'btn btn-primary rounded-pill py-2 px-4'],
@@ -75,10 +84,13 @@ class ActiviteType extends AbstractType
         ;
     }
 
-    public function configureOptions(OptionsResolver $resolver): void
-    {
-        $resolver->setDefaults([
-            'data_class' => Activite::class,
-        ]);
-    }
+
+    
+public function configureOptions(OptionsResolver $resolver): void
+{
+    $resolver->setDefaults([
+        'data_class' => Activite::class,
+        'csrf_protection' => false,
+    ]);
+}
 }

@@ -1,0 +1,155 @@
+{% extends 'admin/base_admin.html.twig' %}
+
+{% block title %}Ajouter une Activité{% endblock %}
+
+{% block stylesheets %}
+<style>
+.form-card {
+    background: #fff;
+    border: 1px solid #e2e5f0;
+    border-radius: 14px;
+    padding: 28px 32px;
+    max-width: 700px;
+    margin: 0 auto;
+    box-shadow: 0 4px 12px rgba(0,0,0,.07);
+}
+.form-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1a2b5e;
+    margin-bottom: 6px;
+}
+.form-sub {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+.form-divider {
+    height: 1px;
+    background: #e2e5f0;
+    margin-bottom: 24px;
+}
+.form-group {
+    margin-bottom: 18px;
+}
+.form-group label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a2b5e;
+    margin-bottom: 6px;
+}
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #1a2b5e;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    box-sizing: border-box;
+}
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #4a63c8;
+    background: #fff;
+}
+.form-group textarea { min-height: 90px; resize: vertical; }
+.form-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+}
+.btn-save {
+    padding: 10px 24px;
+    background: #4CAF50;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: opacity 0.2s;
+}
+.btn-save:hover { opacity: 0.88; }
+.btn-cancel {
+    padding: 10px 24px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.2s;
+}
+.btn-cancel:hover { background: #e5e7eb; }
+</style>
+{% endblock %}
+
+{% block body %}
+
+<div style="margin-bottom:20px">
+    <div style="font-size:22px;font-weight:700;color:#1a2b5e">Ajouter une Activité</div>
+    <div style="font-size:13px;color:#6b7280">Remplissez les informations de la nouvelle activité</div>
+</div>
+
+<div class="form-card">
+    <div class="form-title">Nouvelle Activité</div>
+    <div class="form-sub">Tous les champs marqués sont importants</div>
+    <div class="form-divider"></div>
+
+    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+
+    <div class="form-group">
+        {{ form_label(form.nom) }}
+        {{ form_widget(form.nom) }}
+        {{ form_errors(form.nom) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.description) }}
+        {{ form_widget(form.description) }}
+        {{ form_errors(form.description) }}
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+        <div class="form-group">
+            {{ form_label(form.categorie) }}
+            {{ form_widget(form.categorie) }}
+            {{ form_errors(form.categorie) }}
+        </div>
+        <div class="form-group">
+            {{ form_label(form.lieu) }}
+            {{ form_widget(form.lieu) }}
+            {{ form_errors(form.lieu) }}
+        </div>
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.prix) }}
+        {{ form_widget(form.prix) }}
+        {{ form_errors(form.prix) }}
+    </div>
+
+    <div class="form-group">
+        {{ form_label(form.image) }}
+        {{ form_widget(form.image) }}
+        {{ form_errors(form.image) }}
+    </div>
+<div class="form-actions">
+        <button type="submit" class="btn-save">✓ Enregistrer</button>
+        <a href="{{ path('admin_activites_dashboard') }}" class="btn-cancel">✕ Annuler</a>
+    </div>
+
+    {{ form_end(form, {'render_rest': false}) }}
+</div>
+
+{% endblock %}

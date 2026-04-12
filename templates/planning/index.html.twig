@@ -9,9 +9,9 @@
     <div class="container text-center py-5" style="max-width: 900px;">
         <h3 class="text-white display-3 mb-4">Planning des Activités</h3>
         <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{{ path('app_activite') }}">Activités</a></li>
-            <li class="breadcrumb-item active text-white">Planning</li>
+           
+
+           
         </ol>
     </div>
 </div>
@@ -30,7 +30,12 @@
             <button id="btnVoirPays" class="btn btn-success rounded-pill py-2 px-4">
                 🌍 Voir les Pays
             </button>
+             <button id="btnChatbot" class="btn btn-info rounded-pill py-2 px-4 ms-2" style="color:white;">
+                🤖 Assistant IA
+            </button>
         </div>
+        
+         
 
         <!-- TRI AJAX -->
         <div class="d-flex justify-content-center gap-3 mb-4">
@@ -89,8 +94,25 @@
     </div>
 </div>
 <!-- Planning End -->
-
-
+<a href="#" class="btn btn-primary btn-md-square back-to-top"><i class="fa fa-arrow-up"></i></a>
+<!-- Chatbox IA -->
+<div id="chatbox" style="display:none; position:fixed; bottom:30px; right:30px; width:380px;
+     background:white; border-radius:20px; box-shadow:0 10px 40px rgba(0,0,0,0.3); z-index:9999;">
+    <div style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:15px 20px;
+         display:flex; justify-content:space-between; align-items:center; border-radius:20px 20px 0 0;">
+        <span>🤖 <strong>Assistant IA Voyage</strong></span>
+        <button onclick="fermerChat()" style="background:none; border:none; color:white; font-size:1.2rem; cursor:pointer;">✕</button>
+    </div>
+    <div id="chat-messages" style="height:350px; overflow-y:auto; padding:15px;
+         display:flex; flex-direction:column; gap:10px;"></div>
+    <div style="padding:12px; border-top:1px solid #eee; display:flex; gap:8px;">
+        <input type="text" id="chat-input" placeholder="Posez votre question..."
+               style="flex:1; padding:10px 15px; border:2px solid #eee; border-radius:25px; outline:none; font-size:0.85rem;"/>
+        <button onclick="envoyerMessage()"
+                style="background:linear-gradient(135deg,#667eea,#764ba2); color:white; border:none;
+                       padding:10px 16px; border-radius:25px; cursor:pointer; font-size:1rem;">➤</button>
+    </div>
+</div>
 {% endblock %}
 
 {% block javascripts %}
@@ -219,7 +241,15 @@ $(document).ready(function() {
         });
     });
 
+ 
     // ===================== CHATBOT IA =====================
+    $('#btnChatbot').click(function() {
+        window.chatMessagesArr = [];
+        document.getElementById('chat-messages').innerHTML = '';
+        ajouterMessage('Bonjour ! 👋 Je suis votre assistant de voyage IA. Posez-moi vos questions sur vos activités, destinations, budget...', 'bot');
+        document.getElementById('chatbox').style.display = 'block';
+        document.getElementById('chat-input').focus();
+    });
 
     document.getElementById('chat-input').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') envoyerMessage();
@@ -244,7 +274,7 @@ async function envoyerMessage() {
     const typingId = ajouterMessage('En train d\'écrire...', 'typing');
 
     try {
-        const res = await fetch('#', {
+        const res = await fetch('{{ path("app_chatbot_send") }}', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ messages: window.chatMessagesArr })
