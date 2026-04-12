@@ -49,6 +49,35 @@ class ServiceController extends AbstractController
             'form' => $form->createView(),
         ]);
     }
+#[Route('/statistiques', name: 'app_service_stats', methods: ['GET'])]
+public function statistiques(EntityManagerInterface $em): Response
+{
+    $nbServices = $em->getRepository(Service::class)->count([]);
+    $nbOffres = $em->getRepository(\App\Entity\Offre::class)->count([]);
+
+    $prixMoyen = $em->createQuery(
+        'SELECT AVG(o.prix) FROM App\Entity\Offre o'
+    )->getSingleScalarResult();
+
+    $prixMax = $em->createQuery(
+        'SELECT MAX(o.prix) FROM App\Entity\Offre o'
+    )->getSingleScalarResult();
+
+    $offresParService = $em->createQuery(
+        'SELECT s.titre, COUNT(o.id) as nbOffres 
+         FROM App\Entity\Service s 
+         LEFT JOIN s.offres o 
+         GROUP BY s.id'
+    )->getResult();
+
+    return $this->render('service/statistiques.html.twig', [
+        'nbServices' => $nbServices,
+        'nbOffres' => $nbOffres,
+        'prixMoyen' => round((float)$prixMoyen, 2),
+        'prixMax' => $prixMax,
+        'offresParService' => $offresParService,
+    ]);
+}
 
     #[Route('/{id}', name: 'app_service_show', methods: ['GET'])]
     public function show(Service $service): Response
