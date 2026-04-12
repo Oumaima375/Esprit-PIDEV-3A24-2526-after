@@ -96,4 +96,44 @@ class OffreController extends AbstractController
         }
         return $this->redirectToRoute('app_offre_index');
     }
+#[Route('/export/pdf', name: 'app_offre_export_pdf', methods: ['GET'])]
+public function exportPdf(EntityManagerInterface $em): Response
+{
+    $offres = $em->getRepository(Offre::class)->findAll();
+
+    $html = '<html><body>';
+    $html .= '<h1 style="color:#1a3a6e;text-align:center;">Liste des Offres - After Travel</h1>';
+    $html .= '<table border="1" width="100%" cellpadding="8" style="border-collapse:collapse;">';
+    $html .= '<thead><tr style="background:#1a3a6e;color:white;">
+                <th>Titre</th>
+                <th>Prix (€)</th>
+                <th>Durée (jours)</th>
+                <th>Service</th>
+              </tr></thead><tbody>';
+
+    foreach ($offres as $offre) {
+        $html .= '<tr>
+            <td>'.$offre->getTitre().'</td>
+            <td>'.$offre->getPrix().'</td>
+            <td>'.$offre->getDuree().'</td>
+            <td>'.$offre->getService()->getTitre().'</td>
+        </tr>';
+    }
+
+    $html .= '</tbody></table></body></html>';
+
+    $dompdf = new \Dompdf\Dompdf();
+    $dompdf->loadHtml($html);
+    $dompdf->setPaper('A4', 'landscape');
+    $dompdf->render();
+
+    return new Response(
+        $dompdf->output(),
+        200,
+        [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => 'attachment; filename="offres.pdf"',
+        ]
+    );
+}
 }
