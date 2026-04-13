@@ -3,7 +3,8 @@
 
 {% block body %}
 
-<div class="container-fluid bg-info py-5 mb-5">
+<div class="container-fluid py-5 mb-5"
+     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
     <div class="container py-5 text-center">
         <h1 class="display-3 text-white">✈ {{ document.nomDocument }}</h1>
     </div>
@@ -12,7 +13,9 @@
 <div class="container py-5">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card border-0 shadow-sm rounded-4">
+
+            {# ===== Infos Document ===== #}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
                 <div class="card-header border-0 rounded-top-4 py-3"
                      style="background: linear-gradient(135deg, #1a2744, #2563eb);">
                     <div class="d-flex justify-content-between align-items-center">
@@ -68,59 +71,113 @@
                         <a href="{{ path('app_document_crud_index') }}"
                            class="btn btn-outline-secondary rounded-pill px-4">← Retour</a>
                     </div>
+                </div>
+            </div>
 
-                    <div class="card border-0 shadow-sm rounded-4 p-4 text-center mt-4">
-                        <h5 class="fw-bold text-dark mb-3">📱 QR Code du document</h5>
-                        {# L'image SVG s'affiche pareil que PNG #}
-                        <img src="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}"
-                            alt="QR Code" class="img-fluid mx-auto d-block" style="max-width:200px;">
+            {# ===== QR Code ===== #}
+            <div class="card border-0 shadow-sm rounded-4 p-4 text-center mb-4">
+                <h5 class="fw-bold text-dark mb-3">📱 QR Code du document</h5>
+                <img src="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}"
+                     alt="QR Code" class="img-fluid mx-auto d-block" style="max-width:200px;">
+                <a href="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}?download=1"
+                   class="btn btn-outline-primary rounded-pill mt-2 px-4 w-100">
+                    ⬇ Télécharger QR Code
+                </a>
+            </div>
 
-                        <a href="{{ path('app_document_qrcode', {'idDocument': document.idDocument}) }}?download=1"
-                        class="btn btn-outline-primary rounded-pill mt-2 px-4 w-100">
-                            ⬇ Télécharger QR Code
-                        </a>
-                        </a>
-                    </div>
-                    {# Conseils IA #}
-                    <div class="card border-0 shadow-sm rounded-4 mt-4">
-                        <div class="card-header border-0 rounded-top-4 py-3"
-                            style="background: linear-gradient(135deg, #1a2744, #2563eb);">
-                            <h5 class="text-white mb-0">🤖 Conseils personnalisés par IA</h5>
-                            <small class="text-white-50">Générés automatiquement pour ce document</small>
+            {# ===== Conseils IA ===== #}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <h5 class="text-white mb-0">🤖 Conseils personnalisés par IA</h5>
+                    <small class="text-white-50">Générés automatiquement pour ce document</small>
+                </div>
+                <div class="card-body p-4">
+                    {% if conseils is defined and conseils|length > 0 %}
+                        {% for conseil in conseils %}
+                            <div class="d-flex gap-3 mb-3 p-3 rounded-3"
+                                 style="background: {% if conseil.urgence == 'haute' %}#fee2e2{% elseif conseil.urgence == 'moyenne' %}#fef9c3{% else %}#f0fdf4{% endif %};">
+                                <div style="font-size:24px;">
+                                    {% if conseil.urgence == 'haute' %}🔴{% elseif conseil.urgence == 'moyenne' %}🟡{% else %}🟢{% endif %}
+                                </div>
+                                <div class="flex-fill">
+                                    <h6 class="fw-bold mb-1"
+                                        style="color: {% if conseil.urgence == 'haute' %}#dc2626{% elseif conseil.urgence == 'moyenne' %}#ca8a04{% else %}#16a34a{% endif %};">
+                                        {{ conseil.titre }}
+                                    </h6>
+                                    <p class="mb-0 text-muted small">{{ conseil.description }}</p>
+                                </div>
+                                <div class="ms-auto">
+                                    <span class="badge rounded-pill"
+                                          style="background: {% if conseil.urgence == 'haute' %}#ef4444{% elseif conseil.urgence == 'moyenne' %}#eab308{% else %}#22c55e{% endif %};">
+                                        {{ conseil.urgence|capitalize }}
+                                    </span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted text-center">Aucun conseil disponible</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# ===== Historique des modifications ===== #}
+            {% if historique is defined and historique|length > 0 %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <h5 class="text-white mb-0">📜 Historique des modifications</h5>
+                    <small class="text-white-50">{{ historique|length }} action(s) enregistrée(s)</small>
+                </div>
+                <div class="card-body p-0">
+                    {% for h in historique %}
+                    <div class="d-flex gap-3 p-3"
+                         style="border-bottom:1px solid #f1f5f9;">
+                        <div style="width:40px; height:40px; border-radius:50%; flex-shrink:0;
+                                    display:flex; align-items:center; justify-content:center;
+                                    background: {% if h.action == 'création' %}#dcfce7{% elseif h.action == 'modification' %}#dbeafe{% else %}#fee2e2{% endif %};">
+                            {% if h.action == 'création' %}➕{% elseif h.action == 'modification' %}✏️{% else %}🗑{% endif %}
                         </div>
-                        <div class="card-body p-4">
-                            {% if conseils is defined and conseils|length > 0 %}
-                                {% for conseil in conseils %}
-                                    <div class="d-flex gap-3 mb-3 p-3 rounded-3"
-                                        style="background:
-                                            {% if conseil.urgence == 'haute' %}#fee2e2{% elseif conseil.urgence == 'moyenne' %}#fef9c3{% else %}#f0fdf4{% endif %};">
-                                        <div style="font-size:24px;">
-                                            {% if conseil.urgence == 'haute' %}🔴{% elseif conseil.urgence == 'moyenne' %}🟡{% else %}🟢{% endif %}
-                                        </div>
-                                        <div>
-                                            <h6 class="fw-bold mb-1"
-                                                style="color:
-                                                    {% if conseil.urgence == 'haute' %}#dc2626{% elseif conseil.urgence == 'moyenne' %}#ca8a04{% else %}#16a34a{% endif %};">
-                                                {{ conseil.titre }}
-                                            </h6>
-                                            <p class="mb-0 text-muted small">{{ conseil.description }}</p>
-                                        </div>
-                                        <div class="ms-auto">
-                                            <span class="badge rounded-pill"
-                                                style="background:
-                                                    {% if conseil.urgence == 'haute' %}#ef4444{% elseif conseil.urgence == 'moyenne' %}#eab308{% else %}#22c55e{% endif %};">
-                                                {{ conseil.urgence|capitalize }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                {% endfor %}
-                            {% else %}
-                                <p class="text-muted text-center">Aucun conseil disponible</p>
+                        <div class="flex-fill">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong style="color: {% if h.action == 'création' %}#16a34a{% elseif h.action == 'modification' %}#2563eb{% else %}#ef4444{% endif %};">
+                                    {{ h.action|capitalize }}
+                                </strong>
+                                <small class="text-muted">{{ h.dateAction|date('d/m/Y H:i') }}</small>
+                            </div>
+                            {% if h.anciennesValeurs %}
+                            <small class="text-muted d-block mt-1">
+                                <strong>Avant :</strong>
+                                Nom: {{ h.anciennesValeurs.nomDocument ?? 'N/A' }} |
+                                Catégorie: {{ h.anciennesValeurs.categorie ?? 'N/A' }} |
+                                Expiration: {{ h.anciennesValeurs.dateExpiration ?? 'N/A' }}
+                            </small>
+                            {% endif %}
+                            {% if h.nouvellesValeurs %}
+                            <small class="text-success d-block mt-1">
+                                <strong>Après :</strong>
+                                Nom: {{ h.nouvellesValeurs.nomDocument ?? 'N/A' }} |
+                                Catégorie: {{ h.nouvellesValeurs.categorie ?? 'N/A' }} |
+                                Expiration: {{ h.nouvellesValeurs.dateExpiration ?? 'N/A' }}
+                            </small>
                             {% endif %}
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
             </div>
+            {% else %}
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-header border-0 rounded-top-4 py-3"
+                     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                    <h5 class="text-white mb-0">📜 Historique des modifications</h5>
+                </div>
+                <div class="card-body p-4 text-center">
+                    <p class="text-muted">Aucun historique pour ce document</p>
+                </div>
+            </div>
+            {% endif %}
+
         </div>
     </div>
 </div>

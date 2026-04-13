@@ -3,34 +3,71 @@
 
 {% block body %}
 
-<div class="container-fluid bg-primary py-5 mb-5 hero-header">
+<div class="container-fluid py-5 mb-5"
+     style="background: linear-gradient(135deg, #1a2744, #2563eb);">
     <div class="container py-5 text-center">
-        <h1 class="display-3 text-white">📂 Catégories</h1>
-        <p class="text-white fs-5">Explorez vos documents par catégorie</p>
+        <h1 class="display-3 text-white">🗂 Catégories</h1>
+        <p class="text-white-50 fs-5">{{ categorie_documents|length }} catégories disponibles</p>
     </div>
 </div>
 
 <div class="container py-5">
 
     <div class="row g-4">
-        {% for categorie in categorie_documents %}
-        <div class="col-md-4 col-lg-3">
-            <a href="{{ path('app_categorie_document_show', {'idCategorie': categorie.idCategorie}) }}"
+        {% for cat in categorie_documents %}
+        <div class="col-md-6 col-lg-4">
+            <a href="{{ path('app_categorie_document_show', {'idCategorie': cat.idCategorie}) }}"
                style="text-decoration:none;">
-                <div class="card border-0 shadow-sm rounded-4 text-center p-4 h-100"
-                     style="transition: transform 0.2s, box-shadow 0.2s; cursor:pointer;"
-                     onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='0 8px 25px rgba(37,99,235,0.2)';"
+                <div class="card border-0 shadow-sm rounded-4 h-100"
+                     style="transition: transform 0.2s, box-shadow 0.2s;"
+                     onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 30px rgba(0,0,0,0.15)';"
                      onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='';">
-                    <div style="font-size:48px; margin-bottom:12px;">📂</div>
-                    <h5 class="fw-bold text-dark">{{ categorie.libelle }}</h5>
-                    <p class="text-muted small">{{ categorie.description ?? 'Cliquez pour voir les documents' }}</p>
-                    <span class="badge bg-primary rounded-pill mt-2">Voir documents →</span>
+
+                    <div class="card-header border-0 rounded-top-4 py-3"
+                         style="background: linear-gradient(135deg, #1a2744, #2563eb);">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="text-white fw-bold mb-0">{{ cat.libelle }}</h5>
+                            {# ← COMPTEUR #}
+                            <span class="badge bg-white text-primary rounded-pill px-3 py-2 fw-bold"
+                                  style="font-size:14px;">
+                                {{ cat.documents is defined ? cat.documents|length : compteurs[cat.idCategorie]|default(0) }}
+                                doc(s)
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="card-body p-4">
+                        <p class="text-muted mb-3">
+                            {{ cat.description ?? 'Aucune description' }}
+                        </p>
+
+                        {# Barre de progression relative au total #}
+                        {% set count = compteurs[cat.idCategorie]|default(0) %}
+                        {% set pourcentage = totalDocuments > 0 ? ((count / totalDocuments) * 100)|round : 0 %}
+                        <div style="background:#f1f5f9; border-radius:10px; height:8px; overflow:hidden; margin-bottom:8px;">
+                            <div style="height:100%; border-radius:10px; width:{{ pourcentage }}%;
+                                        background: linear-gradient(135deg, #1a2744, #2563eb);
+                                        transition: width 1s ease;">
+                            </div>
+                        </div>
+                        <small class="text-muted">{{ pourcentage }}% des documents</small>
+                    </div>
+
+                    <div class="card-footer bg-transparent border-0 px-4 pb-4">
+                        <span class="btn btn-outline-primary rounded-pill w-100">
+                            📂 Voir les documents →
+                        </span>
+                    </div>
                 </div>
             </a>
         </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <div style="font-size:64px;">📭</div>
+            <h4 class="text-muted">Aucune catégorie</h4>
+        </div>
         {% endfor %}
     </div>
-
 </div>
 
 {% endblock %}

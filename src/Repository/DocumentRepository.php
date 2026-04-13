@@ -6,6 +6,9 @@ use App\Entity\Document;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
+use App\Repository\DocumentHistoriqueRepository;
+
+
 class DocumentRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
@@ -125,6 +128,37 @@ class DocumentRepository extends ServiceEntityRepository
             ->getQuery()
             ->getResult();
     }
+
+        public function getTauxExpiration(): array
+    {
+        $total   = count($this->findAll());
+        $expires = count($this->findExpired());
+        $bientot = count($this->findExpiringSoon());
+        $valides = $total - $expires - $bientot;
+
+        return [
+            'total'            => $total,
+            'expires'          => $expires,
+            'bientot'          => $bientot,
+            'valides'          => $valides,
+            'taux_expiration'  => $total > 0 ? round(($expires / $total) * 100, 1) : 0,
+            'taux_valides'     => $total > 0 ? round(($valides / $total) * 100, 1) : 0,
+        ];
+    }
+
+    public function getTopCategories(): array
+    {
+        return $this->createQueryBuilder('d')
+            ->select('c.libelle, COUNT(d.idDocument) as total')
+            ->leftJoin('d.categorie', 'c')
+            ->groupBy('c.libelle')
+            ->orderBy('total', 'DESC')
+            ->setMaxResults(5)
+            ->getQuery()
+            ->getResult();
+    }
+
+
 
     public function getMonthlyUploads(): array
     {

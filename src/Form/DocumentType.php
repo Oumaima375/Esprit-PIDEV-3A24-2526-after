@@ -15,7 +15,7 @@ use Symfony\Component\Validator\Constraints\NotBlank;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\File;
 use Symfony\Component\Validator\Constraints\GreaterThanOrEqual;
-
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 class DocumentType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
@@ -79,6 +79,21 @@ class DocumentType extends AbstractType
                 'placeholder'  => '🤖 Laisser vide pour détection Gemini AI',
                 'required'     => false,
                 'attr'         => ['class' => 'form-select'],
+            ])
+            ->add('tags', ChoiceType::class, [
+                'label'    => 'Étiquettes',
+                'required' => false,
+                'multiple' => true,
+                'expanded' => true,
+                'choices'  => [
+                    '🔴 Urgent'    => 'urgent',
+                    '⭐ Important' => 'important',
+                    '📁 Archivé'   => 'archive',
+                    '🔄 À renouveler' => 'renouveler',
+                    '✈ Voyage'    => 'voyage',
+                    '💼 Pro'       => 'pro',
+                ],
+                'attr' => ['class' => 'tags-container'],
             ])
         ;
     }

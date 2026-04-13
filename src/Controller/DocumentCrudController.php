@@ -3,12 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Document;
+use App\Entity\DocumentHistorique;
 use App\Form\DocumentType;
 use App\Repository\CategorieDocumentRepository;
+use App\Repository\DocumentHistoriqueRepository;
 use App\Repository\DocumentRepository;
+use App\Service\CategorieDetectorService;
 use App\Service\CloudinaryService;
 use App\Service\ConseilsService;
-use App\Service\CategorieDetectorService;
 use Doctrine\ORM\EntityManagerInterface;
 use Dompdf\Dompdf;
 use Dompdf\Options;
@@ -74,8 +76,6 @@ final class DocumentCrudController extends AbstractController
 
     // ===== NEW =====
     #[Route('/new', name: 'app_document_crud_new', methods: ['GET', 'POST'])]
-    // TODO after merge — décommentez pour forcer ROLE_USER seulement
-    // #[IsGranted('ROLE_USER')]
     public function new(
         Request $request,
         EntityManagerInterface $entityManager,
@@ -88,9 +88,6 @@ final class DocumentCrudController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-
-            // TODO after merge — associer le document à l'utilisateur connecté
-            // $document->setUser($this->getUser());
 
             $libelleDetecte = null;
             if (!$document->getCategorie()) {
@@ -128,6 +125,20 @@ final class DocumentCrudController extends AbstractController
             }
 
             $entityManager->persist($document);
+            $entityManager->flush();
+
+            // ← Historique création SEULEMENT
+            $historique = new DocumentHistorique();
+            $historique->setIdDocument($document->getIdDocument());
+            $historique->setNomDocument($document->getNomDocument());
+            $historique->setAction('création');
+            $historique->setNouvellesValeurs([
+                'nomDocument'    => $document->getNomDocument(),
+                'categorie'      => $document->getCategorie()?->getLibelle(),
+                'dateAjout'      => $document->getDateAjout()?->format('d/m/Y'),
+                'dateExpiration' => $document->getDateExpiration()?->format('d/m/Y'),
+            ]);
+            $entityManager->persist($historique);
             $entityManager->flush();
 
             if ($libelleDetecte) {
@@ -198,19 +209,22 @@ final class DocumentCrudController extends AbstractController
         DocumentRepository $documentRepository,
         CategorieDocumentRepository $categorieRepo
     ): Response {
-        $total        = count($documentRepository->findAll());
-        $expires      = count($documentRepository->findExpired());
-        $valides      = $total - $expires;
+        $taux         = $documentRepository->getTauxExpiration();
         $parCategorie = $documentRepository->countByCategorie();
+        $topCats      = $documentRepository->getTopCategories();
+        $parMois      = $documentRepository->getMonthlyUploads();
 
         return $this->render('document_crud/stats.html.twig', [
-            'total'        => $total,
-            'expires'      => $expires,
-            'valides'      => $valides,
+            'total'        => $taux['total'],
+            'expires'      => $taux['expires'],
+            'valides'      => $taux['valides'],
+            'bientot'      => $taux['bientot'],
+            'taux'         => $taux,
             'parCategorie' => $parCategorie,
+            'topCats'      => $topCats,
+            'parMois'      => $parMois,
         ]);
     }
-
     // ===== EXPORT PDF =====
     #[Route('/export/pdf', name: 'app_document_export_pdf', methods: ['GET'])]
     public function exportPdf(DocumentRepository $documentRepository): Response
@@ -278,9 +292,13 @@ final class DocumentCrudController extends AbstractController
     public function show(
         int $idDocument,
         DocumentRepository $documentRepository,
-        ConseilsService $conseilsService
+        ConseilsService $conseilsService,
+        DocumentHistoriqueRepository $historiqueRepo
     ): Response {
         $document = $documentRepository->find($idDocument);
+       
+        // ← ajoutez
+
         if (!$document) {
             throw $this->createNotFoundException('Document non trouvé');
         }
@@ -290,22 +308,23 @@ final class DocumentCrudController extends AbstractController
         //     throw $this->createAccessDeniedException('Ce document ne vous appartient pas');
         // }
 
-        $conseils = $conseilsService->genererConseils(
+        $conseils   = $conseilsService->genererConseils(
             $document->getNomDocument(),
             $document->getCategorie()?->getLibelle() ?? 'Document',
             $document->getDateExpiration()?->format('d/m/Y')
         );
 
+        $historique = $historiqueRepo->findByDocument($idDocument);
+
         return $this->render('document_crud/show.html.twig', [
-            'document' => $document,
-            'conseils' => $conseils,
+            'document'   => $document,
+            'conseils'   => $conseils,
+            'historique' => $historique,
         ]);
     }
 
     // ===== EDIT =====
     #[Route('/{idDocument}/edit', name: 'app_document_crud_edit', methods: ['GET', 'POST'])]
-    // TODO after merge — admin ne peut pas modifier → décommentez
-    // #[IsGranted('ROLE_USER')]
     public function edit(
         Request $request,
         int $idDocument,
@@ -318,19 +337,15 @@ final class DocumentCrudController extends AbstractController
             throw $this->createNotFoundException('Document non trouvé');
         }
 
-        // TODO after merge — vérifier que c'est le bon user + bloquer admin
-        // if ($document->getUser() !== $this->getUser()) {
-        //     throw $this->createAccessDeniedException('Ce document ne vous appartient pas');
-        // }
-        // if ($this->isGranted('ROLE_ADMIN')) {
-        //     $this->addFlash('error', '⚠️ Les admins ne peuvent pas modifier les documents.');
-        //     return $this->redirectToRoute('app_admin_dashboard');
-        // }
-
         $form = $this->createForm(DocumentType::class, $document);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            // ← Sauvegarder les anciennes valeurs AVANT flush
+            $ancienNom  = $document->getNomDocument();
+            $ancienDate = $document->getDateExpiration()?->format('d/m/Y');
+            $ancienneCat = $document->getCategorie()?->getLibelle();
 
             $dateAjout      = $document->getDateAjout();
             $dateExpiration = $document->getDateExpiration();
@@ -363,6 +378,25 @@ final class DocumentCrudController extends AbstractController
             }
 
             $entityManager->flush();
+
+            // ← Historique modification APRÈS flush
+            $historique = new DocumentHistorique();
+            $historique->setIdDocument($document->getIdDocument());
+            $historique->setNomDocument($document->getNomDocument());
+            $historique->setAction('modification');
+            $historique->setAnciennesValeurs([
+                'nomDocument'    => $ancienNom,
+                'categorie'      => $ancienneCat,
+                'dateExpiration' => $ancienDate,
+            ]);
+            $historique->setNouvellesValeurs([
+                'nomDocument'    => $document->getNomDocument(),
+                'categorie'      => $document->getCategorie()?->getLibelle(),
+                'dateExpiration' => $document->getDateExpiration()?->format('d/m/Y'),
+            ]);
+            $entityManager->persist($historique);
+            $entityManager->flush();
+
             $this->addFlash('success', '✅ Document modifié avec succès !');
             return $this->redirectToRoute('app_document_crud_index');
         }
@@ -372,7 +406,6 @@ final class DocumentCrudController extends AbstractController
             'form'     => $form,
         ]);
     }
-
     // ===== SUPPRIMER EXPIRES =====
     #[Route('/supprimer/expires', name: 'app_document_supprimer_expires', methods: ['GET'])]
     public function supprimerExpires(
@@ -422,5 +455,21 @@ final class DocumentCrudController extends AbstractController
         }
 
         return $this->redirectToRoute('app_document_crud_index');
+    }
+
+
+    //NOTIF//
+    #[Route('/notifications/check', name: 'app_notifications_check', methods: ['GET'])]
+    public function checkNotifications(DocumentRepository $repo): Response
+    {
+        $bientot = $repo->findExpiringSoon();
+        return $this->json([
+            'count'     => count($bientot),
+            'documents' => array_map(fn($d) => [
+                'nom'            => $d->getNomDocument(),
+                'dateExpiration' => $d->getDateExpiration()?->format('d/m/Y'),
+                'joursRestants'  => (new \DateTime())->diff($d->getDateExpiration())->days,
+            ], $bientot)
+        ]);
     }
 }

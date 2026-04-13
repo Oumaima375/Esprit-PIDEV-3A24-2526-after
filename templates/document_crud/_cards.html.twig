@@ -12,11 +12,32 @@
                 <span class="badge bg-white text-primary fw-bold px-3 py-2 rounded-pill">
                     {{ document.categorie ? document.categorie.libelle : 'N/A' }}
                 </span>
+
+                {# ← ALERTES EXPIRATION #}
                 {% if document.dateExpiration %}
+                    {% set joursRestants = date().diff(document.dateExpiration).days %}
                     {% if document.dateExpiration < date() %}
-                        <span class="badge bg-danger rounded-pill px-3">❌ Expiré</span>
+                        {# Expiré #}
+                        <span class="badge bg-danger rounded-pill px-3 blink">
+                            ❌ Expiré
+                        </span>
+                    {% elseif joursRestants <= 7 %}
+                        {# Expire dans moins de 7 jours #}
+                        <span class="badge rounded-pill px-3 blink"
+                              style="background:#ff4500; color:white;">
+                            🔴 {{ joursRestants }}j restants !
+                        </span>
+                    {% elseif joursRestants <= 30 %}
+                        {# Expire dans moins de 30 jours #}
+                        <span class="badge rounded-pill px-3"
+                              style="background:#f59e0b; color:white;">
+                            ⚠️ {{ joursRestants }}j restants
+                        </span>
                     {% else %}
-                        <span class="badge bg-success rounded-pill px-3">✅ Valide</span>
+                        {# Valide #}
+                        <span class="badge bg-success rounded-pill px-3">
+                            ✅ Valide
+                        </span>
                     {% endif %}
                 {% endif %}
             </div>
@@ -24,6 +45,23 @@
 
         <div class="card-body p-4">
             <h5 class="fw-bold text-dark mb-3">✈ {{ document.nomDocument }}</h5>
+
+            {# ← Barre de progression validité #}
+            {% if document.dateExpiration and document.dateAjout %}
+                {% set joursRestants = date().diff(document.dateExpiration).days %}
+                {% set totalJours = document.dateAjout.diff(document.dateExpiration).days %}
+                {% set pourcentage = totalJours > 0 ? min(100, max(0, (joursRestants / totalJours) * 100))|round : 0 %}
+                <div class="mb-3">
+                    <div style="background:#f1f5f9; border-radius:10px; height:6px; overflow:hidden;">
+                        <div style="height:100%; border-radius:10px; width:{{ pourcentage }}%;
+                            background: {% if pourcentage > 50 %}#22c55e{% elseif pourcentage > 20 %}#f59e0b{% else %}#ef4444{% endif %};
+                            transition: width 0.5s ease;">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ pourcentage }}% de validité restante</small>
+                </div>
+            {% endif %}
+
             <div class="d-flex flex-column gap-2">
                 <div>
                     <small class="text-muted">📅 Ajouté :</small>
@@ -33,10 +71,37 @@
                 </div>
                 <div>
                     <small class="text-muted">⏳ Expire :</small>
-                    <small class="fw-medium ms-1 {{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger' : 'text-success' }}">
+                    <small class="fw-medium ms-1 {{ document.dateExpiration and document.dateExpiration < date() ? 'text-danger fw-bold' : 'text-success' }}">
                         {{ document.dateExpiration ? document.dateExpiration|date('d/m/Y') : 'N/A' }}
                     </small>
                 </div>
+                {# Dans card-body, après les dates #}
+            {% if document.tags is defined and document.tags|length > 0 %}
+            <div class="d-flex flex-wrap gap-1 mt-2">
+                {% for tag in document.tags %}
+                    {% set colors = {
+                        'urgent':     '#ef4444',
+                        'important':  '#f59e0b',
+                        'archive':    '#94a3b8',
+                        'renouveler': '#8b5cf6',
+                        'voyage':     '#2563eb',
+                        'pro':        '#1a2744'
+                    } %}
+                    {% set labels = {
+                        'urgent':     '🔴 Urgent',
+                        'important':  '⭐ Important',
+                        'archive':    '📁 Archivé',
+                        'renouveler': '🔄 À renouveler',
+                        'voyage':     '✈ Voyage',
+                        'pro':        '💼 Pro'
+                    } %}
+                    <span style="background:{{ colors[tag]|default('#64748b') }}; color:white;
+                                padding:2px 8px; border-radius:20px; font-size:11px; font-weight:bold;">
+                        {{ labels[tag]|default(tag) }}
+                    </span>
+                {% endfor %}
+            </div>
+            {% endif %}
                 {% if document.cheminFichier starts with 'http' %}
                 <a href="{{ document.cheminFichier }}" target="_blank"
                    class="btn btn-outline-primary btn-sm rounded-pill mt-1">
@@ -70,3 +135,14 @@
     <h4 class="text-muted">Aucun document trouvé</h4>
 </div>
 {% endfor %}
+
+{# CSS animation blink #}
+<style>
+@keyframes blink {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50%       { opacity: 0.5; transform: scale(1.05); }
+}
+.blink {
+    animation: blink 1.2s ease-in-out infinite;
+}
+</style>

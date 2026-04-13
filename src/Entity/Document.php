@@ -30,6 +30,24 @@ class Document
     #[ORM\JoinColumn(name: 'id_categorie', referencedColumnName: 'id_categorie')]
     private ?CategorieDocument $categorie = null;
 
+    #[ORM\Column(type: 'json', nullable: true)]
+    private ?array $tags = [];
+
+    public function getTags(): array { return $this->tags ?? []; }
+    public function setTags(?array $tags): static { $this->tags = $tags ?? []; return $this; }
+    public function addTag(string $tag): static
+    {
+        if (!in_array($tag, $this->tags ?? [])) {
+            $this->tags[] = $tag;
+        }
+        return $this;
+    }
+    public function removeTag(string $tag): static
+    {
+        $this->tags = array_values(array_filter($this->tags ?? [], fn($t) => $t !== $tag));
+        return $this;
+    }
+
     // TODO after merge — décommentez après intégration User
     // #[ORM\ManyToOne(targetEntity: User::class)]
     // #[ORM\JoinColumn(name: 'id_user', referencedColumnName: 'id', nullable: true)]

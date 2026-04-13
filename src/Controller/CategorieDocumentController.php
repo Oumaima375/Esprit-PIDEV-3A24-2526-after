@@ -17,13 +17,29 @@ use Symfony\Component\Routing\Attribute\Route;
 final class CategorieDocumentController extends AbstractController
 {
     #[Route(name: 'app_categorie_document_index', methods: ['GET'])]
-    public function index(CategorieDocumentRepository $categorieDocumentRepository): Response
-    {
+    public function index(
+        CategorieDocumentRepository $categorieDocumentRepository,
+        DocumentRepository $documentRepository
+    ): Response {
+        $categories    = $categorieDocumentRepository->findAll();
+        $totalDocuments = count($documentRepository->findAll());
+
+        // Compteur par catégorie
+        $compteurs = [];
+        foreach ($categories as $cat) {
+            $compteurs[$cat->getIdCategorie()] = count(
+                $documentRepository->findBy(['categorie' => $cat])
+            );
+        }
+
         return $this->render('categorie_document/index.html.twig', [
-            'categorie_documents' => $categorieDocumentRepository->findAll(),
+            'categorie_documents' => $categories,
+            'compteurs'           => $compteurs,
+            'totalDocuments'      => $totalDocuments,
         ]);
     }
 
+    
     #[Route('/new', name: 'app_categorie_document_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $entityManager): Response
     {

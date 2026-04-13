@@ -261,21 +261,14 @@
                             {# TODO after merge — bloquez ces boutons pour l'admin #}
                             {# Remplacez par : #}
                             {# {% if not is_granted('ROLE_ADMIN') %} #}
-                            <a href="{{ path('app_document_crud_edit', {'idDocument': doc.idDocument}) }}"
-                               style="background:#f59e0b; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;"
-                               title="Désactivé pour admin après intégration">
-                                ✏️
-                            </a>
+                        
                             <form method="post"
                                   action="{{ path('app_document_crud_delete', {'idDocument': doc.idDocument}) }}"
                                   onsubmit="return confirm('Supprimer ce document ?')"
                                   style="display:inline">
                                 <input type="hidden" name="_token"
                                        value="{{ csrf_token('delete' ~ doc.idDocument) }}">
-                                <button style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:12px;"
-                                        title="Désactivé pour admin après intégration">
-                                    🗑
-                                </button>
+                                
                             </form>
                             {# {% endif %} #}
                         </div>
