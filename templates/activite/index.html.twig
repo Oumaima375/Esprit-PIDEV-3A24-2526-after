@@ -16,10 +16,8 @@
 <div class="container-fluid bg-breadcrumb">
     <div class="container text-center py-5" style="max-width: 900px;">
         <h3 class="text-white display-3 mb-4">Nos Activités</h3>
-         <p class="text-white fs-5">Explorez nos activités et créez des souvenirs uniques </p>
+        <p class="text-white fs-5">Explorez nos activités et créez des souvenirs uniques</p>
     </div>
-   
-  
 </div>
 <!-- Header End -->
 
@@ -99,15 +97,18 @@
                     <div class="mb-2">
                         <input type="text" id="res-nom" class="form-control" placeholder="Nom">
                     </div>
-                    <div class="mb-3">
+                    <div class="mb-2">
                         <input type="text" id="res-prenom" class="form-control" placeholder="Prénom">
+                    </div>
+                    <div class="mb-3">
+                        <input type="email" id="res-email" class="form-control" placeholder="Email">
                     </div>
                     <button id="btn-confirmer" class="btn btn-success rounded-pill px-4">✅ Confirmer</button>
                     <button class="btn btn-outline-secondary rounded-pill px-4 ms-2"
                             onclick="document.getElementById('reservation-form').style.display='none'">Annuler</button>
                 </div>
                 <div id="reservation-success" style="display:none;" class="alert alert-success mt-3">
-                    🎉 Réservation confirmée avec succès !
+                    🎉 Réservation confirmée ! Le modal va se fermer...
                 </div>
             </div>
         </div>
@@ -148,6 +149,7 @@
                              data-lieu="{{ activite.lieu ?? '' }}"
                              data-description="{{ activite.description ?? '' }}">
 
+                            {# ══ IMAGE + INDICATEUR ══ #}
                             <div style="position:relative;">
                                 {% if activite.image %}
                                     <img src="{{ asset('uploads/activites/' ~ activite.image) }}"
@@ -201,8 +203,6 @@
                                     <i class="fa fa-info-circle me-1"></i>Cliquez pour voir la description
                                 </p>
 
-                              
-
                                 <div class="zone-interactive d-flex align-items-center gap-2 mb-3">
                                     <small class="text-muted">Partager :</small>
                                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ (app.request.schemeAndHttpHost ~ path('app_activite'))|url_encode }}&quote={{ (activite.nom ~ ' - ' ~ activite.lieu ~ ' - ' ~ activite.prix ~ ' TND')|url_encode }}" target="_blank" class="btn-social btn-facebook"><i class="fab fa-facebook-f"></i></a>
@@ -225,6 +225,14 @@
                                             data-nom="{{ activite.nom }}">
                                         📅 Réserver
                                     </button>
+                                </div>
+
+                                {# ══ INFO RÉSERVATION ══ #}
+                                <div class="reservation-info-{{ activite.idActivite }} mt-3" style="display:none;">
+                                    <div class="p-2 rounded" style="background:#fff3f3; border-left:3px solid #ef4444;">
+                                        <small class="fw-bold text-danger d-block mb-1">🔴 Réservée</small>
+                                        <small class="text-muted reservation-detail-{{ activite.idActivite }}"></small>
+                                    </div>
                                 </div>
 
                             </div>
@@ -262,6 +270,7 @@
 .btn-whatsapp { background: #25D366; }
 #cal-grid div { min-height: 36px; display: flex; align-items: center; justify-content: center; }
 </style>
+
 <!-- Footer -->
 <div class="container-fluid footer py-5">
     <div class="container py-5">
@@ -293,6 +302,7 @@
         <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
     </div>
 </div>
+
 <script>
 $(document).ready(function () {
 
@@ -303,28 +313,19 @@ $(document).ready(function () {
     var calCurrentDate     = new Date();
     var urlPlannings       = '{{ path("app_activite_plannings", {"id": 0}) }}';
     var urlReservation     = '{{ path("app_reservation_new") }}';
+    var urlReservations    = '{{ path("app_activite_reservations", {"id": 0}) }}';
 
     function getPlanningsUrl(id) {
         return urlPlannings.replace('/0/', '/' + id + '/');
     }
 
-    // ══ REACTIONS ══
-    function loadReactions() {
-        $('.btn-like, .btn-dislike').each(function () {
-            var id = $(this).attr('data-id');
-            if (!id) return;
-            var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
-            var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
-            var userVote = localStorage.getItem('vote_' + id);
-            $('.like-count-'    + id).text(likes);
-            $('.dislike-count-' + id).text(dislikes);
-            if (userVote === 'like')    $('.btn-like[data-id="'    + id + '"]').addClass('active');
-            if (userVote === 'dislike') $('.btn-dislike[data-id="' + id + '"]').addClass('active');
-        });
+    function getReservationsUrl(id) {
+        return urlReservations.replace('/0/', '/' + id + '/');
     }
-    loadReactions();
 
-    // ══ INDICATEURS ══
+   
+
+    // ══ INDICATEURS + INFO RÉSERVATION ══
     function chargerIndicateurs() {
         $('.disponibilite-indicator').each(function () {
             var id  = $(this).attr('data-id');
@@ -334,16 +335,40 @@ $(document).ready(function () {
                 type: 'GET',
                 dataType: 'json',
                 success: function (plannings) {
+                    if (plannings.length === 0) {
+                        dot.css('background', '#ccc');
+                        return;
+                    }
                     var hasDisponible = plannings.some(function(p) { return p.disponible; });
                     dot.css('background', hasDisponible ? '#22c55e' : '#ef4444');
                     dot.attr('title', hasDisponible ? 'Dates disponibles' : 'Complet');
+
+                    if (!hasDisponible) {
+                        $.ajax({
+                            url: getReservationsUrl(id),
+                            type: 'GET',
+                            dataType: 'json',
+                            success: function (reservations) {
+                                if (reservations.length > 0) {
+                                    var r = reservations[0];
+                                    var info = '👤 ' + r.prenom + ' ' + r.nom +
+                                               ' | 📧 ' + r.email +
+                                               ' | 📅 ' + r.date;
+                                    $('.reservation-detail-' + id).text(info);
+                                    $('.reservation-info-' + id).show();
+                                }
+                            }
+                        });
+                    } else {
+                        $('.reservation-info-' + id).hide();
+                    }
                 }
             });
         });
     }
     chargerIndicateurs();
 
-    // ══ CALENDRIER RENDER ══
+    // ══ RENDER CALENDRIER ══
     function renderCalendar(year, month) {
         var monthNames = ['Janvier','Février','Mars','Avril','Mai','Juin',
                           'Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
@@ -408,7 +433,9 @@ $(document).ready(function () {
         $('#no-dates-msg').hide();
         $('#res-nom').val('');
         $('#res-prenom').val('');
+        $('#res-email').val('');
         $('#cal-titre').text(nom);
+        $('#calendarModal').attr('data-activite-id', id);
 
         $.ajax({
             url: getPlanningsUrl(id),
@@ -444,23 +471,46 @@ $(document).ready(function () {
     $('#btn-confirmer').on('click', function () {
         var nom    = $('#res-nom').val().trim();
         var prenom = $('#res-prenom').val().trim();
-        if (!nom || !prenom) { alert('Veuillez entrer votre nom et prénom.'); return; }
+        var email  = $('#res-email').val().trim();
+
+        if (!nom || !prenom || !email) { alert('Veuillez remplir tous les champs.'); return; }
         if (!selectedPlanningId) return;
 
         $.ajax({
             url: urlReservation,
             type: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ planningId: selectedPlanningId, nom: nom, prenom: prenom }),
-            success: function () {
+            data: JSON.stringify({ planningId: selectedPlanningId, nom: nom, prenom: prenom, email: email }),
+            success: function (data) {
                 $('#reservation-form').hide();
                 $('#reservation-success').show();
+
+                var activiteId = $('#calendarModal').attr('data-activite-id');
+
+                // Afficher sur la card directement
+                var info = '👤 ' + data.reservation.prenom + ' ' + data.reservation.nom +
+                           ' | 📧 ' + data.reservation.email +
+                           ' | 📅 ' + data.reservation.date +
+                           ' à ' + data.reservation.heure;
+                $('.reservation-detail-' + activiteId).text(info);
+                $('.reservation-info-' + activiteId).show();
+
+                // Mettre l'indicateur en rouge
+                $('.disponibilite-indicator[data-id="' + activiteId + '"]')
+                    .css('background', '#ef4444')
+                    .attr('title', 'Complet');
+
+                // Mettre la date en rouge dans le calendrier
                 calPlannings = calPlannings.map(function(p) {
                     if (p.id == selectedPlanningId) p.disponible = false;
                     return p;
                 });
                 renderCalendar(calCurrentDate.getFullYear(), calCurrentDate.getMonth());
-                chargerIndicateurs();
+
+                // Fermer le modal après 2 secondes
+                setTimeout(function () {
+                    $('#calendarModal').modal('hide');
+                }, 2000);
             },
             error: function () { alert('Erreur lors de la réservation.'); }
         });
@@ -491,63 +541,6 @@ $(document).ready(function () {
         $('#activiteModal').modal('show');
     });
 
-    // ══ LIKE ══
-    $(document).on('click', '.btn-like', function (e) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        var id = String($(this).attr('data-id'));
-        if (!id || id === 'undefined') return false;
-        var userVote = localStorage.getItem('vote_' + id);
-        var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
-        var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
-        if (userVote === 'like') {
-            likes = Math.max(0, likes - 1);
-            localStorage.removeItem('vote_' + id);
-            $('.btn-like[data-id="' + id + '"]').removeClass('active');
-        } else {
-            likes++;
-            localStorage.setItem('vote_' + id, 'like');
-            $('.btn-like[data-id="' + id + '"]').addClass('active');
-            if (userVote === 'dislike') {
-                dislikes = Math.max(0, dislikes - 1);
-                localStorage.setItem('dislike_' + id, dislikes);
-                $('.btn-dislike[data-id="' + id + '"]').removeClass('active');
-                $('.dislike-count-' + id).text(dislikes);
-            }
-        }
-        localStorage.setItem('like_' + id, likes);
-        $('.like-count-' + id).text(likes);
-        return false;
-    });
-
-    // ══ DISLIKE ══
-    $(document).on('click', '.btn-dislike', function (e) {
-        e.stopImmediatePropagation();
-        e.preventDefault();
-        var id = String($(this).attr('data-id'));
-        if (!id || id === 'undefined') return false;
-        var userVote = localStorage.getItem('vote_' + id);
-        var likes    = parseInt(localStorage.getItem('like_'    + id)) || 0;
-        var dislikes = parseInt(localStorage.getItem('dislike_' + id)) || 0;
-        if (userVote === 'dislike') {
-            dislikes = Math.max(0, dislikes - 1);
-            localStorage.removeItem('vote_' + id);
-            $('.btn-dislike[data-id="' + id + '"]').removeClass('active');
-        } else {
-            dislikes++;
-            localStorage.setItem('vote_' + id, 'dislike');
-            $('.btn-dislike[data-id="' + id + '"]').addClass('active');
-            if (userVote === 'like') {
-                likes = Math.max(0, likes - 1);
-                localStorage.setItem('like_' + id, likes);
-                $('.btn-like[data-id="' + id + '"]').removeClass('active');
-                $('.like-count-' + id).text(likes);
-            }
-        }
-        localStorage.setItem('dislike_' + id, dislikes);
-        $('.dislike-count-' + id).text(dislikes);
-        return false;
-    });
 
     // ══ TRADUCTION ══
     $(document).on('click', '.modal-btn-translate', function () {
@@ -630,8 +623,7 @@ $(document).ready(function () {
                 var likes      = parseInt(localStorage.getItem('like_'    + id)) || 0;
                 var dislikes   = parseInt(localStorage.getItem('dislike_' + id)) || 0;
                 var userVote   = localStorage.getItem('vote_' + id);
-                var likeCls    = userVote === 'like'    ? 'active' : '';
-                var dislikeCls = userVote === 'dislike' ? 'active' : '';
+                var likeCls    = userVote === 'like' ? 'active' : '';
                 var shareUrl   = encodeURIComponent(window.location.href);
                 var shareText  = encodeURIComponent('🏃 ' + (obj.nom||'') + ' 📍 ' + (obj.lieu||'') + ' 💰 ' + (obj.prix||'') + ' TND - After Travel!');
                 var imgSrc     = obj.image
@@ -660,7 +652,7 @@ $(document).ready(function () {
                         '<p class="text-muted small mb-3"><i class="fa fa-info-circle me-1"></i>Cliquez pour voir la description</p>' +
                         '<div class="zone-interactive d-flex align-items-center gap-3 mb-3">' +
                             '<button class="btn-reaction btn-like ' + likeCls + '" data-id="' + id + '" type="button">👍 <span class="reaction-count like-count-' + id + '">' + likes + '</span></button>' +
-                            '<button class="btn-reaction btn-dislike ' + dislikeCls + '" data-id="' + id + '" type="button">👎 <span class="reaction-count dislike-count-' + id + '">' + dislikes + '</span></button>' +
+                            '<button class="btn-reaction btn-dislike" data-id="' + id + '" type="button">👎 <span class="reaction-count dislike-count-' + id + '">' + dislikes + '</span></button>' +
                         '</div>' +
                         '<div class="zone-interactive d-flex align-items-center gap-2 mb-3">' +
                             '<small class="text-muted">Partager :</small>' +
@@ -672,6 +664,12 @@ $(document).ready(function () {
                             '<a href="{{ path("app_activite_pdf", {"id": 0}) }}'.replace('/0', '/' + id) + '" class="btn btn-sm btn-success" target="_blank"><i class="fa fa-file-pdf"></i> PDF</a>' +
                             '<a href="{{ path("app_avis_liste", {"id": 0}) }}'.replace('/0', '/' + id) + '" class="btn btn-outline-info rounded-pill btn-sm"><i class="fa fa-comments"></i> Voir les avis</a>' +
                             '<button class="btn btn-outline-primary rounded-pill btn-sm btn-calendar" data-id="' + id + '" data-nom="' + (obj.nom||'') + '">📅 Réserver</button>' +
+                        '</div>' +
+                        '<div class="reservation-info-' + id + ' mt-3" style="display:none;">' +
+                            '<div class="p-2 rounded" style="background:#fff3f3; border-left:3px solid #ef4444;">' +
+                                '<small class="fw-bold text-danger d-block mb-1">🔴 Réservée</small>' +
+                                '<small class="text-muted reservation-detail-' + id + '"></small>' +
+                            '</div>' +
                         '</div>' +
                     '</div></div></div>'
                 );
