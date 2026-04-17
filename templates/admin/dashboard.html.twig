@@ -1,0 +1,328 @@
+{% extends 'admin/base.html.twig' %}
+{% block title %}Dashboard — AFTER Admin{% endblock %}
+
+{% block body %}
+
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:15px;margin-bottom:28px">
+    <div>
+        <h1>Dashboard</h1>
+        <p>Vue d'ensemble des dépenses et catégories.</p>
+    </div>
+    <div style="display:flex;gap:12px">
+        <a href="{{ path('admin_dashboard', app.request.query.all|merge({'view': 'depenses'})) }}"
+           class="btn {% if viewMode == 'depenses' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+           style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:{% if viewMode == 'depenses' %}#fff{% else %}#13357B{% endif %};border-color:#13357B;">
+            <i class="fa fa-list-alt"></i> Gérer mes dépenses
+        </a>
+        <a href="{{ path('admin_dashboard', app.request.query.all|merge({'view': 'default'})) }}"
+           class="btn {% if viewMode != 'depenses' %}btn-primary{% else %}btn-outline-primary{% endif %}"
+           style="text-decoration:none;display:inline-flex;align-items:center;gap:6px;color:{% if viewMode != 'depenses' %}#fff{% else %}#13357B{% endif %};border-color:#13357B;">
+            <i class="fa fa-chart-line"></i> Vue complète
+        </a>
+    </div>
+</div>
+
+{# ═══ FILTRES DE DASHBOARD ═══ #}
+<form method="GET" action="{{ path('admin_dashboard') }}" style="display:flex;gap:15px;margin-bottom:32px;background:#fff;padding:20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.03);align-items:flex-end;flex-wrap:wrap">
+    <input type="hidden" name="view" value="{{ viewMode }}">
+    <div style="flex:1;min-width:200px">
+        <label style="font-size:13px;color:var(--text-secondary);display:block;margin-bottom:6px;font-weight:600">Catégorie visée</label>
+        <select name="categorie" style="width:100%;padding:11px 14px;border:1px solid var(--border);border-radius:8px;outline:none;font-family:inherit;background:#fff">
+            <option value="">Toutes les catégories</option>
+            {% for cat in categories %}
+                <option value="{{ cat.id }}" {% if filtreCat == cat.id %}selected{% endif %}>{{ cat.nomCategorie }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div style="display:flex;gap:10px;min-width:max-content">
+        <button type="submit" style="padding:11px 24px;background:var(--accent-copper);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer;transition:0.2s">
+            Calculer
+        </button>
+        {% if filtreTitre or filtreCat %}
+            <a href="{{ path('admin_dashboard', {view: viewMode}) }}" style="padding:11px 24px;background:var(--border);color:var(--text-primary);border-radius:8px;text-decoration:none;font-weight:600;display:inline-block;transition:0.2s">
+                Annuler
+            </a>
+        {% endif %}
+    </div>
+</form>
+
+{# ═══ MODE « DÉPENSES SEULEMENT » (avec taille adaptée et couleurs lisibles) ═══ #}
+{% if viewMode == 'depenses' %}
+    <div class="card" style="margin-top:20px;width:100%;overflow-x:auto">
+        <div class="card-header bg-secondary text-white">
+            <h4 class="card-title mb-0"><i class="fa fa-receipt"></i> Liste des dépenses</h4>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive" style="width:100%;overflow-x:auto">
+                <table class="table table-striped table-hover mb-0" style="color:#212529 !important;min-width:500px">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Titre</th>
+                            <th>Montant (DT)</th>
+                            <th>Date</th>
+                            <th>Catégorie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for depense in depenses %}
+                            <tr>
+                                <td style="color:#212529;">{{ depense.titre }}</td>
+                                <td style="color:#212529;">{{ depense.montant|number_format(2, ',', ' ') }} DT</td>
+                                <td style="color:#212529;">{{ depense.dateDepense|date('d/m/Y') }}</td>
+                                <td style="color:#212529;">{{ depense.categorie ? depense.categorie.nomCategorie : '-' }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="4" class="text-center">Aucune dépense trouvée.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+{# ═══ MODE COMPLET (dashboard normal) ═══ #}
+{% else %}
+
+    {# STAT CARDS #}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:20px;margin-bottom:32px">
+        <div class="card" style="display:flex;align-items:center;gap:18px">
+            <div style="width:50px;height:50px;border-radius:12px;background:rgba(184,115,51,.15);display:flex;align-items:center;justify-content:center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--accent-copper)" stroke-width="2">
+                    <line x1="12" y1="1" x2="12" y2="23"/>
+                    <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                </svg>
+            </div>
+            <div>
+                <div style="font-size:14px;color:#555;margin-bottom:4px;font-weight:600">Total dépenses</div>
+                <div style="font-size:24px;font-weight:800;color:#13357B">{{ totalMontant|number_format(2, ',', ' ') }} TND</div>
+            </div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:18px">
+            <div style="width:50px;height:50px;border-radius:12px;background:rgba(107,142,107,.15);display:flex;align-items:center;justify-content:center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gain)" stroke-width="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+                    <polyline points="14 2 14 8 20 8"/>
+                    <line x1="16" y1="13" x2="8" y2="13"/>
+                    <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+            </div>
+            <div>
+                <div style="font-size:14px;color:#555;margin-bottom:4px;font-weight:600">Nb dépenses</div>
+                <div style="font-size:24px;font-weight:800;color:#13357B">{{ depenses|length }}</div>
+            </div>
+        </div>
+        <div class="card" style="display:flex;align-items:center;gap:18px">
+            <div style="width:50px;height:50px;border-radius:12px;background:rgba(107,154,196,.15);display:flex;align-items:center;justify-content:center">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#6b9ac4" stroke-width="2">
+                    <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                    <polyline points="17 6 23 6 23 12"/>
+                </svg>
+            </div>
+            <div>
+                <div style="font-size:14px;color:#555;margin-bottom:4px;font-weight:600">Moyenne / dépense</div>
+                <div style="font-size:24px;font-weight:800;color:#13357B">{{ moyenne|number_format(2, ',', ' ') }} TND</div>
+            </div>
+        </div>
+    </div>
+
+    {# Dépenses max/min #}
+    {% if maxDepense or minDepense %}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+        {% if maxDepense %}
+        <div class="card" style="border-left:3px solid var(--loss)">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Dépense la plus élevée</div>
+            <div style="font-size:20px;font-weight:700;color:var(--loss)">{{ maxDepense.montant|number_format(2, ',', ' ') }} TND</div>
+            <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">{{ maxDepense.titre }}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">{{ maxDepense.categorie ? maxDepense.categorie.nomCategorie : '—' }} · {{ maxDepense.dateDepense|date('d/m/Y') }}</div>
+        </div>
+        {% endif %}
+        {% if minDepense %}
+        <div class="card" style="border-left:3px solid var(--gain)">
+            <div style="font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-muted);margin-bottom:12px">Dépense la plus faible</div>
+            <div style="font-size:20px;font-weight:700;color:var(--gain)">{{ minDepense.montant|number_format(2, ',', ' ') }} TND</div>
+            <div style="font-size:14px;color:var(--text-secondary);margin-top:4px">{{ minDepense.titre }}</div>
+            <div style="font-size:12px;color:var(--text-muted);margin-top:2px">{{ minDepense.categorie ? minDepense.categorie.nomCategorie : '—' }} · {{ minDepense.dateDepense|date('d/m/Y') }}</div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {# CHARTS (Chart.js) #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+        <div class="card">
+            <div class="card-header" style="justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:15px;margin-bottom:15px;flex-wrap:wrap;gap:10px">
+                <h2 class="card-title" style="margin:0;font-size:16px;">Évolution des dépenses</h2>
+                <select onchange="toggleChrono(this.value)" style="border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-size:13px;color:#13357B;font-weight:600;outline:none;cursor:pointer;background:#f8f9fa;">
+                    <option value="0">Total global de la journée (DT)</option>
+                    <option value="1">Coût typique unitaire (DT)</option>
+                </select>
+            </div>
+            <div style="height:250px;position:relative"><canvas id="chronoChart"></canvas></div>
+        </div>
+        <div class="card">
+            <div class="card-header" style="justify-content:space-between;border-bottom:1px solid #eee;padding-bottom:15px;margin-bottom:15px;flex-wrap:wrap;gap:10px">
+                <h2 class="card-title" style="margin:0;font-size:16px;">
+                    {% if filtreCat %}Analyse des dépenses{% else %}Analyses par Catégorie{% endif %}
+                </h2>
+                <select onchange="togglePie(this.value)" style="border:1px solid #ddd;border-radius:6px;padding:6px 12px;font-size:13px;color:#13357B;font-weight:600;outline:none;cursor:pointer;background:#f8f9fa;">
+                    {% if filtreCat %}
+                        <option value="0">Top des Dépenses (par budget)</option>
+                        <option value="1">Top des Dépenses (par Fréquence)</option>
+                    {% else %}
+                        <option value="0">Répartition des catégories (par budget)</option>
+                        <option value="1">Répartition de la Fréquence (par Catégorie)</option>
+                    {% endif %}
+                </select>
+            </div>
+            <div style="height:250px;position:relative"><canvas id="pieChart"></canvas></div>
+        </div>
+    </div>
+
+    {# TABLEAUX : Top catégories + Dernières dépenses #}
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:32px">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">{% if filtreCat %}Top Dépenses{% else %}Top Catégories{% endif %}</h2>
+                <a href="{{ path('admin_categorie_index') }}" style="font-size:13px;color:var(--accent-copper);text-decoration:none">Voir tout</a>
+            </div>
+            {% if statsCat is empty %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem 0">Aucune donnée</p>
+            {% else %}
+                {% for stat in statsCat %}
+                <div style="display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid var(--border)">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(184,115,51,.12);display:flex;align-items:center;justify-content:center;flex-shrink:0;overflow:hidden">
+                        {% if stat.iconeUrl is defined and stat.iconeUrl and stat.iconeUrl starts with 'http' %}
+                            <img src="{{ stat.iconeUrl }}" style="width:100%;height:100%;object-fit:cover" alt="">
+                        {% else %}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-copper)" stroke-width="2">
+                                <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                            </svg>
+                        {% endif %}
+                    </div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:14px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ stat.nom }}</div>
+                        <div style="font-size:12px;color:var(--text-muted)">{{ stat.nb }} dépense{{ stat.nb != 1 ? 's' : '' }}</div>
+                    </div>
+                    <div style="font-weight:700;font-size:14px;color:var(--accent-copper);white-space:nowrap">{{ stat.total|number_format(2, ',', ' ') }} TND</div>
+                    {% if totalMontant > 0 %}
+                    <div style="width:60px">
+                        {% set pct = (stat.total / totalMontant * 100)|round %}
+                        <div style="background:var(--border);border-radius:50px;height:6px">
+                            <div style="background:var(--accent-gradient,var(--accent-copper));width:{{ pct }}%;height:6px;border-radius:50px;transition:width .3s"></div>
+                        </div>
+                        <div style="font-size:11px;color:var(--text-muted);text-align:right;margin-top:2px">{{ pct }}%</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Dernières dépenses</h2>
+                <a href="{{ path('depense_index') }}" style="font-size:13px;color:var(--accent-copper);text-decoration:none">Voir tout</a>
+            </div>
+            {% if depenses is empty %}
+                <p style="color:var(--text-muted);text-align:center;padding:2rem 0">Aucune dépense</p>
+            {% else %}
+                {% for dep in depenses|slice(0, 7) %}
+                <div style="display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:{% if not loop.last %}1px solid var(--border){% else %}none{% endif %}">
+                    <div style="width:36px;height:36px;border-radius:9px;flex-shrink:0;background:{% if dep.montant >= 1000 %}rgba(194,120,120,.15){% elseif dep.montant >= 100 %}rgba(201,168,120,.15){% else %}rgba(107,142,107,.15){% endif %};display:flex;align-items:center;justify-content:center">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{% if dep.montant >= 1000 %}var(--loss){% elseif dep.montant >= 100 %}var(--accent-copper){% else %}var(--gain){% endif %}" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"/>
+                            <path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+                        </svg>
+                    </div>
+                    <div style="flex:1;min-width:0">
+                        <div style="font-weight:600;font-size:13px;color:var(--text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ dep.titre }}</div>
+                        <div style="font-size:11px;color:var(--text-muted)">{{ dep.categorie ? dep.categorie.nomCategorie : '—' }} · {{ dep.dateDepense|date('d/m/Y') }}</div>
+                    </div>
+                    <div style="font-weight:700;font-size:13px;white-space:nowrap;color:{% if dep.montant >= 1000 %}var(--loss){% elseif dep.montant >= 100 %}var(--accent-copper){% else %}var(--gain){% endif %}">{{ dep.montant|number_format(2, ',', ' ') }} TND</div>
+                </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if viewMode != 'depenses' and graphData is defined %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const rawData = {{ graphData|raw }};
+
+    // Chrono chart
+    const ctxChrono = document.getElementById('chronoChart').getContext('2d');
+    let chronoState = 0;
+    let chronoChartObj = new Chart(ctxChrono, {
+        type: 'line',
+        data: {
+            labels: rawData.chronoLabels,
+            datasets: [{
+                label: 'Montant Dépensé (DT)',
+                data: rawData.chronoTotals,
+                borderColor: '#13357B',
+                backgroundColor: 'rgba(19, 53, 123, 0.1)',
+                borderWidth: 3,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+    window.toggleChrono = function(val) {
+        chronoState = parseInt(val);
+        const ds = chronoChartObj.data.datasets[0];
+        if (chronoState === 0) {
+            ds.label = 'Total Journalier (DT)';
+            ds.data = rawData.chronoTotals;
+            ds.borderColor = '#13357B';
+            ds.backgroundColor = 'rgba(19, 53, 123, 0.1)';
+        } else {
+            ds.label = 'Coût Unitaire Typique (DT)';
+            ds.data = rawData.chronoAvgs;
+            ds.borderColor = '#C9A878';
+            ds.backgroundColor = 'rgba(201, 168, 120, 0.1)';
+        }
+        chronoChartObj.update();
+    };
+
+    // Pie chart
+    const ctxPie = document.getElementById('pieChart').getContext('2d');
+    let pieState = 0;
+    const pieColorsBase = ['#13357B', '#FFD700', '#4CAF50', '#e53935', '#7B1FA2', '#00ACC1', '#FF7043'];
+    const pieColorsAlt =  ['#C9A878', '#6B8E6B', '#6B9AC4', '#8C564B', '#E377C2', '#BCBD22', '#17BECF'];
+    let pieChartObj = new Chart(ctxPie, {
+        type: 'doughnut',
+        data: {
+            labels: rawData.pieLabels,
+            datasets: [{
+                data: rawData.pieTotals,
+                backgroundColor: pieColorsBase,
+                borderWidth: 2
+            }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+    });
+    window.togglePie = function(val) {
+        pieState = parseInt(val);
+        const ds = pieChartObj.data.datasets[0];
+        if (pieState === 0) {
+            ds.data = rawData.pieTotals;
+            ds.backgroundColor = pieColorsBase;
+        } else {
+            ds.data = rawData.pieCounts;
+            ds.backgroundColor = pieColorsAlt;
+        }
+        pieChartObj.update();
+    };
+</script>
+{% endif %}
+{% endblock %}

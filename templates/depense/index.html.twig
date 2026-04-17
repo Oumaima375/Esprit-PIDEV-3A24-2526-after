@@ -1,0 +1,352 @@
+{% extends 'base.html.twig' %}
+{% block title %}Mes Dépenses - After Travel{% endblock %}
+
+{% block hero %}
+<div class="bg-breadcrumb">
+    <div class="container text-center py-5">
+        <h3 class="text-white display-3 mb-4 fw-bold">Mes Dépenses</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item active text-white">Dépenses</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5">
+    <div class="container py-5">
+
+        <!-- Boutons : Rapports (gauche), Gérer budgets, Nouvelle dépense -->
+        <div class="row mb-4">
+            <div class="col-12 text-end">
+                <button type="button" class="btn btn-outline-primary rounded-pill px-4 me-2" data-bs-toggle="modal" data-bs-target="#rapportModal" id="btnRapport">
+                    <i class="fa fa-chart-pie me-2"></i>Rapports
+                </button>
+                <button type="button" class="btn btn-warning rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#budgetModal">
+                    <i class="fa fa-shield-alt me-2"></i>Gérer les budgets
+                </button>
+                <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#depenseModal" id="btnNouvelleDepense">
+                    <i class="fa fa-plus me-2"></i>Nouvelle dépense
+                </button>
+            </div>
+        </div>
+
+        <!-- Alertes budget -->
+        <div id="budgetAlerts" class="mb-4"></div>
+
+        <!-- Filtres AJAX multicritères -->
+        <div class="row mb-4 bg-white p-3 rounded shadow-sm mx-0 align-items-end" style="border-left: 4px solid #13357B;">
+            <div class="col-md-5">
+                <label class="form-label text-muted small mb-1 fw-bold">Recherche par mot-clé</label>
+                <div class="input-group">
+                    <span class="input-group-text bg-white text-muted border-end-0"><i class="fa fa-search"></i></span>
+                    <input type="text" id="filterTitre" class="form-control border-start-0" placeholder="Chercher une dépense...">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label text-muted small mb-1 fw-bold">Filtrer par catégorie</label>
+                <select id="filterCategorie" class="form-select">
+                    <option value="">Toutes les catégories</option>
+                    {% if categories is defined %}
+                        {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.nomCategorie }}</option>
+                        {% endfor %}
+                    {% endif %}
+                </select>
+            </div>
+            <div class="col-md-3 text-end">
+                <button type="button" class="btn btn-outline-secondary rounded-pill w-100" id="btnResetFilter" style="display:none; transition: all 0.3s;">
+                    <i class="fa fa-times me-1"></i> Réinitialiser
+                </button>
+            </div>
+        </div>
+
+        <!-- Tableau des dépenses -->
+        <div class="bg-white rounded shadow-sm overflow-hidden">
+            <div class="p-4" style="background-color: #13357B;">
+                <h4 class="text-white mb-0"><i class="fa fa-list me-2"></i>Liste des dépenses</h4>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 px-4">Titre</th>
+                            <th class="py-3">Montant</th>
+                            <th class="py-3">Date</th>
+                            <th class="py-3">Catégorie</th>
+                            <th class="py-3 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBodyDepenses" style="transition: opacity 0.3s;">
+                        {% include 'depense/_list.html.twig' %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL BUDGET (inchangé) -->
+<div class="modal fade" id="budgetModal" tabindex="-1" aria-labelledby="budgetModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #13357B;">
+                <h5 class="modal-title text-white" id="budgetModalLabel"><i class="fa fa-shield-alt me-2"></i>Gestion des budgets par catégorie</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">Activez le budget pour chaque catégorie et définissez un montant maximum.</p>
+                <div id="budgetList" class="list-group"><div class="text-center py-3"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement...</p></div></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveBudgetsBtn">Enregistrer les budgets</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE NOUVELLE / MODIFIER DÉPENSE -->
+<div class="modal fade" id="depenseModal" tabindex="-1" aria-labelledby="depenseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #13357B;">
+                <h5 class="modal-title text-white" id="depenseModalLabel"><i class="fa fa-plus-circle me-2" id="depenseModalIcon"></i><span id="depenseModalTitleText">Nouvelle dépense</span></h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="depenseModalBody"><div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement du formulaire...</p></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button></div>
+        </div>
+    </div>
+</div>
+
+<!-- MODALE RAPPORTS -->
+<div class="modal fade" id="rapportModal" tabindex="-1" aria-labelledby="rapportModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: #13357B;">
+                <h5 class="modal-title text-white" id="rapportModalLabel"><i class="fa fa-chart-pie me-2"></i>Rapports</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="rapportModalBody"><div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement des rapports...</p></div></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* Animation d'entrée des éléments */
+@keyframes slideDownUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.animated-row {
+    opacity: 0;
+    animation: slideDownUp 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+/* Rendre le tableau plus interactif */
+.table-hover tbody tr { transition: all 0.3s ease; }
+.table-hover tbody tr:hover {
+    background-color: #f8fbff !important;
+    transform: scale(1.01);
+    box-shadow: 0 4px 15px rgba(19, 53, 123, 0.08);
+    position: relative;
+    z-index: 10;
+}
+
+/* Boutons de la barre d'action */
+.btn { transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); }
+.btn-outline-primary:hover, .btn-primary:hover, .btn-warning:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.15);
+}
+
+/* Carte principale */
+.bg-white.rounded.shadow-sm {
+    transition: all 0.4s ease;
+}
+.bg-white.rounded.shadow-sm:hover {
+    box-shadow: 0 10px 30px rgba(19, 53, 123, 0.1) !important;
+}
+</style>
+{% endblock %}
+
+{% block javascripts %}
+<!-- Chargement de Leaflet globalement pour que L.map () soit toujours défini dans les modales -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+// ===================== BUDGETS =====================
+let budgetsData = {};
+function loadBudgetStatus() {
+    fetch('/budget/status')
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('budgetList');
+            container.innerHTML = '';
+            data.forEach(cat => {
+                budgetsData[cat.id] = { enabled: cat.enabled, montant: cat.budgetMax || 0, nom: cat.nom, total: cat.total, depasse: cat.depasse };
+                const progressPercent = cat.budgetMax ? (cat.total / cat.budgetMax * 100) : 0;
+                const progressColor = progressPercent > 100 ? 'bg-danger' : (progressPercent > 80 ? 'bg-warning' : 'bg-success');
+                container.innerHTML += `
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center justify-content-between mb-2">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="budget_${cat.id}" ${cat.enabled ? 'checked' : ''} onchange="toggleBudget(${cat.id})">
+                                <label class="form-check-label fw-bold" for="budget_${cat.id}">${cat.nom}</label>
+                            </div>
+                            <span class="badge ${cat.depasse ? 'bg-danger' : 'bg-secondary'} rounded-pill">${cat.total.toFixed(2)} DT dépensés</span>
+                        </div>
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <div class="input-group input-group-sm">
+                                    <span class="input-group-text">Budget max</span>
+                                    <input type="number" class="form-control" id="montant_${cat.id}" value="${cat.budgetMax || ''}" step="0.01" ${!cat.enabled ? 'disabled' : ''} placeholder="Sans limite">
+                                    <span class="input-group-text">DT</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="progress" style="height:8px"><div class="progress-bar ${progressColor}" style="width:${Math.min(progressPercent,100)}%"></div></div>
+                                <small class="text-muted">${progressPercent.toFixed(1)}% utilisé</small>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+            checkBudgetAlerts(data);
+        });
+}
+function toggleBudget(categorieId) {
+    const isChecked = document.getElementById(`budget_${categorieId}`).checked;
+    const inputMontant = document.getElementById(`montant_${categorieId}`);
+    inputMontant.disabled = !isChecked;
+    budgetsData[categorieId].enabled = isChecked;
+    if (!isChecked) { budgetsData[categorieId].montant = null; inputMontant.value = ''; }
+}
+function checkBudgetAlerts(categories) {
+    const alertsContainer = document.getElementById('budgetAlerts');
+    let alerts = [];
+    categories.forEach(cat => {
+        if (cat.budgetMax && cat.total > cat.budgetMax) {
+            alerts.push(`<div class="alert alert-danger alert-dismissible fade show rounded-pill"><i class="fa fa-exclamation-triangle me-2"></i><strong>${cat.nom}</strong> : Budget dépassé ! ${cat.total.toFixed(2)} DT / ${cat.budgetMax.toFixed(2)} DT (${((cat.total / cat.budgetMax) * 100).toFixed(1)}%)<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`);
+        } else if (cat.budgetMax && cat.total > cat.budgetMax * 0.8) {
+            alerts.push(`<div class="alert alert-warning alert-dismissible fade show rounded-pill"><i class="fa fa-clock me-2"></i><strong>${cat.nom}</strong> : Attention, vous avez utilisé ${((cat.total / cat.budgetMax) * 100).toFixed(1)}% de votre budget !<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>`);
+        }
+    });
+    alertsContainer.innerHTML = alerts.join('');
+}
+document.getElementById('saveBudgetsBtn').addEventListener('click', function() {
+    const budgets = {};
+    for (const [id, data] of Object.entries(budgetsData)) {
+        const inputMontant = document.getElementById(`montant_${id}`);
+        const enabled = document.getElementById(`budget_${id}`).checked;
+        budgets[id] = { enabled: enabled, montant: enabled && inputMontant.value ? parseFloat(inputMontant.value) : null };
+    }
+    fetch('/budget/update-all', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ budgets: budgets }) })
+        .then(response => response.json()).then(data => { if (data.success) location.reload(); });
+});
+loadBudgetStatus();
+
+// ===================== FILTRES AJAX MULTI-CRITÈRES =====================
+function applyFilters() {
+    const titre = document.getElementById('filterTitre').value;
+    const catId = document.getElementById('filterCategorie').value;
+    const tbody = document.getElementById('tableBodyDepenses');
+    const resetBtn = document.getElementById('btnResetFilter');
+    
+    if(titre || catId) {
+        resetBtn.style.display = 'inline-block';
+    } else {
+        resetBtn.style.display = 'none';
+    }
+    
+    tbody.style.opacity = '0.5';
+    fetch(`/depense/?titre=${encodeURIComponent(titre)}&categorie=${catId}`, {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.text())
+    .then(html => {
+        tbody.innerHTML = html;
+        tbody.style.opacity = '1';
+    });
+}
+document.getElementById('filterTitre').addEventListener('input', applyFilters);
+document.getElementById('filterCategorie').addEventListener('change', applyFilters);
+document.getElementById('btnResetFilter').addEventListener('click', () => {
+    document.getElementById('filterTitre').value = '';
+    document.getElementById('filterCategorie').value = '';
+    applyFilters();
+});
+
+// ===================== CHARGEMENT DYNAMIQUE DES MODALES =====================
+function loadModalContent(modalId, url, targetId) {
+    const modalBody = document.getElementById(targetId);
+    if (!modalBody) return;
+    modalBody.innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement...</p></div>`;
+    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+        .then(response => response.text())
+        .then(html => {
+            modalBody.innerHTML = html;
+            if (modalId === 'depenseModal' || modalId === 'rapportModal') {
+                const scripts = modalBody.querySelectorAll('script');
+                scripts.forEach(oldScript => {
+                    const newScript = document.createElement('script');
+                    if (oldScript.src) {
+                        newScript.src = oldScript.src;
+                    }
+                    newScript.textContent = oldScript.textContent;
+                    document.body.appendChild(newScript);
+                    oldScript.remove();
+                });
+            }
+        })
+        .catch(error => { modalBody.innerHTML = `<div class="alert alert-danger">Erreur de chargement : ${error.message}</div>`; });
+}
+
+// ===================== MODALES DÉPENSE (NOUVELLE & MODIFIER) =====================
+const depenseModal = document.getElementById('depenseModal');
+const depenseModalIcon = document.getElementById('depenseModalIcon');
+const depenseModalTitleText = document.getElementById('depenseModalTitleText');
+let _pendingDepenseUrl = null;
+
+// Intercepter l'ouverture de la modal depuis n'importe quel déclencheur
+depenseModal.addEventListener('show.bs.modal', function (event) {
+    const trigger = event.relatedTarget;
+    if (trigger && trigger.classList.contains('btn-edit-depense')) {
+        // Mode Modification
+        _pendingDepenseUrl = trigger.getAttribute('data-url');
+        depenseModalIcon.className = 'fa fa-edit me-2';
+        depenseModalTitleText.textContent = 'Modifier la dépense';
+    } else {
+        // Mode Nouvelle dépense
+        _pendingDepenseUrl = '/depense/new';
+        depenseModalIcon.className = 'fa fa-plus-circle me-2';
+        depenseModalTitleText.textContent = 'Nouvelle dépense';
+    }
+    loadModalContent('depenseModal', _pendingDepenseUrl, 'depenseModalBody');
+});
+
+depenseModal.addEventListener('hidden.bs.modal', function () {
+    _pendingDepenseUrl = null;
+    depenseModalIcon.className = 'fa fa-plus-circle me-2';
+    depenseModalTitleText.textContent = 'Nouvelle dépense';
+    document.getElementById('depenseModalBody').innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement du formulaire...</p></div>`;
+});
+
+const rapportModal = document.getElementById('rapportModal');
+rapportModal.addEventListener('show.bs.modal', function () { loadModalContent('rapportModal', '/rapport', 'rapportModalBody'); });
+rapportModal.addEventListener('hidden.bs.modal', function () { document.getElementById('rapportModalBody').innerHTML = `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2">Chargement des rapports...</p></div>`; });
+
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.get('open_rapport') === '1' && rapportModal) {
+    new bootstrap.Modal(rapportModal).show();
+}
+</script>
+{% endblock %}

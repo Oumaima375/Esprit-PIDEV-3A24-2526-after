@@ -1,0 +1,243 @@
+{% extends 'admin/base.html.twig' %}
+{% set isEdit = categorie.id is not null %}
+{% block title %}{{ isEdit ? 'Modifier' : 'Nouvelle' }} catégorie — AFTER Admin{% endblock %}
+
+{% block body %}
+
+{# ── Breadcrumb ── #}
+<div style="display:flex;align-items:center;gap:8px;font-size:13px;
+            color:var(--text-muted);margin-bottom:20px">
+    <a href="{{ path('admin_categorie_index') }}"
+       style="color:var(--accent-copper);text-decoration:none">Catégories</a>
+    <span>›</span>
+    <span>{{ isEdit ? 'Modifier « ' ~ categorie.nomCategorie ~ ' »' : 'Nouvelle catégorie' }}</span>
+</div>
+
+{# ── En-tête ── #}
+<div style="display:flex;align-items:flex-start;justify-content:space-between;
+            flex-wrap:wrap;gap:1rem;margin-bottom:28px">
+    <div>
+        <h1 style="font-size:26px;font-weight:700;margin-bottom:6px;color:var(--text-primary)">
+            {{ isEdit ? 'Modifier la catégorie' : 'Créer une catégorie' }}
+        </h1>
+        <p style="color:var(--text-secondary);font-size:15px">
+            {{ isEdit ? 'Mise à jour des informations' : 'Ajouter une nouvelle catégorie de dépenses' }}
+        </p>
+    </div>
+    <a href="{{ path('admin_categorie_index') }}"
+       class="btn"
+       style="text-decoration:none;display:inline-flex;align-items:center;gap:8px">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6"/>
+        </svg>
+        Retour à la liste
+    </a>
+</div>
+
+{# ── Grille ── #}
+<div style="display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start">
+
+    {# ── Formulaire principal ── #}
+    <div class="card">
+        <div class="card-header">
+            <h2 class="card-title">Informations de la catégorie</h2>
+        </div>
+
+        {{ form_start(form, {attr: {novalidate: 'novalidate', id: 'categorieForm'}}) }}
+
+        {# Nom #}
+        <div class="form-group">
+            {{ form_label(form.nomCategorie, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.nomCategorie, {attr: {
+                class: 'form-input',
+                id: 'field_nom',
+                placeholder: 'Ex : Transport, Hébergement, Restauration…',
+                autocomplete: 'off',
+                style: form.nomCategorie.vars.errors|length ? 'border-color:var(--loss)' : ''
+            }}) }}
+            {% if form.nomCategorie.vars.errors|length %}
+                {% for error in form.nomCategorie.vars.errors %}
+                    <div style="font-size:13px;color:var(--loss);margin-top:6px">
+                        {{ error.message }}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <div style="font-size:12px;color:var(--text-muted);margin-top:6px">
+                    Obligatoire — max. 100 caractères.
+                </div>
+            {% endif %}
+        </div>
+
+        {# Description #}
+        <div class="form-group">
+            {{ form_label(form.description, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.description, {attr: {
+                class: 'form-input',
+                id: 'field_desc',
+                placeholder: 'Courte description (facultatif)',
+                rows: 3,
+                style: 'resize:vertical;min-height:90px;' ~ (form.description.vars.errors|length ? 'border-color:var(--loss)' : '')
+            }}) }}
+            {% if form.description.vars.errors|length %}
+                {% for error in form.description.vars.errors %}
+                    <div style="font-size:13px;color:var(--loss);margin-top:6px">{{ error.message }}</div>
+                {% endfor %}
+            {% else %}
+                <div style="font-size:12px;color:var(--text-muted);margin-top:6px">Facultatif — max. 255 caractères.</div>
+            {% endif %}
+        </div>
+
+        {# URL Icône #}
+        <div class="form-group">
+            {{ form_label(form.iconeUrl, null, {label_attr: {class: 'form-label'}}) }}
+            {{ form_widget(form.iconeUrl, {attr: {
+                class: 'form-input',
+                id: 'field_icone',
+                placeholder: 'https://… (laissez vide pour l\'icône par défaut)',
+                style: form.iconeUrl.vars.errors|length ? 'border-color:var(--loss)' : ''
+            }}) }}
+            {% if form.iconeUrl.vars.errors|length %}
+                {% for error in form.iconeUrl.vars.errors %}
+                    <div style="font-size:13px;color:var(--loss);margin-top:6px">{{ error.message }}</div>
+                {% endfor %}
+            {% else %}
+                <div style="font-size:12px;color:var(--text-muted);margin-top:6px">
+                    URL vers une image. Laissez vide pour l'icône par défaut.
+                </div>
+            {% endif %}
+
+            {# Aperçu icône #}
+            <div id="icone-preview-box" style="display:none;margin-top:12px">
+                <div style="display:flex;align-items:center;gap:12px;
+                            background:var(--bg-primary);border:1px dashed var(--border);
+                            border-radius:10px;padding:12px">
+                    <div id="icone-preview-wrap"
+                         style="width:44px;height:44px;border-radius:10px;overflow:hidden;
+                                background:rgba(184,115,51,.12);display:flex;
+                                align-items:center;justify-content:center">
+                        <img id="icone-preview-img" src="" alt=""
+                             style="width:100%;height:100%;object-fit:cover">
+                    </div>
+                    <span style="font-size:13px;color:var(--text-muted)">Aperçu de l'icône</span>
+                </div>
+            </div>
+        </div>
+
+        {# Boutons #}
+        <div class="btn-group">
+            <button type="submit" class="btn primary">
+                {{ isEdit ? 'Enregistrer les modifications' : 'Créer la catégorie' }}
+            </button>
+            <a href="{{ path('admin_categorie_index') }}" class="btn" style="text-decoration:none">
+                Annuler
+            </a>
+        </div>
+
+        {{ form_end(form) }}
+    </div>
+
+    {# ── Panneau droit ── #}
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+        {# Aperçu carte #}
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Aperçu</h2>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;padding:4px 0">
+                <div id="preview-icone"
+                     style="width:46px;height:46px;border-radius:12px;overflow:hidden;
+                            background:rgba(184,115,51,.12);display:flex;
+                            align-items:center;justify-content:center;flex-shrink:0">
+                    <svg id="preview-icon-svg" width="20" height="20" viewBox="0 0 24 24"
+                         fill="none" stroke="var(--accent-copper)" stroke-width="2">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/>
+                        <line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                    <img id="preview-icon-img" src="" alt=""
+                         style="width:100%;height:100%;object-fit:cover;display:none">
+                </div>
+                <div>
+                    <div id="preview-nom"
+                         style="font-weight:700;font-size:15px;color:var(--text-primary)">
+                        {{ isEdit ? categorie.nomCategorie : 'Nom de la catégorie' }}
+                    </div>
+                    <div id="preview-desc"
+                         style="font-size:13px;color:var(--text-secondary);margin-top:2px">
+                        {{ isEdit and categorie.description ? categorie.description : 'Description…' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Zone dangereuse — edit uniquement #}
+        {% if isEdit %}
+        <div class="card" style="border-color:var(--loss)">
+            <div class="card-header" style="border-bottom-color:rgba(194,120,120,.2)">
+                <h2 class="card-title" style="color:var(--loss);font-size:16px">Zone dangereuse</h2>
+            </div>
+            <p style="font-size:13px;color:var(--text-secondary);margin-bottom:16px">
+                La suppression est <strong>irréversible</strong>.
+                {% if categorie.depenses|length > 0 %}
+                    <br><span style="color:var(--loss)">
+                        <strong>{{ categorie.depenses|length }} dépense{{ categorie.depenses|length != 1 ? 's' : '' }}</strong>
+                        liée{{ categorie.depenses|length != 1 ? 's' : '' }} seront supprimées.
+                    </span>
+                {% endif %}
+            </p>
+            <form method="post"
+                  action="{{ path('admin_categorie_delete', {id: categorie.id}) }}"
+                  onsubmit="return confirm('Supprimer « {{ categorie.nomCategorie }} » définitivement ?')">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ categorie.id) }}">
+                <button type="submit" class="btn danger" style="width:100%;justify-content:center">
+                    Supprimer « {{ categorie.nomCategorie }} »
+                </button>
+            </form>
+        </div>
+        {% endif %}
+
+    </div>
+</div>
+
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+    const nomInput   = document.getElementById('field_nom');
+    const descInput  = document.getElementById('field_desc');
+    const iconeInput = document.getElementById('field_icone');
+
+    function update() {
+        const nom  = nomInput?.value.trim();
+        const desc = descInput?.value.trim();
+        const url  = iconeInput?.value.trim();
+
+        document.getElementById('preview-nom').textContent  = nom  || 'Nom de la catégorie';
+        document.getElementById('preview-desc').textContent = desc || 'Description…';
+
+        const svg  = document.getElementById('preview-icon-svg');
+        const img  = document.getElementById('preview-icon-img');
+        const box  = document.getElementById('icone-preview-box');
+        const prev = document.getElementById('icone-preview-img');
+
+        if (url && url.startsWith('http')) {
+            svg.style.display = 'none';
+            img.src = url; img.style.display = 'block';
+            prev.src = url;
+            box.style.display = 'block';
+        } else {
+            svg.style.display = 'block';
+            img.style.display = 'none';
+            box.style.display = 'none';
+        }
+    }
+
+    nomInput?.addEventListener('input', update);
+    descInput?.addEventListener('input', update);
+    iconeInput?.addEventListener('input', update);
+    update();
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,496 @@
+/*
+ * CryptoVault - Login Page Styles (Redesigned)
+ * Clean, centered, light-mode card layout
+ */
+
+/* ========================================
+   Override: force light background for auth page
+======================================== */
+body.auth-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background-color: #f0f2f8;
+    background-image: none;
+    padding: 24px;
+}
+
+/* Hide the left branding panel entirely */
+.auth-branding {
+    display: none !important;
+}
+
+/* ========================================
+   Auth Form Container — centered card
+======================================== */
+.auth-form-container {
+    flex: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    max-width: 520px;
+    padding: 0;
+    position: relative;
+}
+
+/* ========================================
+   Page title above the card
+======================================== */
+.form-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.form-header h1 {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a3aad;
+    line-height: 1.3;
+    margin-bottom: 0;
+}
+
+.form-header p {
+    display: none; /* hide subtitle for cleaner look */
+}
+
+/* ========================================
+   White card wrapper
+======================================== */
+.auth-form-wrapper {
+    width: 100%;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 8px 40px rgba(30, 50, 140, 0.10), 0 2px 8px rgba(0,0,0,0.06);
+    padding: 44px 44px 36px;
+}
+
+/* ========================================
+   Hide tabs (photo only shows login)
+======================================== */
+.auth-tabs {
+    display: none;
+}
+
+/* ========================================
+   Form labels
+======================================== */
+.form-label {
+    display: block;
+    font-size: 15px;
+    font-weight: 600;
+    color: #1c1c2e;
+    margin-bottom: 10px;
+}
+
+/* ========================================
+   Input fields
+======================================== */
+.form-input-wrapper {
+    position: relative;
+}
+
+.auth-form .form-input {
+    width: 100%;
+    padding: 15px 50px 15px 48px;
+    background-color: #eef0f7;
+    border: 1.5px solid #eef0f7;
+    border-radius: 12px;
+    font-size: 15px;
+    font-family: inherit;
+    color: #1c1c2e;
+    transition: all 0.2s ease;
+    outline: none;
+}
+
+.auth-form .form-input:focus {
+    border-color: #3b5bdb;
+    background-color: #f5f7ff;
+    box-shadow: 0 0 0 3px rgba(59, 91, 219, 0.12);
+}
+
+.auth-form .form-input::placeholder {
+    color: #9fa3b8;
+}
+
+.input-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6b7aa1;
+    pointer-events: none;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6b7aa1;
+    padding: 4px;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+.password-toggle:hover {
+    color: #3b5bdb;
+}
+
+/* ========================================
+   Remember me / Forgot row
+======================================== */
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+/* ========================================
+   Checkbox
+======================================== */
+.checkbox-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #c5cae8;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    background: #fff;
+}
+
+.checkbox.checked {
+    background: linear-gradient(135deg, #3b5bdb, #4c6ef5);
+    border-color: #3b5bdb;
+}
+
+.checkbox svg {
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.checkbox.checked svg {
+    opacity: 1;
+}
+
+.checkbox-label {
+    font-size: 14px;
+    color: #5a6282;
+}
+
+.forgot-link {
+    font-size: 14px;
+    color: #3b5bdb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.forgot-link:hover {
+    color: #2244cc;
+    text-decoration: underline;
+}
+
+/* ========================================
+   Submit Button — bold blue
+======================================== */
+.submit-btn {
+    width: 100%;
+    padding: 17px;
+    background: #3b5bdb;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    font-family: inherit;
+    color: #ffffff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-bottom: 24px;
+    letter-spacing: 0.3px;
+}
+
+.submit-btn:hover {
+    background: #2f4ac9;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(59, 91, 219, 0.35);
+}
+
+.submit-btn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* ========================================
+   Divider
+======================================== */
+.divider {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.divider-line {
+    flex: 1;
+    height: 1px;
+    background-color: #e2e5f0;
+}
+
+.divider-text {
+    font-size: 13px;
+    color: #9fa3b8;
+    white-space: nowrap;
+}
+
+/* ========================================
+   Social Buttons
+======================================== */
+.social-buttons {
+    display: flex;
+    gap: 14px;
+    margin-bottom: 28px;
+}
+
+.social-btn {
+    flex: 1;
+    padding: 13px;
+    background-color: #f4f5fb;
+    border: 1.5px solid #e2e5f0;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    color: #2c2f4a;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.social-btn:hover {
+    background-color: #eef0f9;
+    border-color: #3b5bdb;
+    color: #3b5bdb;
+}
+
+/* ========================================
+   Form Footer
+======================================== */
+.form-footer {
+    text-align: center;
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.form-footer a {
+    color: #3b5bdb;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.form-footer a:hover {
+    color: #2244cc;
+    text-decoration: underline;
+}
+
+/* ========================================
+   Password Strength
+======================================== */
+.password-strength {
+    display: flex;
+    gap: 6px;
+    margin-top: 12px;
+}
+
+.strength-bar {
+    flex: 1;
+    height: 4px;
+    background-color: #e2e5f0;
+    border-radius: 2px;
+    transition: background-color 0.3s ease;
+}
+
+.strength-bar.weak   { background-color: #e05c5c; }
+.strength-bar.medium { background-color: #e8b455; }
+.strength-bar.strong { background-color: #4caf82; }
+
+.strength-text {
+    font-size: 12px;
+    color: #9fa3b8;
+    margin-top: 8px;
+}
+
+/* ========================================
+   Success Message
+======================================== */
+.success-message {
+    display: none;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.success-message.active {
+    display: block;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #3b5bdb, #4c6ef5);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+}
+
+.success-message h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 12px;
+    color: #1c1c2e;
+}
+
+.success-message p {
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+/* ========================================
+   Theme toggle (hidden on login page)
+======================================== */
+.theme-toggle-btn {
+    display: none;
+}
+
+/* ========================================
+   Copyright
+======================================== */
+.auth-form-container .copyright {
+    position: static;
+    transform: none;
+    margin-top: 24px;
+    font-size: 13px;
+    color: #9fa3b8;
+    text-align: center;
+    border-top: none;
+    padding: 0;
+}
+
+.auth-form-container .copyright a {
+    color: #3b5bdb;
+    text-decoration: none;
+}
+
+.auth-form-container .copyright a:hover {
+    text-decoration: underline;
+}
+
+/* ========================================
+   Register form — same clean style
+======================================== */
+.auth-form {
+    display: none;
+}
+
+.auth-form.active {
+    display: block;
+}
+
+/* ========================================
+   Register Form — photo style
+======================================== */
+
+/* Card scrollable when register form is active */
+#registerForm.active ~ * ,
+#registerForm.auth-form.active {
+    display: block;
+}
+
+/* Register form: vertical stack, no tabs, no social */
+#registerForm .divider,
+#registerForm .social-buttons {
+    display: none;
+}
+
+/* Photo upload row */
+.photo-upload-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-top: 6px;
+}
+
+.photo-upload-btn {
+    padding: 11px 22px;
+    background: #3b5bdb;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    white-space: nowrap;
+}
+
+.photo-upload-btn:hover {
+    background: #2f4ac9;
+}
+
+.photo-upload-label {
+    font-size: 13px;
+    color: #9fa3b8;
+}
+
+/* Account type info line */
+.account-type-info {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 20px;
+    margin-top: -8px;
+}
+
+/* ========================================
+   Responsive
+======================================== */
+@media (max-width: 600px) {
+    body.auth-page {
+        padding: 16px;
+        align-items: flex-start;
+        padding-top: 40px;
+    }
+
+    .auth-form-wrapper {
+        padding: 32px 24px 28px;
+    }
+
+    .form-header h1 {
+        font-size: 20px;
+    }
+
+    .social-buttons {
+        flex-direction: column;
+    }
+}
