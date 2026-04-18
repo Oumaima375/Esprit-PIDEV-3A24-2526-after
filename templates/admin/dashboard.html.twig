@@ -811,27 +811,42 @@
   </div>
 
   {# ════ DEPENSE ════ #}
-  {#
+  
   <div class="page-content" id="page-depense">
     <div class="section-header">
       <div class="section-title">💰 Gestion des Dépenses</div>
+      <div class="btn-group">
+        <a href="{{ path('depense_new') }}" class="btn btn-primary">➕ Nouvelle Dépense</a>
+        <a href="{{ path('rapport_index') }}" class="btn btn-secondary">📊 Rapport</a>
+        <a href="{{ path('carte_depenses') }}" class="btn btn-secondary">🗺️ Carte</a>
+      </div>
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Libellé</th><th>Catégorie</th><th>Montant</th><th>Date</th></tr></thead>
+        <thead><tr><th>#</th><th>Titre</th><th>Catégorie</th><th>Montant</th><th>Date</th><th>Actions</th></tr></thead>
         <tbody>
           {% if depenses is defined and depenses|length > 0 %}
             {% for dep in depenses %}
               <tr>
-                <td>{{ dep.id }}</td>
-                <td>{{ dep.libelle ?? dep.description ?? '—' }}</td>
-                <td><span class="chip chip-orange">{{ dep.categorie ?? '—' }}</span></td>
+                <td>{{ dep.idDep ?? dep.id ?? '—' }}</td>
+                <td>{{ dep.titre ?? '—' }}</td>
+                <td>
+                  <span class="chip chip-orange">
+                    {{ dep.idCategorie is not null ? dep.idCategorie.nomCategorie : '—' }}
+                  </span>
+                </td>
                 <td><strong>{{ dep.montant is not null ? dep.montant~' TND' : '—' }}</strong></td>
-                <td>{{ dep.date is not null ? dep.date|date('d/m/Y') : '—' }}</td>
+                <td>{{ dep.dateDepense is not null ? dep.dateDepense|date('d/m/Y') : '—' }}</td>
+                <td>
+                  <div class="td-actions">
+                    <a href="{{ path('depense_show', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-secondary">👁️</a>
+                    <a href="{{ path('depense_edit', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-warning">✏️</a>
+                  </div>
+                </td>
               </tr>
             {% endfor %}
           {% else %}
-            <tr class="empty-row"><td colspan="5">Aucune dépense trouvée</td></tr>
+            <tr class="empty-row"><td colspan="6">Aucune dépense trouvée</td></tr>
           {% endif %}
         </tbody>
       </table>
@@ -839,7 +854,7 @@
   </div>
 
 </div>
-#}{# /main #}
+{# /main #}
 {# ══════════ MODALS ADD ══════════ #}
 
 {# ADD USER #}

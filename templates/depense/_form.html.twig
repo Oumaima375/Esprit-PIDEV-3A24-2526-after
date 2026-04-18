@@ -1,4 +1,12 @@
-{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'depenseForm', 'action': depense.id ? path('depense_edit', {id: depense.id}) : path('depense_new')}}) }}
+{{ form_start(form, {
+    'attr': {
+        'novalidate': 'novalidate',
+        'id': 'depenseForm',
+        'action': depense.id 
+            ? path('depense_edit', { id: depense.id }) 
+            : path('depense_new')
+    }
+}) }}
 <div class="row g-3">
 
     <div class="col-md-12">

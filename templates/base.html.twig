@@ -377,7 +377,29 @@
                     </div>
                 </div>
 
-                <a href="#" class="nav-item nav-link" {% if not app.user %}data-auth-required{% endif %}>Dépense</a>
+                {# ── Dépense dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if not app.user %}nav-restricted{% endif %}" data-bs-toggle="dropdown" {% if not app.user %}data-auth-required{% endif %}>
+                        Dépense
+                    </a>
+                    <ul class="dropdown-menu">
+                        <li><h6 class="dropdown-header"><i class="fa fa-wallet me-1"></i> Dépenses</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('depense_index') }}" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-list me-2 text-primary"></i>Toutes les Dépenses
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('depense_new') }}" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-plus-circle me-2 text-primary"></i>Nouvelle Dépense
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><h6 class="dropdown-header"><i class="fa fa-chart-pie me-1"></i> Rapports & Cartes</h6></li>
+                        <li><a class="dropdown-item" href="{{ path('rapport_index') }}" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-chart-bar me-2 text-primary"></i>Rapport des Dépenses
+                        </a></li>
+                        <li><a class="dropdown-item" href="{{ path('carte_depenses') }}" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-map-marker-alt me-2 text-primary"></i>Carte des Dépenses
+                        </a></li>
+                    </ul>
+                </div>
                 <a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
 
                 {% if app.user %}
@@ -418,6 +440,7 @@
     </nav>
 </div>
 
+{% block hero %}{% endblock %}
 {% block body %}{% endblock %}
 
 {% block javascripts %}

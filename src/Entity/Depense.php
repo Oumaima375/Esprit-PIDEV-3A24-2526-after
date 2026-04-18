@@ -8,13 +8,13 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Voyage;
 use App\Repository\DepenseRepository;
 
-#[ORM\Entity(repositoryClass: App\Repository\DepenseRepository::class)]
+#[ORM\Entity(repositoryClass: DepenseRepository::class)]
 class Depense
 {
-
     #[ORM\Id]
-    #[ORM\Column(type: "integer")]
-    private int $id_dep;
+#[ORM\GeneratedValue]
+#[ORM\Column]
+private ?int $id_dep = null;
 
     #[ORM\Column(type: "string", length: 150)]
     private string $titre;
@@ -27,110 +27,84 @@ class Depense
 
     #[ORM\ManyToOne(targetEntity: Categorie::class, inversedBy: "depenses")]
     #[ORM\JoinColumn(name: 'id_categorie', referencedColumnName: 'id_cat', onDelete: 'CASCADE')]
-    private Categorie $id_categorie;
+    private ?Categorie $id_categorie = null;
 
     #[ORM\ManyToOne(targetEntity: Voyage::class, inversedBy: "depenses")]
-    #[ORM\JoinColumn(name: 'id_voyage', referencedColumnName: 'id_voyage', onDelete: 'CASCADE')]
-    private Voyage $id_voyage;
+    #[ORM\JoinColumn(name: 'id_voyage', referencedColumnName: 'id_voyage', onDelete: 'CASCADE', nullable: true)]
+    private ?Voyage $id_voyage = null;
 
-    public function getId_dep()
-    {
-        return $this->id_dep;
-    }
+    // Geolocation fields (from depense branch)
+    #[ORM\Column(type: 'string', length: 255, nullable: true)]
+    private ?string $lieu = null;
 
-    public function setId_dep($value)
-    {
-        $this->id_dep = $value;
-    }
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $latitude = null;
 
-    public function getTitre()
-    {
-        return $this->titre;
-    }
+    #[ORM\Column(type: 'float', nullable: true)]
+    private ?float $longitude = null;
 
-    public function setTitre($value)
-    {
-        $this->titre = $value;
-    }
+    // ===== OLD STYLE GETTERS/SETTERS =====
+    public function getId(): ?int
+{
+    return $this->id_dep;
+}
+    public function setId_dep($value) { $this->id_dep = $value; }
 
-    public function getMontant()
-    {
-        return $this->montant;
-    }
+    public function getTitre() { return $this->titre; }
+    public function setTitre($value) { $this->titre = $value; }
 
-    public function setMontant($value)
-    {
-        $this->montant = $value;
-    }
+    public function getMontant() { return $this->montant; }
+    public function setMontant($value) { $this->montant = $value; }
 
-    public function getDate_depense()
-    {
-        return $this->date_depense;
-    }
+    public function getDate_depense() { return $this->date_depense; }
+    public function setDate_depense($value) { $this->date_depense = $value; }
 
-    public function setDate_depense($value)
-    {
-        $this->date_depense = $value;
-    }
+    public function getId_categorie() { return $this->id_categorie; }
+    public function setId_categorie($value) { $this->id_categorie = $value; }
 
-    public function getId_categorie()
-    {
-        return $this->id_categorie;
-    }
+    public function getId_voyage() { return $this->id_voyage; }
+    public function setId_voyage($value) { $this->id_voyage = $value; }
 
-    public function setId_categorie($value)
-    {
-        $this->id_categorie = $value;
-    }
+    // ===== MODERN STYLE GETTERS/SETTERS (used by depense branch controllers/templates) =====
+    
+    public function getIdDep(): ?int { return $this->id_dep; }
 
-    public function getId_voyage()
-    {
-        return $this->id_voyage;
-    }
-
-    public function setId_voyage($value)
-    {
-        $this->id_voyage = $value;
-    }
-
-    public function getIdDep(): ?int
-    {
-        return $this->id_dep;
-    }
-
-    public function getDateDepense(): ?\DateTime
-    {
-        return $this->date_depense;
-    }
-
-    public function setDateDepense(\DateTime $date_depense): static
+    public function getDateDepense(): ?\DateTimeInterface { return $this->date_depense; }
+    public function setDateDepense(\DateTimeInterface $date_depense): static
     {
         $this->date_depense = $date_depense;
-
         return $this;
     }
 
-    public function getIdCategorie(): ?Categorie
+    // "categorie" alias for depense branch compatibility
+    public function getCategorie(): ?Categorie { return $this->id_categorie; }
+    public function setCategorie(?Categorie $categorie): static
     {
-        return $this->id_categorie;
+        $this->id_categorie = $categorie;
+        return $this;
     }
 
+    public function getIdCategorie(): ?Categorie { return $this->id_categorie; }
     public function setIdCategorie(?Categorie $id_categorie): static
     {
         $this->id_categorie = $id_categorie;
-
         return $this;
     }
 
-    public function getIdVoyage(): ?Voyage
-    {
-        return $this->id_voyage;
-    }
-
+    public function getIdVoyage(): ?Voyage { return $this->id_voyage; }
     public function setIdVoyage(?Voyage $id_voyage): static
     {
         $this->id_voyage = $id_voyage;
-
         return $this;
     }
+
+    // ===== GEOLOCATION =====
+    public function getLieu(): ?string { return $this->lieu; }
+    public function setLieu(?string $lieu): static { $this->lieu = $lieu; return $this; }
+
+    public function getLatitude(): ?float { return $this->latitude; }
+    public function setLatitude(?float $latitude): static { $this->latitude = $latitude; return $this; }
+
+    public function getLongitude(): ?float { return $this->longitude; }
+    public function setLongitude(?float $longitude): static { $this->longitude = $longitude; return $this; }
 }

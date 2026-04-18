@@ -11,36 +11,28 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 #[Route('/depense')]
 class DepenseController extends AbstractController
 {
-    private HttpClientInterface $httpClient;
-
-    public function __construct(HttpClientInterface $httpClient)
-    {
-        $this->httpClient = $httpClient;
-    }
-
     #[Route('/', name: 'depense_index', methods: ['GET'])]
     public function index(Request $request, DepenseRepository $depenseRepository, \App\Repository\CategorieRepository $categorieRepository): Response
     {
         $titre = $request->query->get('titre');
-        $categorie = $request->query->get('categorie');
-        
+        $categorieId = $request->query->get('categorie');
+
         $qb = $depenseRepository->createQueryBuilder('d')
-            ->leftJoin('d.categorie', 'c')
+            ->leftJoin('d.id_categorie', 'c')
             ->addSelect('c');
-            
+
         if ($titre) {
             $qb->andWhere('d.titre LIKE :titre')->setParameter('titre', '%' . $titre . '%');
         }
-        if ($categorie) {
-            $qb->andWhere('d.categorie = :cat')->setParameter('cat', $categorie);
+        if ($categorieId) {
+            $qb->andWhere('d.id_categorie = :cat')->setParameter('cat', $categorieId);
         }
-        $qb->orderBy('d.dateDepense', 'DESC');
-        
+        $qb->orderBy('d.date_depense', 'DESC');
+
         $depenses = $qb->getQuery()->getResult();
         $categories = $categorieRepository->findAll();
 
@@ -74,15 +66,6 @@ class DepenseController extends AbstractController
             return $this->redirectToRoute('depense_index');
         }
 
-        // Si le formulaire est soumis mais invalide (AJAX)
-        if ($request->isXmlHttpRequest() && $form->isSubmitted()) {
-            return $this->render('depense/_form.html.twig', [
-                'depense' => $depense,
-                'form' => $form->createView(),
-            ]);
-        }
-
-        // Requête AJAX pour afficher le formulaire vide
         if ($request->isXmlHttpRequest()) {
             return $this->render('depense/_form.html.twig', [
                 'depense' => $depense,
@@ -90,7 +73,6 @@ class DepenseController extends AbstractController
             ]);
         }
 
-        // Requête normale (non AJAX)
         return $this->render('depense/new.html.twig', [
             'depense' => $depense,
             'form' => $form->createView(),
@@ -121,7 +103,6 @@ class DepenseController extends AbstractController
             return $this->redirectToRoute('depense_index');
         }
 
-        // Retourner le partial pour la modal AJAX
         if ($request->isXmlHttpRequest()) {
             return $this->render('depense/_form.html.twig', [
                 'depense' => $depense,
@@ -129,7 +110,6 @@ class DepenseController extends AbstractController
             ]);
         }
 
-        // Requête normale (non AJAX)
         return $this->render('depense/edit.html.twig', [
             'depense' => $depense,
             'form'    => $form->createView(),
@@ -139,7 +119,7 @@ class DepenseController extends AbstractController
     #[Route('/{id}', name: 'depense_delete', methods: ['POST'])]
     public function delete(Request $request, Depense $depense, EntityManagerInterface $entityManager): Response
     {
-        if ($this->isCsrfTokenValid('delete'.$depense->getId(), $request->request->get('_token'))) {
+        if ($this->isCsrfTokenValid('delete'.$depense->getIdDep(), $request->request->get('_token'))) {
             $entityManager->remove($depense);
             $entityManager->flush();
             $this->addFlash('success', 'Dépense supprimée.');
@@ -153,30 +133,28 @@ class DepenseController extends AbstractController
         $timeout = 3;
         $ctx = stream_context_create(['http' => ['timeout' => $timeout]]);
 
-        // 1) ipapi.co
         $data = @file_get_contents('https://ipapi.co/json/', false, $ctx);
         if ($data !== false) {
             $pos = json_decode($data, true);
             if ($pos && isset($pos['latitude'], $pos['longitude'])) {
                 return $this->json([
-                    'latitude' => $pos['latitude'],
+                    'latitude'  => $pos['latitude'],
                     'longitude' => $pos['longitude'],
-                    'city' => $pos['city'] ?? '',
-                    'country' => $pos['country_name'] ?? ''
+                    'city'      => $pos['city'] ?? '',
+                    'country'   => $pos['country_name'] ?? ''
                 ]);
             }
         }
 
-        // 2) ip-api.com (fallback)
         $data = @file_get_contents('http://ip-api.com/json/', false, $ctx);
         if ($data !== false) {
             $pos = json_decode($data, true);
-            if ($pos && $pos['status'] === 'success' && isset($pos['lat'], $pos['lon'])) {
+            if ($pos && $pos['status'] === 'success') {
                 return $this->json([
-                    'latitude' => $pos['lat'],
+                    'latitude'  => $pos['lat'],
                     'longitude' => $pos['lon'],
-                    'city' => $pos['city'],
-                    'country' => $pos['country']
+                    'city'      => $pos['city'],
+                    'country'   => $pos['country']
                 ]);
             }
         }
