@@ -1,0 +1,32 @@
+{% for depense in depenses %}
+<tr style="animation-delay: {{ loop.index0 * 0.1 }}s;" class="animated-row">
+    <td class="px-4 fw-bold">{{ depense.titre }}</td>
+    <td class="text-primary fw-bold">{{ depense.montant|number_format(2, ',', ' ') }} DT</td>
+    <td>{{ depense.dateDepense|date('d/m/Y') }}</td>
+    <td>
+        <span class="badge rounded-pill" style="background-color: #13357B;">
+            {{ depense.categorie ? depense.categorie.nomCategorie : 'Non catégorisé' }}
+        </span>
+    </td>
+    <td class="text-center">
+        <a href="{{ path('depense_show', {id: depense.id}) }}" class="btn btn-sm btn-outline-info rounded-pill"><i class="fa fa-eye"></i></a>
+        <button type="button"
+                class="btn btn-sm btn-outline-primary rounded-pill btn-edit-depense"
+                data-bs-toggle="modal"
+                data-bs-target="#depenseModal"
+                data-url="{{ path('depense_edit', {id: depense.id}) }}"
+                title="Modifier"><i class="fa fa-edit"></i></button>
+        <form method="post" action="{{ path('depense_delete', {id: depense.id}) }}" style="display:inline-block;" onsubmit="return confirm('Supprimer cette dépense ?');">
+            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ depense.id) }}">
+            <button class="btn btn-sm btn-outline-danger rounded-pill"><i class="fa fa-trash"></i></button>
+        </form>
+    </td>
+</tr>
+{% else %}
+<tr>
+    <td colspan="5" class="text-center py-5">
+        <i class="fa fa-inbox fa-3x text-muted mb-3 d-block"></i>
+        Aucune dépense trouvée pour ces critères.
+    </td>
+</tr>
+{% endfor %}

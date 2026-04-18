@@ -1,0 +1,329 @@
+{% extends 'base.html.twig' %}
+{% block title %}Rapports - After Travel{% endblock %}
+
+{% block hero %}
+<div class="bg-breadcrumb">
+    <div class="container text-center py-5">
+        <h3 class="text-white display-3 mb-4 fw-bold">Rapports Avancés</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item active text-white">Rapports</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5">
+    <div class="container py-5">
+
+        {# ===================== FILTRES ===================== #}
+        <div class="bg-white rounded shadow-sm p-4 mb-5">
+            <h4 class="mb-4" style="color:#13357B;">
+                <i class="fa fa-filter me-2"></i>Filtres
+            </h4>
+            <form method="GET" id="filterForm" class="row g-3">
+                <div class="col-md-12">
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_simple"
+                               value="simple" {% if filter_type == 'simple' or filter_type is empty %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="ft_simple">
+                            <i class="fa fa-calendar me-1"></i> Simple
+                        </label>
+
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_multiple"
+                               value="multiple" {% if filter_type == 'multiple' %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="ft_multiple">
+                            <i class="fa fa-list me-1"></i> Multi-sélection
+                        </label>
+
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_range"
+                               value="range" {% if filter_type == 'range' %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="ft_range">
+                            <i class="fa fa-calendar-alt me-1"></i> Période
+                        </label>
+
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_all"
+                               value="all" {% if filter_type == 'all' %}checked{% endif %}>
+                        <label class="btn btn-outline-primary" for="ft_all">
+                            <i class="fa fa-globe me-1"></i> Tout afficher
+                        </label>
+                    </div>
+                </div>
+
+                {# ── Séparateur visuel ── #}
+                <div class="col-md-12"><hr class="my-1"></div>
+
+                {# Section Simple #}
+                <div id="div_simple" class="col-md-12 filter-section">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mois</label>
+                            <select name="mois" class="form-select">
+                                <option value="">Tous les mois</option>
+                                {% for m in 1..12 %}
+                                    <option value="{{ m }}" {% if mois == m %}selected{% endif %}>
+                                        {{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Année</label>
+                            <select name="annee" class="form-select">
+                                <option value="">Toutes les années</option>
+                                {% for y in (currentYear - 3)..(currentYear + 1) %}
+                                    <option value="{{ y }}" {% if annee is not null and annee == y %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <p class="text-muted small mb-0">
+                                <i class="fa fa-info-circle me-1"></i>
+                                Sélectionnez un mois et/ou une année.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Section Multiple #}
+                <div id="div_multiple" class="col-md-12 filter-section" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Mois <small class="text-muted">(Ctrl+clic pour multi)</small></label>
+                            <select name="mois_multiple[]" class="form-select" multiple size="6">
+                                {% for m in 1..12 %}
+                                    <option value="{{ m }}" {% if m in moisMultiple %}selected{% endif %}>
+                                        {{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Années <small class="text-muted">(Ctrl+clic pour multi)</small></label>
+                            <select name="annee_multiple[]" class="form-select" multiple size="6">
+                                {% for y in (currentYear - 3)..(currentYear + 1) %}
+                                    <option value="{{ y }}" {% if y in anneeMultiple %}selected{% endif %}>{{ y }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-12">
+                            <p class="text-muted small mb-0">
+                                <i class="fa fa-info-circle me-1"></i>
+                                Maintenez <kbd>Ctrl</kbd> pour sélectionner plusieurs mois et/ou années.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Section Période #}
+                <div id="div_range" class="col-md-12 filter-section" style="display:none;">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date début</label>
+                            <input type="date" name="date_debut" class="form-control" value="{{ date_debut }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">Date fin</label>
+                            <input type="date" name="date_fin" class="form-control" value="{{ date_fin }}">
+                        </div>
+                        <div class="col-md-12">
+                            <p class="text-muted small mb-0">
+                                <i class="fa fa-info-circle me-1"></i>
+                                Toutes les dépenses entre la date début et la date fin (incluses).
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {# Section Tout afficher #}
+                <div id="div_all" class="col-md-12 filter-section" style="display:none;">
+                    <div class="alert alert-info mb-0">
+                        <i class="fa fa-globe me-2"></i>
+                        Toutes les dépenses de la base de données seront affichées.
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary rounded-pill px-5 py-2">
+                        <i class="fa fa-search me-2"></i>Appliquer le filtre
+                    </button>
+                    <a href="{{ path('rapport_index') }}" class="btn btn-outline-secondary rounded-pill px-4 py-2">
+                        <i class="fa fa-times me-2"></i>Réinitialiser
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        {# ===================== RÉSUMÉ FILTRE + BOUTON PDF ===================== #}
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div class="alert alert-info mb-0 flex-grow-1 me-3">
+                <i class="fa fa-info-circle me-2"></i>
+                <strong>Filtre actif :</strong> {{ resumeFiltre }}
+            </div>
+            <a href="/rapport/pdf?{{ pdfQueryString }}" target="_blank" class="btn btn-danger rounded-pill px-4 py-2 flex-shrink-0">
+                <i class="fa fa-file-pdf me-2"></i>Exporter PDF
+            </a>
+        </div>
+
+        {# ===================== STATISTIQUES ===================== #}
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="bg-white rounded p-4 shadow-sm text-center">
+                    <i class="fa fa-money-bill-wave fa-3x text-primary mb-3"></i>
+                    <h2 class="text-primary fw-bold">{{ totalGeneral|number_format(2, ',', ' ') }}</h2>
+                    <p class="text-muted mb-0">Total Dépenses (DT)</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded p-4 shadow-sm text-center">
+                    <i class="fa fa-list fa-3x text-primary mb-3"></i>
+                    <h2 class="text-primary fw-bold">{{ totalNb }}</h2>
+                    <p class="text-muted mb-0">Nombre de Dépenses</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded p-4 shadow-sm text-center">
+                    <i class="fa fa-calculator fa-3x text-primary mb-3"></i>
+                    <h2 class="text-primary fw-bold">
+                        {{ totalNb > 0 ? (totalGeneral / totalNb)|number_format(2, ',', ' ') : '0,00' }}
+                    </h2>
+                    <p class="text-muted mb-0">Dépense Moyenne (DT)</p>
+                </div>
+            </div>
+        </div>
+
+        {# ===================== GOOGLE CHARTS ===================== #}
+        <div class="bg-white rounded shadow-sm p-4 mb-5">
+            <h4 style="color:#13357B;" class="mb-4">
+                <i class="fa fa-chart-pie me-2"></i>Répartition graphique
+            </h4>
+            {% if totalGeneral > 0 and donneesCategories is not empty %}
+                <div id="piechart_3d" style="width: 100%; height: 350px;"></div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fa fa-chart-pie fa-4x text-muted mb-3"></i>
+                    <p class="text-muted">Aucune dépense pour la période sélectionnée.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        {# ===================== TABLEAU ===================== #}
+        <div class="bg-white rounded shadow-sm overflow-hidden mb-4">
+            <div class="p-4" style="background-color:#13357B;">
+                <h4 class="text-white mb-0"><i class="fa fa-table me-2"></i>Détail par Catégorie</h4>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="py-3 px-4">Catégorie</th>
+                            <th class="py-3 text-end">Montant (DT)</th>
+                            <th class="py-3 text-center">Nb</th>
+                            <th class="py-3 text-center">%</th>
+                            <th class="py-3">Barre</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat, data in donneesCategories %}
+                            {% set pct = totalGeneral > 0 ? (data[0] / totalGeneral * 100) : 0 %}
+                            <tr>
+                                <td class="px-4 fw-bold">{{ cat }}</td>
+                                <td class="text-end fw-bold text-warning">{{ data[0]|number_format(2, ',', ' ') }}</td>
+                                <td class="text-center text-muted">{{ data[1] }}</td>
+                                <td class="text-center">
+                                    <span class="badge rounded-pill" style="background-color:#13357B;">{{ pct|number_format(1) }}%</span>
+                                </td>
+                                <td style="min-width:120px;">
+                                    <div class="progress" style="height:8px;">
+                                        <div class="progress-bar" style="width:{{ pct|number_format(1) }}%;background-color:#13357B;"></div>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">Aucune dépense pour cette période.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="bg-light fw-bold">
+                        <tr>
+                            <td class="px-4">TOTAL GÉNÉRAL</td>
+                            <td class="text-end text-warning">{{ totalGeneral|number_format(2, ',', ' ') }}</td>
+                            <td class="text-center">{{ totalNb }}</td>
+                            <td class="text-center"><span class="badge rounded-pill bg-success">100%</span></td>
+                            <td></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <div class="text-center py-4">
+            <a href="/rapport/pdf?{{ pdfQueryString }}" target="_blank" class="btn btn-danger btn-lg rounded-pill px-5 py-3 shadow">
+                <i class="fa fa-file-pdf me-2"></i> Exporter en PDF
+            </a>
+            <p class="text-muted small mt-2">Le rapport s'ouvrira dans un nouvel onglet. Utilisez Ctrl+P pour imprimer.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script type="text/javascript">
+{% if totalGeneral > 0 and donneesCategories is not empty %}
+if (typeof google !== 'undefined') {
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawGoogleChart);
+    
+    function drawGoogleChart() {
+        var data = google.visualization.arrayToDataTable([
+            ['Catégorie', 'Montant (DT)'],
+            {% for cat, data in donneesCategories %}
+                ['{{ cat|escape('js') }}', {{ data[0] }}],
+            {% endfor %}
+        ]);
+
+        var options = {
+            title: 'Répartition de vos dépenses par Catégorie',
+            is3D: true,
+            colors: ['#13357B', '#FFD700', '#4CAF50', '#e53935', '#7B1FA2', '#00ACC1', '#FF7043', '#43A047', '#1E88E5', '#F06292'],
+            chartArea: {width: '95%', height: '80%'},
+            legend: { position: 'right', alignment: 'center', textStyle: { fontSize: 13 } }
+        };
+
+        var chartEl = document.getElementById('piechart_3d');
+        if (chartEl) {
+            var chart = new google.visualization.PieChart(chartEl);
+            chart.draw(data, options);
+        }
+    }
+}
+{% endif %}
+
+(function() {
+    var activeFilter = document.querySelector('input[name="filter_type"]:checked');
+    if (activeFilter) showFilter(activeFilter.value);
+    document.querySelectorAll('input[name="filter_type"]').forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            showFilter(this.value);
+        });
+    });
+    function showFilter(type) {
+        var simpleDiv = document.getElementById('div_simple');
+        var multipleDiv = document.getElementById('div_multiple');
+        var rangeDiv = document.getElementById('div_range');
+        var allDiv = document.getElementById('div_all');
+        if (simpleDiv) simpleDiv.style.display = 'none';
+        if (multipleDiv) multipleDiv.style.display = 'none';
+        if (rangeDiv) rangeDiv.style.display = 'none';
+        if (allDiv) allDiv.style.display = 'none';
+        if (type === 'simple') simpleDiv.style.display = 'block';
+        else if (type === 'multiple') multipleDiv.style.display = 'block';
+        else if (type === 'range') rangeDiv.style.display = 'block';
+        else if (type === 'all') allDiv.style.display = 'block';
+    }
+})();
+</script>
+{% endblock %}

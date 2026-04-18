@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+{% block title %}{{ depense.titre }} - After Travel{% endblock %}
+
+{% block hero %}
+<div class="bg-breadcrumb">
+    <div class="container text-center py-5">
+        <h3 class="text-white display-3 mb-4 fw-bold">Détail de la Dépense</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('depense_index') }}">Dépenses</a></li>
+            <li class="breadcrumb-item active text-white">{{ depense.titre }}</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid bg-light py-5">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="bg-white rounded shadow-sm overflow-hidden">
+                    <div class="p-4 text-white" style="background-color: #13357B;">
+                        <h3 class="mb-0"><i class="fa fa-receipt me-2"></i>{{ depense.titre }}</h3>
+                    </div>
+                    <div class="p-5">
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <label class="text-muted small text-uppercase fw-bold">Montant</label>
+                                <div class="fs-3 fw-bold text-warning">{{ depense.montant|number_format(2) }} DT</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small text-uppercase fw-bold">Date</label>
+                                <div class="fs-5"><i class="fa fa-calendar text-primary me-2"></i>{{ depense.dateDepense|date('d/m/Y') }}</div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small text-uppercase fw-bold">Catégorie</label>
+                                <div>
+                                    {% if depense.categorie %}
+                                    <span class="badge rounded-pill fs-6 px-3 py-2" style="background-color: #13357B;">
+                                        <i class="fa fa-tag me-1"></i>{{ depense.categorie.nomCategorie }}
+                                    </span>
+                                    {% else %}
+                                    <span class="badge bg-secondary rounded-pill fs-6 px-3 py-2">Non classée</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="text-muted small text-uppercase fw-bold">Lieu</label>
+                                <div>
+                                    {% if depense.lieu %}
+                                        <i class="fa fa-map-marker-alt text-primary me-1"></i> {{ depense.lieu }}
+                                    {% else %}
+                                        <span class="text-muted">Non renseigné</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if depense.latitude and depense.longitude %}
+                        <hr class="my-4">
+                        <div id="map" style="height: 300px; border-radius: 8px;"></div>
+                        {% endif %}
+
+                        <hr class="my-4">
+
+                        <div class="d-flex gap-3">
+                            <a href="{{ path('depense_edit', {id: depense.id}) }}" class="btn btn-success rounded-pill py-2 px-4">
+                                <i class="fa fa-edit me-2"></i>Modifier
+                            </a>
+                            <a href="{{ path('depense_index') }}" class="btn btn-outline-primary rounded-pill py-2 px-4">
+                                <i class="fa fa-arrow-left me-2"></i>Retour
+                            </a>
+                            <form action="{{ path('depense_delete', {id: depense.id}) }}" method="post" class="ms-auto"
+                                  onsubmit="return confirm('Supprimer cette dépense ?')">
+                                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ depense.id) }}">
+                                <button type="submit" class="btn btn-danger rounded-pill py-2 px-4">
+                                    <i class="fa fa-trash me-2"></i>Supprimer
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+{% if depense.latitude and depense.longitude %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var lat = {{ depense.latitude }};
+        var lng = {{ depense.longitude }};
+        var map = L.map('map').setView([lat, lng], 15);
+        var streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap & CartoDB'
+        }).addTo(map);
+        var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri'
+        });
+        L.control.layers({
+            'Plan': streets,
+            'Satellite': satellite
+        }, null, { collapsed: false }).addTo(map);
+        L.marker([lat, lng]).addTo(map);
+    });
+</script>
+{% endif %}
+{% endblock %}

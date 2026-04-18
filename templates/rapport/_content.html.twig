@@ -1,0 +1,212 @@
+{# templates/rapport/_content.html.twig #}
+<div class="container-fluid py-3">
+    <div class="container py-3">
+
+        {# En-tête avec bouton PDF #}
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0" style="color:#13357B;">Rapports</h5>
+            <a href="/rapport/pdf?{{ pdfQueryString }}" target="_blank" class="btn btn-danger btn-sm">
+                <i class="fa fa-file-pdf me-1"></i> Exporter PDF
+            </a>
+        </div>
+
+        {# Filtres #}
+        <div class="bg-light rounded p-3 mb-4">
+            <h5 class="mb-3">Filtres</h5>
+            <form method="GET" id="filterFormModal" action="{{ path('rapport_index') }}" class="row g-2">
+                <div class="col-md-12">
+                    <div class="btn-group w-100" role="group">
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_simple_modal" value="simple" {{ filter_type == 'simple' or filter_type is empty ? 'checked' : '' }}>
+                        <label class="btn btn-outline-primary btn-sm" for="ft_simple_modal">Simple</label>
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_multiple_modal" value="multiple" {{ filter_type == 'multiple' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-primary btn-sm" for="ft_multiple_modal">Multi</label>
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_range_modal" value="range" {{ filter_type == 'range' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-primary btn-sm" for="ft_range_modal">Période</label>
+                        <input type="radio" class="btn-check" name="filter_type" id="ft_all_modal" value="all" {{ filter_type == 'all' ? 'checked' : '' }}>
+                        <label class="btn btn-outline-primary btn-sm" for="ft_all_modal">Tout</label>
+                    </div>
+                </div>
+
+                {# Champ caché pour rouvrir la modale après rechargement #}
+                <input type="hidden" name="open_rapport" value="1">
+
+                <div id="simple_modal" class="row g-2" style="{{ filter_type == 'multiple' or filter_type == 'range' or filter_type == 'all' ? 'display: none;' : '' }}">
+                    <div class="col-md-6">
+                        <label>Mois</label>
+                        <select name="mois" class="form-select form-select-sm">
+                            <option value="">Tous</option>
+                            {% for m in 1..12 %}
+                                <option value="{{ m }}" {{ mois == m ? 'selected' : '' }}>{{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Année</label>
+                        <select name="annee" class="form-select form-select-sm">
+                            <option value="">Toutes</option>
+                            {% for y in currentYear-3..currentYear+1 %}
+                                <option value="{{ y }}" {{ annee is not null and annee == y ? 'selected' : '' }}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="multiple_modal" class="row g-2" style="{{ filter_type != 'multiple' ? 'display: none;' : '' }}">
+                    <div class="col-md-6">
+                        <label>Mois (Ctrl)</label>
+                        <select name="mois_multiple[]" class="form-select form-select-sm" multiple size="3">
+                            {% for m in 1..12 %}
+                                <option value="{{ m }}" {{ m in moisMultiple ? 'selected' : '' }}>{{ ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'][m-1] }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label>Années (Ctrl)</label>
+                        <select name="annee_multiple[]" class="form-select form-select-sm" multiple size="3">
+                            {% for y in currentYear-3..currentYear+1 %}
+                                <option value="{{ y }}" {{ y in anneeMultiple ? 'selected' : '' }}>{{ y }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="range_modal" class="row g-2" style="{{ filter_type != 'range' ? 'display: none;' : '' }}">
+                    <div class="col-md-6">
+                        <label>Début</label>
+                        <input type="date" name="date_debut" class="form-control form-control-sm" value="{{ date_debut }}">
+                    </div>
+                    <div class="col-md-6">
+                        <label>Fin</label>
+                        <input type="date" name="date_fin" class="form-control form-control-sm" value="{{ date_fin }}">
+                    </div>
+                </div>
+
+                <div class="col-12 text-center mt-2">
+                    <button type="submit" class="btn btn-primary btn-sm">Appliquer</button>
+                    <a href="{{ path('rapport_index') }}" class="btn btn-secondary btn-sm">Réinitialiser</a>
+                </div>
+            </form>
+        </div>
+
+        <div class="alert alert-info text-center mb-3">{{ resumeFiltre }}</div>
+
+        {# Cartes stats #}
+        <div class="row g-2 mb-3">
+            <div class="col-md-4">
+                <div class="bg-white rounded p-2 text-center shadow-sm">
+                    <h5 class="text-primary">{{ totalGeneral|number_format(2, ',', ' ') }}</h5>
+                    <small>Total</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded p-2 text-center shadow-sm">
+                    <h5 class="text-primary">{{ totalNb }}</h5>
+                    <small>Nb dépenses</small>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="bg-white rounded p-2 text-center shadow-sm">
+                    <h5 class="text-primary">{{ totalNb > 0 ? (totalGeneral / totalNb)|number_format(2, ',', ' ') : '0,00' }}</h5>
+                    <small>Moyenne</small>
+                </div>
+            </div>
+        </div>
+
+        {# Tableau #}
+        <div class="table-responsive">
+            <table class="table table-bordered table-sm">
+                <thead class="table-dark">
+                    <tr><th>Catégorie</th><th>Montant (DT)</th><th>Nb</th><th>%</th></tr>
+                </thead>
+                <tbody>
+                    {% for cat, data in donneesCategories %}
+                        <tr>
+                            <td>{{ cat }}</td>
+                            <td class="text-end">{{ data[0]|number_format(2, ',', ' ') }}</td>
+                            <td class="text-center">{{ data[1] }}</td>
+                            <td class="text-center">{{ totalGeneral > 0 ? (data[0] / totalGeneral * 100)|number_format(1) : 0 }}%</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+                <tfoot>
+                    <tr class="fw-bold">
+                        <td>TOTAL</td>
+                        <td class="text-end">{{ totalGeneral|number_format(2, ',', ' ') }}</td>
+                        <td class="text-center">{{ totalNb }}</td>
+                        <td class="text-center">100%</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        {# Camembert SVG #}
+        {% if totalGeneral > 0 and pieData is not empty %}
+        <div class="text-center mt-3">
+            <svg width="200" height="200" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+                {% if pieData|length == 1 %}
+                    <circle cx="150" cy="150" r="100" fill="{{ pieData[0].color }}"/>
+                {% else %}
+                    {% for seg in pieData %}
+                        <path d="M 150,150 L {{ seg.x1 }},{{ seg.y1 }} A 100,100 0 {{ seg.largeArc }},1 {{ seg.x2 }},{{ seg.y2 }} Z"
+                              fill="{{ seg.color }}" stroke="white" stroke-width="2"/>
+                    {% endfor %}
+                {% endif %}
+                <circle cx="150" cy="150" r="45" fill="white"/>
+                <text x="150" y="147" text-anchor="middle" font-size="11" fill="#13357B" font-weight="bold">Total</text>
+                <text x="150" y="163" text-anchor="middle" font-size="10" fill="#333">{{ totalGeneral|number_format(0, ',', ' ') }} DT</text>
+            </svg>
+            <div class="mt-2">
+                {% for seg in pieData %}
+                    <span style="background:{{ seg.color }};display:inline-block;width:12px;height:12px;"></span> {{ seg.category }} ({{ seg.percentage|number_format(1) }}%) &nbsp;
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+(function() {
+    function loadReportModal(url) {
+        fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(response => response.text())
+            .then(html => {
+                var modalBody = document.getElementById('rapportModalBody');
+                if (modalBody) {
+                    modalBody.innerHTML = html;
+                }
+            });
+    }
+
+    // Affichage du bon bloc de filtre
+    function showFilter(type) {
+        var simple = document.getElementById('simple_modal');
+        var multiple = document.getElementById('multiple_modal');
+        var range = document.getElementById('range_modal');
+        if (simple) simple.style.display = 'none';
+        if (multiple) multiple.style.display = 'none';
+        if (range) range.style.display = 'none';
+        if (type === 'simple') simple.style.display = 'flex';
+        else if (type === 'multiple') multiple.style.display = 'flex';
+        else if (type === 'range') range.style.display = 'flex';
+    }
+
+    var radios = document.querySelectorAll('input[name="filter_type"]');
+    radios.forEach(function(radio) {
+        radio.addEventListener('change', function() {
+            showFilter(this.value);
+        });
+    });
+    var activeRadio = document.querySelector('input[name="filter_type"]:checked');
+    if (activeRadio) showFilter(activeRadio.value);
+
+    var form = document.getElementById('filterFormModal');
+    if (form) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            var params = new URLSearchParams(new FormData(form));
+            loadReportModal(form.action + '?' + params.toString());
+        });
+    }
+})();
+</script>

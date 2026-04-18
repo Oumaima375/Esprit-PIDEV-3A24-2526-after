@@ -1,0 +1,41 @@
+{% extends 'base.html.twig' %}
+{% block title %}Carte des dépenses{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <h1>Carte des dépenses</h1>
+    <div id="map" style="height: 600px;"></div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+    var map = L.map('map').setView([36.8065, 10.1815], 7);
+    var streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; OpenStreetMap & CartoDB'
+    }).addTo(map);
+    var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri'
+    });
+    L.control.layers({
+        'Plan': streets,
+        'Satellite': satellite
+    }, null, { collapsed: false }).addTo(map);
+
+    var depenses = {{ depenses|json_encode|raw }};
+    depenses.forEach(function(dep) {
+        if (dep.latitude && dep.longitude) {
+            var marker = L.marker([dep.latitude, dep.longitude]).addTo(map);
+            marker.bindPopup(`
+                <strong>${dep.titre}</strong><br>
+                Montant : ${dep.montant} DT<br>
+                Date : ${new Date(dep.dateDepense).toLocaleDateString()}<br>
+                <a href="/depense/${dep.id}">Voir le détail</a>
+            `);
+        }
+    });
+</script>
+{% endblock %}

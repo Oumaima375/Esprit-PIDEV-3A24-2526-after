@@ -1,0 +1,1271 @@
+{{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'depenseForm', 'action': depense.id ? path('depense_edit', {id: depense.id}) : path('depense_new')}}) }}
+<div class="row g-3">
+
+    <div class="col-md-12">
+        <div class="form-floating">
+            {{ form_widget(form.titre, {'attr': {'class': 'form-control border-0', 'placeholder': 'Titre', 'id': 'depense_titre'}}) }}
+            {{ form_label(form.titre, 'Titre de la dépense') }}
+        </div>
+        <div id="titre_feedback" class="mt-1"></div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="input-group shadow-sm rounded">
+            <div class="form-floating flex-grow-1">
+                <!-- Champ visible pour la saisie (qui peut être en EUR ou USD) -->
+                <input type="number" id="visible_montant" class="form-control border-0" placeholder="0.00" step="0.01">
+                <label for="visible_montant">Montant</label>
+            </div>
+            <select class="form-select border-0 bg-light" id="currency_select" style="max-width: 90px; text-align: center; font-weight: 600; cursor: pointer; border-left: 1px solid #dee2e6 !important;">
+                <option value="TND" selected>DT</option>
+                <option value="EUR">€ EUR</option>
+                <option value="USD">$ USD</option>
+            </select>
+        </div>
+        
+        <!-- Champ caché qui contiendra TOUJOURS la valeur finale en TND pour la BDD -->
+        <div class="d-none">
+            {{ form_widget(form.montant, {'attr': {'id': 'depense_montant'}}) }}
+        </div>
+        
+        <!-- Retours d'infos UI -->
+        <div id="currency_feedback" class="mt-1 small" style="display:none; color: #13357B; font-weight: 500;"></div>
+        <div id="montant_feedback" class="mt-1 small"></div>
+        <div id="budget_alert" class="mt-1 small text-danger fw-bold" style="display:none;"></div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="form-floating">
+            {{ form_widget(form.dateDepense, {'attr': {'class': 'form-control border-0'}}) }}
+            {{ form_label(form.dateDepense, 'Date') }}
+        </div>
+    </div>
+
+    <div class="col-md-12">
+        <div class="form-floating">
+            {{ form_widget(form.categorie, {'attr': {'class': 'form-select border-0', 'id': 'depense_categorie'}}) }}
+            {{ form_label(form.categorie, 'Catégorie') }}
+        </div>
+        <div id="categorie_feedback" class="mt-1"></div>
+    </div>
+
+    {# ══════════════════ ASSISTANT VOCAL ══════════════════ #}
+    <div class="col-md-12">
+        <div class="voice-panel" id="voicePanel">
+
+            {# Statut compatibilité navigateur #}
+            <div id="voiceCompatStatus" class="small mb-2 p-2 rounded" style="background:#f0f4ff;display:none"></div>
+
+            <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                <button type="button" id="voiceStartBtn" class="btn btn-outline-primary btn-sm">
+                    🎯 Démarrer l'assistant
+                </button>
+                <button type="button" id="voiceListenBtn" class="btn btn-outline-secondary btn-sm" disabled>
+                    🎤 Écouter ma réponse
+                </button>
+                <button type="button" id="voiceNextBtn" class="btn btn-outline-dark btn-sm" disabled>
+                    Champ suivant →
+                </button>
+                <button type="button" id="voiceRepeatBtn" class="btn btn-outline-info btn-sm" disabled>
+                    🔁 Répéter
+                </button>
+            </div>
+
+            {# Champ actif affiché #}
+            <div id="voiceCurrentField" style="display:none;margin-bottom:8px">
+                <span class="badge" style="background:#13357B;font-size:12px" id="voiceFieldBadge">—</span>
+            </div>
+
+            {# Statut + feedback #}
+            <div id="voiceStatus" class="small text-muted">
+                Cliquez sur <strong>Démarrer l'assistant</strong> pour commencer.
+            </div>
+
+            {# Zone de debug en temps réel #}
+            <div id="voiceDebug" style="display:none;margin-top:8px;padding:8px;
+                 background:#1a1a2e;color:#00ff88;border-radius:8px;font-family:monospace;font-size:11px">
+            </div>
+        </div>
+    </div>
+
+    {# ══════════════════ LIEU + MAP ══════════════════ #}
+    <div class="col-md-12 position-relative">
+        <div class="search-shell">
+            <div class="search-bar">
+                <div class="search-icon"><i class="fa fa-search"></i></div>
+                {{ form_widget(form.lieu, {'attr': {
+                    'class': 'search-input',
+                    'id': 'depense_lieu',
+                    'placeholder': 'Adresse, café, hôtel, coordonnées…',
+                    'autocomplete': 'off'
+                }}) }}
+                <button type="button" id="locateMeBtn" class="locate-btn" title="Me localiser">
+                    <i class="fa fa-location-arrow"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="poi-chips">
+            <button type="button" class="poi-chip" data-poi="cafe">Cafés</button>
+            <button type="button" class="poi-chip" data-poi="restaurant">Restaurants</button>
+            <button type="button" class="poi-chip" data-poi="hotel">Hôtels</button>
+            <button type="button" class="poi-chip" data-poi="airport">Aéroports</button>
+            <button type="button" class="poi-chip" data-poi="museum">Musées</button>
+        </div>
+
+        <div id="geoStatus" class="geo-status" style="display:none"></div>
+        <div id="suggestions" class="suggestions-panel" style="display:none"></div>
+
+        {{ form_widget(form.latitude,  {'attr': {'id': 'depense_latitude'}})  }}
+        {{ form_widget(form.longitude, {'attr': {'id': 'depense_longitude'}}) }}
+
+        {# ── La map ── #}
+        <div id="mapWrapper" style="margin-top:10px">
+            <div id="map" style="height:420px;border-radius:20px;overflow:hidden;
+                 border:1px solid #dadce0;background:#e8e8e8"></div>
+        </div>
+        <small class="text-muted">OpenStreetMap + géolocalisation + points d'intérêt.</small>
+    </div>
+
+    <div class="col-12">
+        <button type="submit" id="submitBtn" class="btn btn-primary w-100 py-2" {% if not depense.id %}disabled{% endif %}>
+            <i class="fa fa-save me-2"></i>{{ depense.id ? 'Enregistrer les modifications' : 'Ajouter la dépense' }}
+        </button>
+    </div>
+</div>
+{{ form_end(form) }}
+
+<style>
+/* ──────────────── ANIMATIONS GLOBALES ──────────────── */
+@keyframes pinDrop {
+    0% { transform: translateY(-40px) scale(0.3); opacity: 0; }
+    60% { transform: translateY(8px) scale(1.1); opacity: 1; }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+}
+.animated-pin {
+    opacity: 0; 
+    animation: pinDrop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes pulseSoft {
+    0% { box-shadow: 0 0 0 0 rgba(26,115,232,0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(26,115,232,0); }
+    100% { box-shadow: 0 0 0 0 rgba(26,115,232,0); }
+}
+
+.is-valid   { border-color:#198754 !important; transition: border-color 0.3s; }
+.is-invalid { border-color:#dc3545 !important; transition: border-color 0.3s; }
+#titre_feedback,#montant_feedback,#categorie_feedback { font-size:.8rem; margin-top:.25rem; transition: all 0.3s; }
+.btn-primary { transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1); }
+.btn-primary:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(19,53,123,0.3); }
+.btn-primary:disabled { opacity:.6; cursor:not-allowed; transform: none; box-shadow: none; }
+
+/* ──────────────── ASSISTANT VOCAL ──────────────── */
+.voice-panel { background:#f8fbff; border:1px solid #d7e6ff; border-radius:16px; padding:12px 14px; transition: all 0.4s ease; }
+.voice-panel:hover { box-shadow: 0 4px 12px rgba(19,53,123,0.08); }
+.voice-panel.active-listening {
+    background:#fff0f0;
+    border-color:#ff9999;
+    animation: voicePulse 1.2s ease-in-out infinite;
+}
+@keyframes voicePulse { 0%,100%{box-shadow:0 0 0 0 rgba(220,53,69,.2)} 50%{box-shadow:0 0 0 8px rgba(220,53,69,0)} }
+
+/* ──────────────── RECHERCHE & CARTE ──────────────── */
+.search-shell { 
+    background:#fff; border:1px solid #dadce0; border-radius:28px; 
+    box-shadow:0 2px 6px rgba(32,33,36,.1); padding:6px 10px; 
+    transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1); 
+}
+.search-shell:focus-within {
+    box-shadow: 0 4px 18px rgba(26,115,232,0.25);
+    border-color: #1a73e8;
+    transform: translateY(-1px);
+}
+.search-bar   { display:flex; align-items:center; gap:10px; }
+.search-icon  { color:#5f6368; font-size:1rem; padding-left:4px; transition: color 0.3s; }
+.search-shell:focus-within .search-icon { color: #1a73e8; }
+.search-input { flex:1; border:0; outline:none; box-shadow:none; background:transparent; padding:8px 0; font-size:14px; }
+.locate-btn   { 
+    border:0; background:#e8f0fe; color:#1a73e8; width:42px; height:42px; 
+    border-radius:50%; display:inline-flex; align-items:center; justify-content:center; 
+    cursor:pointer; transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1); 
+}
+.locate-btn:hover { background:#d2e3fc; transform: scale(1.1) rotate(10deg); }
+.locate-btn:active { transform: scale(0.95); }
+.locate-btn.locating { animation: pulseSoft 1s infinite; }
+
+.poi-chips  { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 12px; }
+.poi-chip   { 
+    border:1px solid #dadce0; background:#fff; color:#1f1f1f; 
+    border-radius:999px; padding:8px 16px; font-weight:600; font-size: 13px;
+    cursor:pointer; transition: all 0.3s cubic-bezier(0.25,0.8,0.25,1); 
+}
+.poi-chip:hover  { background:#f8f9fa; transform: translateY(-2px); box-shadow: 0 3px 8px rgba(0,0,0,0.08); }
+.poi-chip:active { transform: translateY(0); box-shadow: none; }
+.poi-chip.active { background:#e8f0fe; border-color:#1a73e8; color:#1a73e8; transform: scale(1.05); }
+
+.geo-status { 
+    background:#fff8e1; color:#7a5b00; border:1px solid #f4d57d; 
+    border-radius:12px; padding:10px 14px; margin-bottom:12px; 
+    animation: fadeInDown 0.3s ease-out;
+}
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.suggestions-panel { 
+    background:#fff; border:1px solid #dadce0; border-radius:18px; 
+    box-shadow:0 8px 24px rgba(60,64,67,.15); margin-bottom:12px; max-height:240px; overflow-y:auto; 
+    position: absolute; z-index: 1000; width: calc(100% - 24px); left: 12px; top: 60px;
+    animation: fadeInDown 0.2s ease-out;
+}
+.suggestion-item { padding:14px 16px; border-bottom:1px solid #eee; cursor:pointer; transition: background 0.2s; }
+.suggestion-item:last-child { border-bottom:0; }
+.suggestion-item:hover { background:#f4f8ff; border-left: 3px solid #1a73e8; padding-left: 13px; }
+
+#mapWrapper { transition: all 0.3s; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+#mapWrapper:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.1); }
+</style>
+
+{# Leaflet CSS + JS — chargés avant le script #}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+/* ================================================================
+   AFTER TRAVEL — Formulaire dépense
+   Correction : assistant vocal + carte Leaflet dans modal Bootstrap
+================================================================ */
+(function () {
+'use strict';
+
+// ─────────────────────────────────────────
+//  ATTENDRE QUE LE DOM SOIT DISPONIBLE
+// ─────────────────────────────────────────
+function waitForElement(id, cb, tries) {
+    tries = tries || 0;
+    const el = document.getElementById(id);
+    if (el) { cb(); return; }
+    if (tries > 30) { console.warn('Élément #' + id + ' introuvable après 3s'); return; }
+    setTimeout(() => waitForElement(id, cb, tries + 1), 100);
+}
+
+waitForElement('depenseForm', setupForm);
+
+function setupForm() {
+
+// ── Références DOM ──────────────────────
+const titreInput      = document.getElementById('depense_titre');
+const montantInput    = document.getElementById('depense_montant');
+const categorieSelect = document.getElementById('depense_categorie');
+const submitBtn       = document.getElementById('submitBtn');
+const titreFeedback   = document.getElementById('titre_feedback');
+const montantFeedback = document.getElementById('montant_feedback');
+const categorieFeedback = document.getElementById('categorie_feedback');
+const lieuInput       = document.getElementById('depense_lieu');
+const latInput        = document.getElementById('depense_latitude');
+const lngInput        = document.getElementById('depense_longitude');
+const locateBtn       = document.getElementById('locateMeBtn');
+const suggestionsDiv  = document.getElementById('suggestions');
+const geoStatusDiv    = document.getElementById('geoStatus');
+
+// Voice
+const voicePanel        = document.getElementById('voicePanel');
+const voiceStatus       = document.getElementById('voiceStatus');
+const voiceCompatStatus = document.getElementById('voiceCompatStatus');
+const voiceDebug        = document.getElementById('voiceDebug');
+const voiceFieldBadge   = document.getElementById('voiceFieldBadge');
+const voiceCurrentField = document.getElementById('voiceCurrentField');
+const voiceStartBtn     = document.getElementById('voiceStartBtn');
+const voiceListenBtn    = document.getElementById('voiceListenBtn');
+const voiceNextBtn      = document.getElementById('voiceNextBtn');
+const voiceRepeatBtn    = document.getElementById('voiceRepeatBtn');
+
+// ── État ────────────────────────────────
+let titreOk = false, montantOk = false, categorieOk = false;
+let map = null, marker = null, mapReady = false;
+let activePoi = null, poiMarkers = [];
+let bgMarkers = []; // Pour les icones qui s'affichent automatiquement à la Google Maps
+let searchTimeout = null;
+let autoFetchTimeout = null;
+let currentCenter = { lat: 36.8065, lng: 10.1815 };
+let voiceFieldIndex = 0;
+
+// ─────────────────────────────────────────
+//  CONVERSION API & ALERTE DE SEUIL BUDGET
+// ─────────────────────────────────────────
+let rates = null;
+
+const visibleMontant = document.getElementById('visible_montant');
+const trueMontant = document.getElementById('depense_montant');
+const currencySelect = document.getElementById('currency_select');
+const currencyFeedback = document.getElementById('currency_feedback');
+const budgetAlert = document.getElementById('budget_alert');
+
+// Charger les taux (ExchangeRate-API) de manière asynchrone
+fetch('https://open.er-api.com/v6/latest/TND')
+    .then(r => r.json())
+    .then(data => { if(data && data.rates) rates = data.rates; });
+
+// Synchro lors de l'édition d'une dépense
+if (trueMontant.value) {
+    visibleMontant.value = trueMontant.value;
+}
+
+function processMontantAndDevise() {
+    let val = parseFloat(visibleMontant.value);
+    if (isNaN(val) || val <= 0) {
+        trueMontant.value = '';
+        currencyFeedback.style.display = 'none';
+        budgetAlert.style.display = 'none';
+        validateMontant(); // Validation originale
+        return;
+    }
+
+    let devise = currencySelect.value;
+    let convertedTnd = val;
+
+    if (devise !== 'TND' && rates && rates[devise]) {
+        // TND est la base. Donc 1 EUR = 1 / taux_eur (ex: 0.3)
+        convertedTnd = val / rates[devise];
+        currencyFeedback.innerHTML = `<i class="fa fa-exchange-alt me-1"></i> Conversion: ≈ <strong>${convertedTnd.toFixed(2)} DT</strong>`;
+        currencyFeedback.style.display = 'block';
+    } else {
+        currencyFeedback.style.display = 'none';
+    }
+
+    // Mettre à jour le champ caché qui part en base de données
+    trueMontant.value = convertedTnd.toFixed(3);
+    
+    // Vérifier l'alerte budget
+    checkBudgetThreshold();
+    validateMontant();
+}
+
+function checkBudgetThreshold() {
+    const catId = categorieSelect.value;
+    const mt = parseFloat(trueMontant.value);
+    
+    if (!catId || isNaN(mt)) {
+        budgetAlert.style.display = 'none';
+        return;
+    }
+
+    fetch('/budget/category-status/' + catId)
+        .then(r => r.json())
+        .then(data => {
+            if (data.error || data.budgetMax === null) {
+                budgetAlert.style.display = 'none';
+                return;
+            }
+            
+            let futurTotal = (data.total || 0) + mt;
+            if (futurTotal > data.budgetMax) {
+                budgetAlert.innerHTML = `<i class="fa fa-exclamation-triangle"></i> Dépassement Budget ! Total: ${futurTotal.toFixed(2)} DT / ${data.budgetMax} DT.`;
+                budgetAlert.style.display = 'block';
+            } else if (futurTotal > data.budgetMax * 0.8) {
+                budgetAlert.innerHTML = `<i class="fa fa-info-circle" style="color:orange;"></i> Attention, budget proche: ${futurTotal.toFixed(2)} DT / ${data.budgetMax} DT.`;
+                budgetAlert.style.display = 'block';
+            } else {
+                budgetAlert.style.display = 'none';
+            }
+        });
+}
+
+visibleMontant.addEventListener('input', processMontantAndDevise);
+currencySelect.addEventListener('change', processMontantAndDevise);
+categorieSelect.addEventListener('change', processMontantAndDevise);
+
+// ─────────────────────────────────────────
+//  VALIDATION FORMULAIRE
+// ─────────────────────────────────────────
+function setFeedback(input, el, ok, msg) {
+    input.classList.toggle('is-invalid', !ok);
+    input.classList.toggle('is-valid', ok);
+    el.innerHTML = ok
+        ? `<span class="text-success">✓ ${msg}</span>`
+        : `<span class="text-danger">⚠ ${msg}</span>`;
+    return ok;
+}
+
+function validateTitre() {
+    const v = titreInput.value.trim();
+    if (!v)           return titreOk = setFeedback(titreInput, titreFeedback, false, 'Le titre est obligatoire.');
+    if (/\d/.test(v)) return titreOk = setFeedback(titreInput, titreFeedback, false, 'Pas de chiffres dans le titre.');
+    if (v.length < 3) return titreOk = setFeedback(titreInput, titreFeedback, false, 'Minimum 3 caractères.');
+    return titreOk = setFeedback(titreInput, titreFeedback, true, 'Titre valide.');
+}
+
+function validateMontant() {
+    const v = montantInput.value.trim();
+    const n = parseFloat(v.replace(',', '.'));
+    if (!v)                              return montantOk = setFeedback(montantInput, montantFeedback, false, 'Montant obligatoire.');
+    if (!/^[0-9]+([.,][0-9]+)?$/.test(v)) return montantOk = setFeedback(montantInput, montantFeedback, false, 'Chiffres uniquement.');
+    if (isNaN(n) || n <= 0)              return montantOk = setFeedback(montantInput, montantFeedback, false, 'Doit être positif.');
+    return montantOk = setFeedback(montantInput, montantFeedback, true, 'Montant valide.');
+}
+
+function validateCategorie() {
+    if (!categorieSelect.value) {
+        categorieSelect.classList.add('is-invalid');
+        categorieSelect.classList.remove('is-valid');
+        categorieFeedback.innerHTML = '<span class="text-danger">⚠ Sélectionnez une catégorie.</span>';
+        return categorieOk = false;
+    }
+    categorieSelect.classList.remove('is-invalid');
+    categorieSelect.classList.add('is-valid');
+    categorieFeedback.innerHTML = '<span class="text-success">✓ Catégorie sélectionnée.</span>';
+    return categorieOk = true;
+}
+
+function refreshSubmit() { submitBtn.disabled = !(titreOk && montantOk && categorieOk); }
+
+titreInput.addEventListener('input',       () => { validateTitre();    refreshSubmit(); });
+montantInput.addEventListener('input',     () => { validateMontant();  refreshSubmit(); });
+categorieSelect.addEventListener('change', () => { validateCategorie(); refreshSubmit(); });
+
+validateTitre(); validateMontant(); validateCategorie(); refreshSubmit();
+
+// ─────────────────────────────────────────
+//  ASSISTANT VOCAL
+// ─────────────────────────────────────────
+const FIELDS = [
+    { id: 'depense_titre',       label: 'Titre de la dépense', type: 'text'   },
+    { id: 'visible_montant',     label: 'Montant',             type: 'number' },
+    { id: 'depense_dateDepense', label: 'Date',                type: 'date'   },
+    { id: 'depense_categorie',   label: 'Catégorie',           type: 'select' },
+    { id: 'depense_lieu',        label: 'Lieu',                type: 'text'   },
+];
+
+// Détection SpeechRecognition
+const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let rec = null;
+let voiceStarted = false;
+
+function dbg(msg) {
+    console.log('[Voice]', msg);
+    voiceDebug.style.display = 'block';
+    voiceDebug.innerHTML = '> ' + msg;
+}
+
+function setVoiceStatus(msg, color) {
+    voiceStatus.textContent = msg;
+    voiceStatus.style.color = color || '';
+}
+
+// Afficher statut compatibilité
+if (!SpeechAPI) {
+    voiceCompatStatus.style.display = 'block';
+    voiceCompatStatus.style.background = '#fff3cd';
+    voiceCompatStatus.innerHTML = '⚠️ <strong>Reconnaissance vocale non disponible.</strong> Utilisez Chrome 25+ ou Edge 79+. Opera peut nécessiter d\'activer le flag <code>chrome://flags/#enable-experimental-web-platform-features</code>';
+    voiceStartBtn.disabled = true;
+    voiceListenBtn.disabled = true;
+    voiceNextBtn.disabled = true;
+    voiceRepeatBtn.disabled = true;
+} else {
+    voiceCompatStatus.style.display = 'block';
+    voiceCompatStatus.style.background = '#d4edda';
+    voiceCompatStatus.innerHTML = '✅ Reconnaissance vocale disponible sur ce navigateur.';
+    rec = new SpeechAPI();
+    rec.lang = 'fr-FR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 3; // Plus d'alternatives pour meilleure précision
+    rec.continuous = false;
+}
+
+function speak(text, onEnd) {
+    if (!window.speechSynthesis || !text) { if (onEnd) onEnd(); return; }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR';
+    u.rate = 0.9;
+    u.volume = 1;
+    if (onEnd) u.onend = onEnd;
+    // Fallback si speechSynthesis ne démarre pas
+    setTimeout(() => { if (onEnd && u.onend) onEnd(); }, 4000);
+    window.speechSynthesis.speak(u);
+}
+
+function norm(v) {
+    return (v || '').toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^\w\s\/\-\.]/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function parseDate(text) {
+    const n = norm(text);
+    const today = new Date();
+    
+    // Raccourcis naturels
+    if (/aujourd.?hui/.test(n)) return today.toISOString().slice(0, 10);
+    if (/demain/.test(n)) { today.setDate(today.getDate() + 1); return today.toISOString().slice(0, 10); }
+    if (/hier/.test(n)) { today.setDate(today.getDate() - 1); return today.toISOString().slice(0, 10); }
+
+    // Remplacer les mois en toutes lettres par des nombres (ex: "janvier" -> "01")
+    const moisList = {'janvier':'01','fevrier':'02','mars':'03','avril':'04','mai':'05','juin':'06','juillet':'07','aout':'08','septembre':'09','octobre':'10','novembre':'11','decembre':'12'};
+    let parsedText = n;
+    Object.keys(moisList).forEach(m => {
+        parsedText = parsedText.replace(new RegExp('\\b' + m + '\\b', 'g'), moisList[m]);
+    });
+
+    // 12 04 2024  ou  12/04/2024
+    const m1 = parsedText.match(/(\d{1,2})[\/\- ]+(\d{1,2})[\/\- ]+(\d{4})/);
+    if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+    
+    // Si l'année manque, on met l'année courante (ex: "12 avril")
+    const m3 = parsedText.match(/(\d{1,2})[\/\- ]+(\d{1,2})\b/);
+    if (m3) return `${today.getFullYear()}-${m3[2].padStart(2,'0')}-${m3[1].padStart(2,'0')}`;
+
+    // Format ISO standard: 2024-04-12
+    const m2 = parsedText.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m2) return `${m2[1]}-${m2[2]}-${m2[3]}`;
+    
+    return null;
+}
+
+function describeCurrentField() {
+    const f  = FIELDS[voiceFieldIndex];
+    const el = document.getElementById(f.id);
+
+    // Mettre à jour le badge
+    voiceCurrentField.style.display = 'block';
+    voiceFieldBadge.textContent = `${voiceFieldIndex + 1}/${FIELDS.length} — ${f.label}`;
+
+    if (!el) {
+        setVoiceStatus(`⚠ Champ "${f.id}" introuvable dans le DOM.`, 'orange');
+        dbg('Element not found: ' + f.id);
+        return;
+    }
+
+    el.focus();
+    el.style.outline = '2px solid #1a73e8';
+
+    let msg = `Champ ${f.label}.`;
+
+    if (f.type === 'select') {
+        const opts = Array.from(el.options)
+            .map(o => o.textContent.trim())
+            .filter(o => o && !/selectionner|--|choisir/i.test(o));
+        if (opts.length) msg += ` Les choix disponibles sont : ${opts.join(', ')}.`;
+    } else if (el.value) {
+        msg += ` Valeur actuelle : ${el.value}.`;
+    } else {
+        msg += ' Ce champ est vide. Parlez pour le remplir.';
+    }
+
+    setVoiceStatus(`📢 ${msg}`, '#13357B');
+    dbg('Speaking: ' + msg);
+    speak(msg);
+}
+
+function applyTranscript(transcript) {
+    const f  = FIELDS[voiceFieldIndex];
+    const el = document.getElementById(f.id);
+
+    if (!el) {
+        setVoiceStatus('⚠ Champ introuvable.', 'red');
+        return;
+    }
+
+    const n = norm(transcript);
+    dbg('Applying "' + transcript + '" → type=' + f.type + ', field=' + f.id);
+
+    let applied = false;
+
+    if (f.type === 'number') {
+        // Gérer "vingt cinq virgule cinquante" etc.
+        const mNum = n.replace(',', '.').match(/\d+(?:\.\d+)?/);
+        if (mNum) {
+            el.value = mNum[0];
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            applied = true;
+        }
+
+    } else if (f.type === 'date') {
+        const d = parseDate(transcript);
+        if (d) {
+            el.value = d;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            applied = true;
+        }
+
+    } else if (f.type === 'select') {
+        // Chercher correspondance souple
+        let best = null;
+        let bestScore = 0;
+        Array.from(el.options).forEach(o => {
+            const t = norm(o.textContent);
+            if (!t || /selectionner|--|choisir/i.test(t)) return;
+            let score = 0;
+            if (t === n) score = 100;
+            else if (t.includes(n) || n.includes(t)) score = 50;
+            else {
+                // Comparaison mot par mot
+                const words = n.split(' ');
+                words.forEach(w => { if (w.length > 2 && t.includes(w)) score += 10; });
+            }
+            if (score > bestScore) { bestScore = score; best = o; }
+        });
+        if (best && bestScore > 0) {
+            el.value = best.value;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            applied = true;
+        }
+
+    } else {
+        // Texte libre
+        el.value = transcript.trim();
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        applied = true;
+    }
+
+    if (applied) {
+        el.style.outline = '2px solid #198754';
+        setVoiceStatus(`✅ "${transcript}" → ${f.label}`, 'green');
+        speak(`Enregistré : ${transcript}`);
+    } else {
+        el.style.outline = '2px solid #dc3545';
+        setVoiceStatus(`⚠ Non compris : "${transcript}". Réessayez.`, 'orange');
+        speak(`Je n'ai pas compris. Pouvez-vous répéter ?`);
+    }
+}
+
+// ── Bouton : Démarrer ──
+voiceStartBtn.addEventListener('click', () => {
+    voiceStarted = true;
+    voiceFieldIndex = 0;
+    voiceListenBtn.disabled = false;
+    voiceNextBtn.disabled = false;
+    voiceRepeatBtn.disabled = false;
+
+    // Retirer l'outline des champs précédents
+    FIELDS.forEach(f => {
+        const el = document.getElementById(f.id);
+        if (el) el.style.outline = '';
+    });
+
+    describeCurrentField();
+});
+
+// ── Bouton : Écouter ma réponse ──
+voiceListenBtn.addEventListener('click', () => {
+    if (!rec) return;
+
+    setVoiceStatus('🎤 Parlez maintenant… (en écoute)', '#dc3545');
+    voicePanel.classList.add('active-listening');
+    voiceListenBtn.disabled = true;
+    voiceListenBtn.textContent = '⏺ En écoute…';
+    dbg('Starting recognition...');
+
+    try {
+        rec.start();
+    } catch (e) {
+        dbg('Error starting: ' + e.message);
+        voicePanel.classList.remove('active-listening');
+        voiceListenBtn.disabled = false;
+        voiceListenBtn.textContent = '🎤 Écouter ma réponse';
+        setVoiceStatus('⚠ Erreur démarrage micro : ' + e.message, 'red');
+    }
+});
+
+// ── Bouton : Champ suivant ──
+voiceNextBtn.addEventListener('click', () => {
+    if (!voiceStarted) return;
+    const el = document.getElementById(FIELDS[voiceFieldIndex].id);
+    if (el) el.style.outline = '';
+    voiceFieldIndex = (voiceFieldIndex + 1) % FIELDS.length;
+    describeCurrentField();
+});
+
+// ── Bouton : Répéter ──
+voiceRepeatBtn.addEventListener('click', () => {
+    if (voiceStarted) describeCurrentField();
+});
+
+// ── Événements SpeechRecognition ──
+if (rec) {
+    rec.addEventListener('result', e => {
+        dbg('Result received, alternatives: ' + e.results[0].length);
+        const transcript = e.results[0][0].transcript;
+        dbg('Best transcript: "' + transcript + '" (conf=' + e.results[0][0].confidence.toFixed(2) + ')');
+        applyTranscript(transcript);
+    });
+
+    rec.addEventListener('end', () => {
+        dbg('Recognition ended');
+        voicePanel.classList.remove('active-listening');
+        voiceListenBtn.disabled = false;
+        voiceListenBtn.textContent = '🎤 Écouter ma réponse';
+    });
+
+    rec.addEventListener('error', e => {
+        dbg('Error: ' + e.error);
+        voicePanel.classList.remove('active-listening');
+        voiceListenBtn.disabled = false;
+        voiceListenBtn.textContent = '🎤 Écouter ma réponse';
+
+        const msgs = {
+            'not-allowed'  : '⚠ Microphone refusé. Cliquez sur l\'icône 🔒 dans la barre d\'adresse et autorisez le micro.',
+            'no-speech'    : '⚠ Aucune parole détectée. Parlez plus fort.',
+            'network'      : '⚠ Erreur réseau. La reconnaissance vocale nécessite une connexion internet.',
+            'audio-capture': '⚠ Aucun microphone détecté sur cet appareil.',
+            'service-not-allowed': '⚠ Service vocal non autorisé. Le site doit être en HTTPS ou localhost.',
+            'aborted'      : 'Écoute annulée.',
+        };
+        setVoiceStatus(msgs[e.error] || ('⚠ Erreur : ' + e.error), 'red');
+    });
+
+    rec.addEventListener('audiostart', () => dbg('Audio capture started'));
+    rec.addEventListener('speechstart', () => { dbg('Speech detected!'); setVoiceStatus('💬 Parole détectée…', '#13357B'); });
+    rec.addEventListener('nomatch',     () => { setVoiceStatus('⚠ Voix non comprise. Réessayez.', 'orange'); });
+}
+
+// ─────────────────────────────────────────
+//  CARTE LEAFLET — FIX MODAL
+// ─────────────────────────────────────────
+function refreshMap() {
+    if (!map) return;
+    map.invalidateSize({ animate: false });
+}
+
+// Forcer la taille de la map avec resize observer
+function watchMapContainer() {
+    const wrapper = document.getElementById('mapWrapper');
+    if (!wrapper || !window.ResizeObserver) return;
+    new ResizeObserver(() => {
+        if (map) refreshMap();
+    }).observe(wrapper);
+}
+
+function setLocation(lat, lng, label, zoom) {
+    lat = parseFloat(lat); lng = parseFloat(lng);
+    if (isNaN(lat) || isNaN(lng)) return;
+    latInput.value = lat;
+    lngInput.value = lng;
+    currentCenter = { lat, lng };
+
+    if (marker) marker.setLatLng([lat, lng]);
+    else        marker = L.marker([lat, lng]).addTo(map);
+
+    map.setView([lat, lng], zoom || 17);
+    if (label) lieuInput.value = label;
+    setTimeout(refreshMap, 50);
+}
+
+function reverseGeocode(lat, lng) {
+    // ETAPE 1 : Tenter Foursquare pour les commerces (Le plus puissant)
+    fetch(`https://api.foursquare.com/v3/places/search?ll=${lat},${lng}&radius=50&limit=1`, {
+        headers: { 'Authorization': 'KTEUWBOISVCCLXDBCPCB5BQRBXLJBAH1RQMDLSCIQQS15ZSI' }
+    })
+    .then(r => { if(!r.ok) throw new Error('FSQ Error'); return r.json(); })
+    .then(d => {
+        if (d.results && d.results.length > 0) {
+            const poiName = d.results[0].name;
+            lieuInput.value = poiName;
+            fetchNominatimFallback(lat, lng, poiName); // Récupérer la rue en complément
+        } else {
+            // Aucun lieu sur Foursquare, on passe au plan B local
+            runOsmReverseRadar(lat, lng);
+        }
+    })
+    .catch(() => runOsmReverseRadar(lat, lng));
+}
+
+function runOsmReverseRadar(lat, lng) {
+    // ETAPE 2 : Radar local Overpass (Si Foursquare a échoué ou rien trouvé)
+    const q = `[out:json][timeout:3];(node(around:40,${lat},${lng})["name"];way(around:40,${lat},${lng})["name"];);out center tags 1;`;
+    fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q })
+        .then(r => r.json())
+        .then(d => {
+            if (d.elements && d.elements.length > 0) {
+                const poiName = d.elements[0].tags.name;
+                lieuInput.value = poiName;
+                fetchNominatimFallback(lat, lng, poiName);
+            } else {
+                fetchNominatimFallback(lat, lng, null);
+            }
+        }).catch(() => fetchNominatimFallback(lat, lng, null));
+}
+
+function fetchNominatimFallback(lat, lng, prefixName) {
+    // zoom=18 privilégie les points d'intérêts au lieu des quartiers généraux
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}&zoom=18`)
+        .then(r => r.json())
+        .then(d => { 
+            if (d.display_name) {
+                let lieu = d.display_name;
+                // Si on a trouvé un commerce via le Radar et qu'il n'est pas dans l'adresse brute
+                if (prefixName && !lieu.includes(prefixName)) {
+                    lieuInput.value = prefixName + ', ' + (d.address?.city || d.address?.town || lieu.split(',').slice(-3).join(','));
+                } else if (!prefixName) {
+                    if (d.name && !lieu.startsWith(d.name)) lieu = d.name + ', ' + lieu;
+                    lieuInput.value = lieu; 
+                }
+            }
+        })
+        .catch(() => {});
+}
+
+function clearSuggestions() {
+    suggestionsDiv.innerHTML = '';
+    suggestionsDiv.style.display = 'none';
+}
+
+function showSuggestions(items, onClick) {
+    suggestionsDiv.innerHTML = '';
+    items.forEach(item => {
+        const d = document.createElement('div');
+        d.className = 'suggestion-item';
+        d.innerHTML = `<strong>${item.title}</strong>${item.subtitle ? `<br><small class="text-muted">${item.subtitle}</small>` : ''}`;
+        d.addEventListener('click', () => { clearSuggestions(); onClick(item); });
+        suggestionsDiv.appendChild(d);
+    });
+    suggestionsDiv.style.display = items.length ? 'block' : 'none';
+}
+
+function clearPoiMarkers() {
+    poiMarkers.forEach(m => map.removeLayer(m));
+    poiMarkers = [];
+}
+
+function photonSearch(query) {
+    // Ajout de &lat= &lon= pour prioriser les résultats autour de la position actuelle de l'utilisateur
+    const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&lat=${currentCenter.lat}&lon=${currentCenter.lng}&limit=8`;
+    return fetch(url)
+        .then(r => r.json())
+        .then(d => (d.features || []).map(f => ({
+            title: f.properties.name || f.properties.street || 'Lieu',
+            subtitle: [f.properties.street, f.properties.city, f.properties.country].filter(Boolean).join(', '),
+            lat: f.geometry.coordinates[1],
+            lng: f.geometry.coordinates[0],
+            display_name: [f.properties.name, f.properties.city, f.properties.country].filter(Boolean).join(', ')
+        })));
+}
+
+function parseCoords(v) {
+    const m1 = (v || '').match(/(-?\d+(?:[.,]\d+)?)\s*[,;]\s*(-?\d+(?:[.,]\d+)?)/);
+    if (m1) return { lat: parseFloat(m1[1].replace(',', '.')), lng: parseFloat(m1[2].replace(',', '.')) };
+    const m2 = (v || '').match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+    if (m2) return { lat: parseFloat(m2[1]), lng: parseFloat(m2[2]) };
+    return null;
+}
+
+function doSearch(q) {
+    if (!q) return;
+    geoStatusDiv.textContent = 'Recherche…';
+    geoStatusDiv.style.display = 'block';
+    const coords = parseCoords(q);
+    if (coords) {
+        setLocation(coords.lat, coords.lng, q);
+        reverseGeocode(coords.lat, coords.lng);
+        geoStatusDiv.style.display = 'none';
+        return;
+    }
+    photonSearch(q).then(res => {
+        geoStatusDiv.style.display = 'none';
+        if (!res.length) {
+            geoStatusDiv.textContent = 'Aucun résultat.';
+            geoStatusDiv.style.display = 'block';
+            return;
+        }
+        setLocation(res[0].lat, res[0].lng, res[0].display_name);
+        showSuggestions(res, item => setLocation(item.lat, item.lng, item.display_name));
+    }).catch(() => {
+        geoStatusDiv.textContent = 'Erreur réseau.';
+        geoStatusDiv.style.display = 'block';
+    });
+}
+
+// ── Chargement automatique et Puces (Filtrage) ──
+function clearBackgroundMarkers() {
+    bgMarkers.forEach(m => { if (map.hasLayer(m)) map.removeLayer(m); });
+    bgMarkers = [];
+}
+
+function applyFilter() {
+    let count = 0;
+    // Affiche ou masque les marqueurs selon la catégorie cliquée
+    bgMarkers.forEach(m => {
+        const isMatch = !activePoi || m.category === activePoi;
+        if (isMatch) {
+            if (!map.hasLayer(m)) m.addTo(map);
+            count++;
+        } else {
+            if (map.hasLayer(m)) map.removeLayer(m);
+        }
+    });
+
+    const geoStatusDiv = document.getElementById('geoStatus');
+    if (activePoi) {
+        if (count === 0) {
+            geoStatusDiv.style.display = 'block';
+            geoStatusDiv.textContent = `Aucun(e) ${activePoi} visible ici. Déclenchement d'une recherche plus large...`;
+            fetchNearbyMapIcons(true);
+        } else {
+            geoStatusDiv.style.display = 'block';
+            geoStatusDiv.textContent = `Filtre actif : ${count} lieu(x) affiché(s).`;
+        }
+    } else {
+        geoStatusDiv.style.display = 'none';
+    }
+}
+
+function fetchNearbyMapIcons(force = false) {
+    if (!map || map.getZoom() < 13) return;
+    const rayon = force ? 5000 : 3000;
+    
+    // Essayer de charger via Foursquare API en premier
+    fetch(`https://api.foursquare.com/v3/places/search?ll=${currentCenter.lat},${currentCenter.lng}&radius=${rayon}&limit=50&categories=13000,19014,19009,10000`, {
+        headers: { 'Authorization': 'KTEUWBOISVCCLXDBCPCB5BQRBXLJBAH1RQMDLSCIQQS15ZSI', 'Accept': 'application/json' }
+    })
+    .then(r => { if (!r.ok) throw new Error('FSQ Auth Fail'); return r.json(); })
+    .then(d => {
+        clearBackgroundMarkers();
+        (d.results || []).forEach(e => {
+            let cat = 'other';
+            let iconClass = 'fa-map-marker';
+            let color = '#ea4335';
+            
+            let fsqCat = e.categories[0]?.id?.toString() || '';
+            if (fsqCat.startsWith('13032') || fsqCat.startsWith('13033')) { cat = 'cafe'; iconClass = 'fa-coffee'; color = '#fbc02d'; }
+            else if (fsqCat.startsWith('13')) { cat = 'restaurant'; iconClass = 'fa-utensils'; color = '#ff9800'; }
+            else if (fsqCat.startsWith('19014') || fsqCat.startsWith('19015')) { cat = 'hotel'; iconClass = 'fa-bed'; color = '#4285f4'; }
+            else if (fsqCat.startsWith('10')) { cat = 'museum'; iconClass = 'fa-landmark'; color = '#9c27b0'; }
+            else if (fsqCat.startsWith('19009') || fsqCat.startsWith('19031')) { cat = 'airport'; iconClass = 'fa-plane'; color = '#607d8b'; }
+
+            let divIcon = L.divIcon({
+                html: `<div class="animated-pin" style="background:${color};color:#fff;width:24px;height:24px;
+                                  border-radius:50%;display:flex;align-items:center;justify-content:center;
+                                  font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5); cursor:pointer;
+                                  animation-delay: ${(Math.random() * 0.4).toFixed(2)}s;">
+                         <i class="fa ${iconClass}"></i>
+                       </div>`,
+                className: '', iconSize: [24, 24], iconAnchor: [12, 12]
+            });
+            const m = L.marker([e.geocodes?.main?.latitude || 0, e.geocodes?.main?.longitude || 0], {icon: divIcon});
+            m.category = cat;
+            m.bindTooltip(`<strong>${e.name}</strong>`, {direction:'top', offset:[0,-10], permanent: true, className: 'poi-tooltip'});
+            m.on('click', () => setLocation(m.getLatLng().lat, m.getLatLng().lng, e.name));
+            bgMarkers.push(m);
+        });
+        applyFilter();
+    })
+    .catch(() => {
+        // FALLBACK OPENSTREETMAP SI FOURSQUARE ECHOUE OU SI REDUIT AU SILENCE
+        fetchNearbyOsmIcons(rayon);
+    });
+}
+
+function fetchNearbyOsmIcons(rayon) {
+    const q = `[out:json][timeout:10];(
+      node(around:${rayon},${currentCenter.lat},${currentCenter.lng})[amenity~"^(cafe|restaurant|fast_food|bar|pub|ice_cream|food_court)$"];
+      node(around:${rayon},${currentCenter.lat},${currentCenter.lng})[tourism~"^(hotel|museum|hostel|guest_house|motel)$"];
+      node(around:${rayon},${currentCenter.lat},${currentCenter.lng})[aeroway~"^(aerodrome|terminal|gate)$"];
+      way(around:${rayon},${currentCenter.lat},${currentCenter.lng})[amenity~"^(cafe|restaurant|fast_food|bar|pub|ice_cream)$"];
+      way(around:${rayon},${currentCenter.lat},${currentCenter.lng})[tourism~"^(hotel|museum|hostel|guest_house|motel)$"];
+      way(around:${rayon},${currentCenter.lat},${currentCenter.lng})[aeroway~"^(aerodrome|terminal)$"];
+    );out center tags 50;`;
+    
+    fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q })
+        .then(r => r.json())
+        .then(d => {
+            clearBackgroundMarkers();
+            (d.elements || []).forEach(e => {
+                let name = e.tags?.name || e.tags?.brand;
+                if (!name) return;
+                
+                let cat = 'other';
+                let iconClass = 'fa-map-marker';
+                let color = '#ea4335';
+                
+                let am = e.tags.amenity || '';
+                let tm = e.tags.tourism || '';
+                let aw = e.tags.aeroway || '';
+                
+                if (am.match(/cafe|ice_cream/)) { cat = 'cafe'; iconClass = 'fa-coffee'; color = '#fbc02d'; }
+                else if (am.match(/restaurant|fast_food|bar|pub|food_court/)) { cat = 'restaurant'; iconClass = 'fa-utensils'; color = '#ff9800'; }
+                else if (tm.match(/hotel|hostel|guest_house|motel/)) { cat = 'hotel'; iconClass = 'fa-bed'; color = '#4285f4'; }
+                else if (tm.match(/museum/)) { cat = 'museum'; iconClass = 'fa-landmark'; color = '#9c27b0'; }
+                else if (aw) { cat = 'airport'; iconClass = 'fa-plane'; color = '#607d8b'; }
+
+                let divIcon = L.divIcon({
+                    html: `<div class="animated-pin" style="background:${color};color:#fff;width:24px;height:24px;
+                                      border-radius:50%;display:flex;align-items:center;justify-content:center;
+                                      font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5); cursor:pointer;
+                                      animation-delay: ${(Math.random() * 0.4).toFixed(2)}s;">
+                             <i class="fa ${iconClass}"></i>
+                           </div>`,
+                    className: '', iconSize: [24, 24], iconAnchor: [12, 12]
+                });
+                
+                const m = L.marker([e.lat ?? e.center?.lat, e.lon ?? e.center?.lon], {icon: divIcon});
+                m.category = cat;
+                m.bindTooltip(`<strong>${name}</strong>`, {direction:'top', offset:[0,-10], permanent: true, className: 'poi-tooltip'});
+                m.on('click', () => setLocation(m.getLatLng().lat, m.getLatLng().lng, name));
+                bgMarkers.push(m);
+            });
+            applyFilter();
+        }).catch(() => {});
+}
+
+// ── Chargement automatique des icônes Google Maps-style ──
+function clearBackgroundMarkers() {
+    bgMarkers.forEach(m => map.removeLayer(m));
+    bgMarkers = [];
+}
+
+function fetchNearbyMapIcons() {
+    // Ne charger que si on est bien zoomé pour ne pas surcharger l'écran et la base de données
+    if (!map || map.getZoom() < 15) return;
+    
+    // Requête Overpass pour choper les cafés, restos, hôtels, et lieux populaires dans un rayon de 800m
+    const q = `[out:json][timeout:10];(
+      node(around:800,${currentCenter.lat},${currentCenter.lng})[amenity~"^(cafe|restaurant|fast_food|bar|pub|ice_cream)$"];
+      node(around:800,${currentCenter.lat},${currentCenter.lng})[tourism~"^(hotel|museum|hostel)$"];
+      node(around:800,${currentCenter.lat},${currentCenter.lng})[shop~"^(mall|supermarket)$"];
+    );out center tags 40;`;
+    
+    fetch('https://overpass-api.de/api/interpreter', { method: 'POST', body: q })
+        .then(r => r.json())
+        .then(d => {
+            clearBackgroundMarkers();
+            (d.elements || []).forEach(e => {
+                let name = e.tags?.name || e.tags?.brand;
+                if (!name) return; // On ignore les lieux sans nom
+                
+                // Déterminer l'icône et la couleur selon la catégorie
+                let iconClass = 'fa-map-marker';
+                let color = '#ea4335'; // Rouge Google Maps
+                
+                if (e.tags?.amenity === 'cafe') { iconClass = 'fa-coffee'; color = '#fbc02d'; }
+                else if (e.tags?.amenity === 'restaurant' || e.tags?.amenity === 'fast_food') { iconClass = 'fa-utensils'; color = '#ff9800'; }
+                else if (e.tags?.tourism) { iconClass = 'fa-bed'; color = '#4285f4'; }
+                else if (e.tags?.shop) { iconClass = 'fa-shopping-bag'; color = '#34a853'; }
+
+                let divIcon = L.divIcon({
+                    html: `<div class="animated-pin" style="background:${color};color:#fff;width:24px;height:24px;
+                                      border-radius:50%;display:flex;align-items:center;justify-content:center;
+                                      font-size:12px;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.5); cursor:pointer;
+                                      animation-delay: ${(Math.random() * 0.4).toFixed(2)}s;">
+                             <i class="fa ${iconClass}"></i>
+                           </div>`,
+                    className: '',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+                
+                const m = L.marker([e.lat ?? e.center?.lat, e.lon ?? e.center?.lon], {icon: divIcon}).addTo(map);
+                m.bindTooltip(`<strong>${name}</strong>`, {direction:'top', offset:[0,-10], permanent: true, className: 'poi-tooltip'});
+                m.on('click', () => setLocation(m.getLatLng().lat, m.getLatLng().lng, name));
+                bgMarkers.push(m);
+            });
+        }).catch(() => {});
+}
+
+// ── Initialisation carte ──
+function initMap() {
+    if (mapReady) { refreshMap(); return; }
+
+    const mapEl = document.getElementById('map');
+    if (!mapEl) return;
+
+    // Ajouter ce petit style pour les popups flottantes des lieux (Tooltips transparents)
+    if (!document.getElementById('poiTooltipStyle')) {
+        const style = document.createElement('style');
+        style.id = 'poiTooltipStyle';
+        style.innerHTML = `.poi-tooltip { background: rgba(255,255,255,0.9); border: none; box-shadow: 0 1px 3px rgba(0,0,0,0.2); font-size: 11px; padding: 2px 6px; font-weight: bold; border-radius: 4px; pointer-events: none; }
+                           .poi-tooltip::before { display: none; }`;
+        document.head.appendChild(style);
+    }
+
+    // S'assurer que le conteneur a une hauteur
+    mapEl.style.height = '420px';
+
+    const lat0 = latInput.value ? parseFloat(latInput.value) : currentCenter.lat;
+    const lng0 = lngInput.value ? parseFloat(lngInput.value) : currentCenter.lng;
+    currentCenter = { lat: lat0, lng: lng0 };
+
+    map = L.map('map', {
+        center: [lat0, lng0],
+        zoom: latInput.value ? 17 : 15,
+        zoomControl: true
+    });
+
+    // ── Couches visuelles (Rendu Google Maps + OSM) ──
+    const googleMap = L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: '© Google'
+    });
+    const streetsOSM = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap',
+        maxZoom: 19
+    });
+    
+    // Vue Hybride de Google Maps (Satellite + Noms)
+    const googleHybrid = L.tileLayer('https://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains:['mt0','mt1','mt2','mt3'],
+        attribution: '© Google'
+    });
+
+    googleMap.addTo(map); // Défaut sur Google Maps pour avoir TOUTES les localisations du monde
+    L.control.layers({ 'Google Maps': googleMap, 'Hybride (Google)': googleHybrid, 'OpenStreetMap': streetsOSM }, null, { collapsed: false }).addTo(map);
+
+    // Clic sur la carte
+    map.on('click', e => {
+        setLocation(e.latlng.lat, e.latlng.lng);
+        reverseGeocode(e.latlng.lat, e.latlng.lng);
+    });
+
+    map.on('moveend', () => {
+        const c = map.getCenter();
+        currentCenter = { lat: c.lat, lng: c.lng };
+        
+        // Recharge les icones automatiques (debounced 1 seconde)
+        clearTimeout(autoFetchTimeout);
+        autoFetchTimeout = setTimeout(fetchNearbyMapIcons, 1000);
+    });
+
+    // Marqueur initial
+    if (latInput.value && lngInput.value) {
+        setLocation(lat0, lng0, lieuInput.value || null);
+        fetchNearbyMapIcons(); // Charger la vue
+    } else {
+        // Essayer géolocalisation serveur
+        fetch('/depense/api/localisation', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+                if (d && d.latitude && d.longitude) {
+                    setLocation(d.latitude, d.longitude, [d.city, d.country].filter(Boolean).join(', '));
+                    fetchNearbyMapIcons();
+                }
+            })
+            .catch(() => { fetchNearbyMapIcons(); });
+    }
+
+    mapReady = true;
+    watchMapContainer();
+
+    // CORRECTION CRITIQUE : forcer le rendu après que la modal soit visible
+    // La modal Bootstrap a une animation de 300ms — on attend qu'elle finisse
+    [100, 300, 600, 1000, 2000].forEach(delay => setTimeout(refreshMap, delay));
+}
+
+// ── Événements carte ──
+lieuInput.addEventListener('input', () => {
+    clearTimeout(searchTimeout);
+    const q = lieuInput.value.trim();
+    if (q.length < 2) { clearSuggestions(); return; }
+    searchTimeout = setTimeout(() => doSearch(q), 350);
+});
+
+lieuInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); doSearch(lieuInput.value.trim()); }
+});
+
+document.addEventListener('click', e => {
+    if (!suggestionsDiv.contains(e.target) && e.target !== lieuInput) clearSuggestions();
+});
+
+locateBtn.addEventListener('click', () => {
+    if (!navigator.geolocation) {
+        geoStatusDiv.textContent = 'Géolocalisation non supportée.';
+        geoStatusDiv.style.display = 'block';
+        return;
+    }
+    geoStatusDiv.textContent = 'Localisation en cours…';
+    geoStatusDiv.style.display = 'block';
+    locateBtn.classList.add('locating'); // Animation pulse
+    navigator.geolocation.getCurrentPosition(
+        p => {
+            geoStatusDiv.style.display = 'none';
+            locateBtn.classList.remove('locating');
+            setLocation(p.coords.latitude, p.coords.longitude);
+            reverseGeocode(p.coords.latitude, p.coords.longitude);
+            clearTimeout(autoFetchTimeout);
+            fetchNearbyMapIcons();
+        },
+        err => {
+            geoStatusDiv.textContent = 'Position indisponible : ' + (err.message || 'erreur');
+            geoStatusDiv.style.display = 'block';
+            locateBtn.classList.remove('locating');
+        },
+        { enableHighAccuracy: true, timeout: 10000 }
+    );
+});
+
+document.querySelectorAll('.poi-chip').forEach(btn => {
+    btn.addEventListener('click', () => {
+        const v = btn.dataset.poi;
+        if (activePoi === v) { // On désélectionne
+            activePoi = null;
+            btn.classList.remove('active');
+        } else { // On sélectionne
+            document.querySelectorAll('.poi-chip').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activePoi = v;
+        }
+        
+        // On applique le filtre sur les épingles existantes
+        applyFilter();
+    });
+});
+
+// ── Soumission AJAX ──
+document.getElementById('depenseForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const isEdit = this.action.includes('/edit');
+    const labelBtn = isEdit ? 'Enregistrer les modifications' : 'Ajouter la d\u00e9pense';
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<i class="fa fa-spinner fa-spin me-2"></i>Envoi\u2026';
+    fetch(this.action, {
+        method: 'POST',
+        body: new FormData(this),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(d => {
+        if (d.success) {
+            if (isEdit) {
+                // Fermer la modal et recharger la liste
+                const modal = document.getElementById('depenseModal');
+                if (modal && typeof bootstrap !== 'undefined') {
+                    bootstrap.Modal.getInstance(modal)?.hide();
+                }
+            }
+            location.reload();
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = `<i class="fa fa-save me-2"></i>${labelBtn}`;
+        }
+    })
+    .catch(() => {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<i class="fa fa-save me-2"></i>${labelBtn}`;
+    });
+});
+
+// ── Correction map dans modal Bootstrap ──
+// La modal utilise show.bs.modal et shown.bs.modal
+const depenseModal = document.getElementById('depenseModal');
+if (depenseModal) {
+    depenseModal.addEventListener('shown.bs.modal', () => {
+        setTimeout(initMap, 50);
+    });
+    // Si la modal est déjà ouverte (rechargement AJAX du contenu)
+    if (depenseModal.classList.contains('show')) {
+        setTimeout(initMap, 100);
+    }
+} else {
+    // Pas de modal = chargement direct de la page
+    initMap();
+}
+
+// Initialiser si la map est visible immédiatement
+setTimeout(() => {
+    const mapEl = document.getElementById('map');
+    if (mapEl && mapEl.offsetWidth > 0) initMap();
+}, 200);
+
+} // fin setupForm
+})();
+</script>

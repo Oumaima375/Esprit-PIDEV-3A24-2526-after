@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Rapport des dépenses - After Travel</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; font-size: 13px; color: #333; padding: 30px; }
+        .header { background: #13357B; color: white; padding: 20px 30px; margin-bottom: 25px; border-radius: 8px; }
+        .header h1 { font-size: 22px; margin-bottom: 5px; }
+        .header p { opacity: 0.85; font-size: 13px; }
+        .stats { display: flex; gap: 15px; margin-bottom: 25px; }
+        .stat { flex: 1; background: #f0f4ff; border-left: 4px solid #13357B; padding: 15px; border-radius: 6px; }
+        .stat .val { font-size: 22px; font-weight: bold; color: #13357B; }
+        .stat .lbl { font-size: 11px; color: #666; margin-top: 3px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 25px; }
+        th { background: #13357B; color: white; padding: 10px 12px; text-align: left; font-size: 12px; }
+        td { padding: 9px 12px; border-bottom: 1px solid #eee; font-size: 12px; }
+        tr:nth-child(even) { background: #f9f9f9; }
+        .total-row { background: #e8eef8 !important; font-weight: bold; }
+        .text-right { text-align: right; }
+        .text-center { text-align: center; }
+        .chart-section { text-align: center; margin-top: 20px; }
+        .chart-section h3 { color: #13357B; margin-bottom: 15px; font-size: 15px; }
+        .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 15px; }
+        .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+        .legend-color { width: 14px; height: 14px; border-radius: 3px; flex-shrink: 0; }
+        .footer { text-align: center; color: #999; font-size: 10px; margin-top: 30px; border-top: 1px solid #eee; padding-top: 10px; }
+        .print-btn { display: block; margin: 0 auto 20px; padding: 10px 30px; background: #13357B; color: white; border: none; border-radius: 25px; cursor: pointer; font-size: 14px; }
+        @media print { .print-btn { display: none; } body { padding: 10px; } }
+    </style>
+</head>
+<body>
+
+    <button class="print-btn" onclick="window.print()">🖨️ Imprimer / Enregistrer en PDF</button>
+
+    <div class="header">
+        <h1>✈ AFTER TRAVEL — Rapport des Dépenses</h1>
+        <p>Période : {{ periodeTexte }} &nbsp;|&nbsp; Généré le {{ dateGeneration }}</p>
+    </div>
+
+    <div class="stats">
+        <div class="stat">
+            <div class="val">{{ totalGeneral|number_format(2, ',', ' ') }} DT</div>
+            <div class="lbl">Total dépenses</div>
+        </div>
+        <div class="stat">
+            <div class="val">{{ totalNb }}</div>
+            <div class="lbl">Nombre de dépenses</div>
+        </div>
+        <div class="stat">
+            <div class="val">{{ totalNb > 0 ? (totalGeneral / totalNb)|number_format(2, ',', ' ') : '0,00' }} DT</div>
+            <div class="lbl">Dépense moyenne</div>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Catégorie</th>
+                <th class="text-right">Montant (DT)</th>
+                <th class="text-center">Nb dépenses</th>
+                <th class="text-center">Pourcentage</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cat, data in donneesCategories %}
+            <tr>
+                <td>{{ cat }}</td>
+                <td class="text-right">{{ data[0]|number_format(2, ',', ' ') }}</td>
+                <td class="text-center">{{ data[1] }}</td>
+                <td class="text-center">{{ totalGeneral > 0 ? (data[0] / totalGeneral * 100)|number_format(1) : 0 }}%</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td>TOTAL GÉNÉRAL</td>
+                <td class="text-right">{{ totalGeneral|number_format(2, ',', ' ') }}</td>
+                <td class="text-center">{{ totalNb }}</td>
+                <td class="text-center">100%</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    {% if totalGeneral > 0 and pieData is not empty %}
+    <div class="chart-section">
+        <h3>Répartition graphique</h3>
+        <svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+            {% if pieData|length == 1 %}
+                <circle cx="150" cy="150" r="100" fill="{{ pieData[0].color }}" />
+            {% else %}
+                {% for segment in pieData %}
+                    <path d="M 150,150 L {{ segment.x1 }},{{ segment.y1 }} A 100,100 0 {{ segment.largeArc }},1 {{ segment.x2 }},{{ segment.y2 }} Z"
+                          fill="{{ segment.color }}" stroke="white" stroke-width="2"/>
+                {% endfor %}
+            {% endif %}
+            <circle cx="150" cy="150" r="45" fill="white"/>
+            <text x="150" y="147" text-anchor="middle" font-size="11" fill="#13357B" font-weight="bold">Total</text>
+            <text x="150" y="163" text-anchor="middle" font-size="10" fill="#333">{{ totalGeneral|number_format(0, ',', ' ') }} DT</text>
+        </svg>
+
+        <div class="legend">
+            {% for segment in pieData %}
+            <div class="legend-item">
+                <div class="legend-color" style="background:{{ segment.color }};"></div>
+                <span>{{ segment.category }} — {{ segment.percentage|number_format(1) }}%</span>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="footer">
+        After Travel &nbsp;|&nbsp; Rapport généré le {{ dateGeneration }}
+    </div>
+
+</body>
+</html>

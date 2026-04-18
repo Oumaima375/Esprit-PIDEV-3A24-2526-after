@@ -1,5 +1,6 @@
 # This file is the entry point to configure your own services.
 # Files in the packages/ subdirectory configure your dependencies.
+
 parameters:
     photos_directory: '%kernel.project_dir%/public/uploads/photos'
     uploads_directory: '%kernel.project_dir%/public/uploads'
@@ -37,7 +38,11 @@ services:
         arguments:
             $apiKey:    '%env(MAILJET_API_KEY)%'
             $apiSecret: '%env(MAILJET_API_SECRET)%'
+
     App\Service\ChatbotService:
         arguments:
             $apiKey: '%env(GROQ_API_KEY)%'
-            
+
+    App\Service\BudgetService:
+        arguments:
+            $projectDir: '%kernel.project_dir%'

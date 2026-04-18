@@ -1,0 +1,280 @@
+{% extends 'base.html.twig' %}
+{% block title %}Modifier la dépense — After Travel{% endblock %}
+
+{% block hero %}
+<div class="bg-breadcrumb">
+    <div class="container text-center py-5">
+        <h3 class="text-white display-3 mb-4 fw-bold">Modifier la Dépense</h3>
+        <ol class="breadcrumb justify-content-center mb-0">
+            <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('depense_index') }}">Dépenses</a></li>
+            <li class="breadcrumb-item active text-white">Modifier</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="bg-white rounded shadow-sm overflow-hidden">
+                    <div class="p-4 text-white" style="background-color:#13357B">
+                        <h4 class="mb-0"><i class="fa fa-edit me-2"></i>Modifier la dépense</h4>
+                    </div>
+                    <div class="p-4">
+
+                        {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'id': 'depenseEditForm'}}) }}
+                        <div class="row g-3">
+
+                            {# ── Assistant vocal ── #}
+                            <div class="col-md-12">
+                                <div class="voice-panel" id="voicePanelEdit">
+                                    <div class="d-flex flex-wrap gap-2 align-items-center mb-2">
+                                        <button type="button" id="voiceStartBtnEdit" class="btn btn-outline-primary btn-sm">
+                                            <i class="fa fa-microphone me-1"></i>Démarrer l'assistant
+                                        </button>
+                                        <button type="button" id="voiceListenBtnEdit" class="btn btn-outline-secondary btn-sm" disabled>
+                                            Écouter ma réponse
+                                        </button>
+                                        <button type="button" id="voiceNextBtnEdit" class="btn btn-outline-dark btn-sm" disabled>
+                                            Champ suivant →
+                                        </button>
+                                        <button type="button" id="voiceStopBtnEdit" class="btn btn-outline-danger btn-sm" style="display:none">
+                                            <i class="fa fa-stop me-1"></i>Arrêter
+                                        </button>
+                                    </div>
+                                    <div id="voiceStatusEdit" class="small text-muted">
+                                        Cliquez sur <strong>Démarrer l'assistant</strong> pour commencer.
+                                    </div>
+                                    <div id="voiceBrowserWarningEdit" class="small text-warning mt-1" style="display:none">
+                                        ⚠️ Reconnaissance vocale non disponible. Utilisez Chrome ou Edge.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12">
+                                {{ form_row(form.titre) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.montant) }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form_row(form.dateDepense) }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form_row(form.categorie) }}
+                            </div>
+                            <div class="col-md-12">
+                                {{ form_row(form.lieu, {'attr': {'placeholder': 'Adresse ou lieu de la dépense'}}) }}
+                                {{ form_row(form.latitude) }}
+                                {{ form_row(form.longitude) }}
+                            </div>
+                            <div class="col-12 d-flex gap-2">
+                                <button type="submit" class="btn btn-primary rounded-pill px-4">
+                                    <i class="fa fa-save me-2"></i>Enregistrer
+                                </button>
+                                <a href="{{ path('depense_index') }}" class="btn btn-outline-secondary rounded-pill px-4">
+                                    Annuler
+                                </a>
+                            </div>
+                        </div>
+                        {{ form_end(form) }}
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.voice-panel { background:#f8fbff; border:1px solid #d7e6ff; border-radius:16px; padding:12px 14px; }
+.voice-panel.listening { background:#fff8f8; border-color:#ffcccc; animation:pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.7} }
+</style>
+{% endblock %}
+
+{% block javascripts %}
+{{ parent() }}
+<script>
+(function () {
+'use strict';
+
+// Champs vocaux — IDs par défaut générés par Symfony
+const VOICE_FIELDS = [
+    { id: 'depense_titre',       label: 'Titre',     type: 'text'   },
+    { id: 'depense_montant',     label: 'Montant',   type: 'number' },
+    { id: 'depense_dateDepense', label: 'Date',      type: 'date'   },
+    { id: 'depense_categorie',   label: 'Catégorie', type: 'select' },
+    { id: 'depense_lieu',        label: 'Lieu',      type: 'text'   },
+];
+
+// ── Éléments ──
+const panel      = document.getElementById('voicePanelEdit');
+const statusEl   = document.getElementById('voiceStatusEdit');
+const startBtn   = document.getElementById('voiceStartBtnEdit');
+const listenBtn  = document.getElementById('voiceListenBtnEdit');
+const nextBtn    = document.getElementById('voiceNextBtnEdit');
+const stopBtn    = document.getElementById('voiceStopBtnEdit');
+const warnEl     = document.getElementById('voiceBrowserWarningEdit');
+
+if (!startBtn) return;
+
+let fieldIndex  = 0;
+let isListening = false;
+
+// ── SpeechRecognition ──
+const API = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+let rec = null;
+
+if (API) {
+    rec = new API();
+    rec.lang = 'fr-FR';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+    rec.continuous = false;
+} else {
+    warnEl.style.display = 'block';
+    startBtn.disabled = true;
+    listenBtn.disabled = true;
+    nextBtn.disabled = true;
+}
+
+// ── Helpers ──
+function setStatus(msg) { statusEl.textContent = msg; }
+
+function speak(text) {
+    if (!('speechSynthesis' in window) || !text) return;
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = 'fr-FR'; u.rate = 0.95;
+    window.speechSynthesis.speak(u);
+}
+
+function normalize(v) {
+    return (v||'').toLowerCase().normalize('NFD')
+        .replace(/[\u0300-\u036f]/g,'').replace(/[^\w\s/\-.]/g,' ').replace(/\s+/g,' ').trim();
+}
+
+function parseDate(text) {
+    const n = normalize(text);
+    if (/aujourdhui|aujourd hui/.test(n)) return new Date().toISOString().slice(0,10);
+    const m1 = n.match(/(\d{1,2})[\/\- ](\d{1,2})[\/\- ](\d{4})/);
+    if (m1) return `${m1[3]}-${m1[2].padStart(2,'0')}-${m1[1].padStart(2,'0')}`;
+    const m2 = n.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m2) return `${m2[1]}-${m2[2]}-${m2[3]}`;
+    return null;
+}
+
+// ── Décrire le champ courant ──
+function describeField() {
+    const f  = VOICE_FIELDS[fieldIndex];
+    const el = document.getElementById(f.id);
+    if (!el) { setStatus(`Champ ${f.label} introuvable.`); return; }
+
+    let msg = `Champ ${f.label}.`;
+    if (f.type === 'select') {
+        const opts = Array.from(el.options)
+            .map(o => o.textContent.trim())
+            .filter(o => o && !/selectionner|--/i.test(o));
+        if (opts.length) msg += ` Choix : ${opts.join(', ')}.`;
+    } else if (el.value) {
+        msg += ` Valeur actuelle : ${el.value}.`;
+    }
+    setStatus(msg);
+    speak(msg);
+    el.focus();
+}
+
+// ── Appliquer la valeur vocale ──
+function applyVoice(transcript) {
+    const f  = VOICE_FIELDS[fieldIndex];
+    const el = document.getElementById(f.id);
+    if (!el) return;
+    const n = normalize(transcript);
+
+    if (f.type === 'number') {
+        // Utiliser le transcript brut pour préserver les décimales
+        const rawNum = transcript.replace(',', '.').replace(/[^\d.\-]/g, ' ').trim();
+        const m = rawNum.match(/-?\d+(?:\.\d+)?/) || n.replace(',','.').match(/-?\d+(?:\.\d+)?/);
+        if (m) { el.value = m[0]; el.dispatchEvent(new Event('input', {bubbles:true})); }
+    } else if (f.type === 'date') {
+        const d = parseDate(transcript);
+        if (d) { el.value = d; el.dispatchEvent(new Event('input', {bubbles:true})); }
+    } else if (f.type === 'select') {
+        const found = Array.from(el.options).find(o => {
+            const t = normalize(o.textContent);
+            return t === n || t.includes(n) || n.includes(t);
+        });
+        if (found) { el.value = found.value; el.dispatchEvent(new Event('change', {bubbles:true})); }
+    } else {
+        el.value = transcript.trim();
+        el.dispatchEvent(new Event('input', {bubbles:true}));
+    }
+
+    setStatus(`✓ "${transcript}" enregistré pour ${f.label}.`);
+    speak(`Enregistré : ${transcript}`);
+}
+
+// ── UI micro actif/inactif ──
+function setListeningUI(active) {
+    isListening = active;
+    panel.classList.toggle('listening', active);
+    listenBtn.textContent = active ? '🎤 En écoute…' : 'Écouter ma réponse';
+    stopBtn.style.display = active ? 'inline-flex' : 'none';
+}
+
+// ── Boutons ──
+startBtn.addEventListener('click', () => {
+    fieldIndex = 0;
+    listenBtn.disabled = false;
+    nextBtn.disabled = false;
+    describeField();
+});
+
+listenBtn.addEventListener('click', () => {
+    if (!rec || isListening) return;
+    setListeningUI(true);
+    setStatus('🎤 Parlez maintenant…');
+    try { rec.start(); }
+    catch(e) { setListeningUI(false); setStatus('⚠ Micro déjà actif, attendez.'); }
+});
+
+nextBtn.addEventListener('click', () => {
+    fieldIndex = (fieldIndex + 1) % VOICE_FIELDS.length;
+    describeField();
+});
+
+stopBtn.addEventListener('click', () => {
+    if (rec && isListening) rec.abort();
+    setListeningUI(false);
+    setStatus('Écoute arrêtée.');
+});
+
+// ── Événements recognition ──
+if (rec) {
+    rec.addEventListener('result', e => {
+        applyVoice(e.results[0][0].transcript);
+    });
+
+    rec.addEventListener('end', () => {
+        setListeningUI(false);
+    });
+
+    rec.addEventListener('error', e => {
+        setListeningUI(false);
+        const msgs = {
+            'not-allowed'  : '⚠ Microphone refusé. Autorisez-le dans le navigateur.',
+            'no-speech'    : '⚠ Aucune parole détectée. Réessayez.',
+            'network'      : '⚠ Erreur réseau.',
+            'audio-capture': '⚠ Aucun microphone détecté.',
+        };
+        setStatus(msgs[e.error] || `⚠ Erreur : ${e.error}`);
+    });
+}
+
+})();
+</script>
+{% endblock %}
