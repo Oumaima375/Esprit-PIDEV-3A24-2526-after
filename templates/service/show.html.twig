@@ -1,0 +1,96 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Service — {{ service.titre }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid page-header py-5 mb-5">
+    <h1 class="text-white display-3 mb-0">{{ service.titre }}</h1>
+</div>
+
+<div class="container mb-5">
+    <div class="row g-4">
+
+        {# Service details card #}
+        <div class="col-lg-5">
+            <div class="card shadow h-100">
+                <div class="card-header text-white" style="background-color: #1a3a6e;">
+                    <h5 class="mb-0"><i class="fa fa-cogs me-2"></i>Détails du service</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4 text-muted">ID</dt>
+                        <dd class="col-sm-8">{{ service.id }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Titre</dt>
+                        <dd class="col-sm-8"><strong>{{ service.titre }}</strong></dd>
+
+                        <dt class="col-sm-4 text-muted">Description</dt>
+                        <dd class="col-sm-8">{{ service.description }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Nb. offres</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-info fs-6">{{ service.offres|length }}</span>
+                        </dd>
+                    </dl>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2">
+                    <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-warning">
+                        <i class="fa fa-edit me-1"></i>Modifier
+                    </a>
+                    <a href="{{ path('app_service_index') }}" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left me-1"></i>Retour
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# Linked offers card #}
+        <div class="col-lg-7">
+            <div class="card shadow h-100">
+                <div class="card-header text-white d-flex justify-content-between align-items-center"
+                     style="background-color: #1a3a6e;">
+                    <h5 class="mb-0"><i class="fa fa-tags me-2"></i>Offres liées</h5>
+                    <a href="{{ path('app_offre_new') }}" class="btn btn-sm btn-light">
+                        <i class="fa fa-plus me-1"></i>Ajouter une offre
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    {% if service.offres|length > 0 %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Titre</th>
+                                    <th>Prix</th>
+                                    <th>Durée</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            {% for offre in service.offres %}
+                                <tr>
+                                    <td><strong>{{ offre.titre }}</strong></td>
+                                    <td><span class="badge bg-success">{{ offre.prix }} €</span></td>
+                                    <td>{{ offre.duree }} jours</td>
+                                    <td>
+                                        <a href="{{ path('app_offre_show', {'id': offre.id}) }}"
+                                           class="btn btn-sm btn-outline-primary">Voir</a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5 text-muted">
+                        <i class="fa fa-tags fa-2x mb-2 d-block"></i>
+                        Aucune offre liée à ce service.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

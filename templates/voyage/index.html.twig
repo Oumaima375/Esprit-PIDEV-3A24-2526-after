@@ -4,177 +4,731 @@
 
 {% block body %}
 
-<!-- Header -->
+<!-- ═══════════════════════════════════════════════════════════
+     HERO HEADER
+════════════════════════════════════════════════════════════ -->
+
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
         <div class="text-center">
-            <h1 class="text-white display-3 mb-3">Nos Voyages</h1>
+            <h1 class="text-white display-3 mb-3 fw-bold">
+                <i class="fa fa-plane-departure me-2"></i>Nos Voyages
+            </h1>
             <p class="text-white fs-5">Découvrez toutes nos destinations et trouvez le voyage parfait</p>
         </div>
     </div>
 </div>
-
-<!-- Filtres -->
-<div class="container mb-5">
-    <form method="GET" action="{{ path('app_voyage') }}">
-        <div class="row g-3 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label fw-bold">Recherche</label>
-                <input type="text" name="search" class="form-control rounded-pill" placeholder="Titre du voyage..." value="{{ app.request.query.get('search') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Prix min (TND)</label>
-                <input type="number" name="prix_min" class="form-control rounded-pill" placeholder="0" value="{{ app.request.query.get('prix_min') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Prix max (TND)</label>
-                <input type="number" name="prix_max" class="form-control rounded-pill" placeholder="9999" value="{{ app.request.query.get('prix_max') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Date début</label>
-                <input type="date" name="date_debut" class="form-control rounded-pill" value="{{ app.request.query.get('date_debut') }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label fw-bold">Places min</label>
-                <input type="number" name="places_min" class="form-control rounded-pill" placeholder="0" value="{{ app.request.query.get('places_min') }}">
-            </div>
-            <div class="col-md-1">
-                <button type="submit" class="btn btn-primary rounded-pill w-100">
-                    <i class="fa fa-search"></i>
-                </button>
+<!-- ═══════════════════════════════════════════════════════════
+     STATS BANNER
+════════════════════════════════════════════════════════════ -->
+<div class="container mb-4">
+    <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-primary" id="statTotal">{{ voyages.getTotalItemCount() }}</div>
+                <div class="text-muted small">Voyages disponibles</div>
             </div>
         </div>
-    </form>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-success" id="statPage">{{ voyages|length }}</div>
+                <div class="text-muted small">Sur cette page</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-warning" id="statFav">{{ app.session.get('favoris', [])|length }}</div>
+                <div class="text-muted small">Favoris sauvegardés</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-danger" id="convRate">⟳</div>
+                <div class="text-muted small">EUR/TND (live)</div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Cards Voyages -->
+<!-- ═══════════════════════════════════════════════════════════
+     FILTERS + SORT
+════════════════════════════════════════════════════════════ -->
+<div class="container mb-5">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+            <form method="GET" action="{{ path('app_voyage') }}" id="filterForm">
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label fw-bold small">
+                            <i class="fa fa-search text-primary me-1"></i>Recherche
+                        </label>
+                        <input type="text" name="search" class="form-control rounded-pill"
+                               placeholder="Titre, destination…"
+                               value="{{ app.request.query.get('search') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Prix min (TND)</label>
+                        <input type="number" name="prix_min" class="form-control rounded-pill"
+                               placeholder="0" value="{{ app.request.query.get('prix_min') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Prix max (TND)</label>
+                        <input type="number" name="prix_max" class="form-control rounded-pill"
+                               placeholder="9999" value="{{ app.request.query.get('prix_max') }}">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label fw-bold small">Date début</label>
+                        <input type="date" name="date_debut" class="form-control rounded-pill"
+                               value="{{ app.request.query.get('date_debut') }}">
+                    </div>
+                    <div class="col-md-1">
+                        <label class="form-label fw-bold small">Places min</label>
+                        <input type="number" name="places_min" class="form-control rounded-pill"
+                               placeholder="0" value="{{ app.request.query.get('places_min') }}">
+                    </div>
+                    <div class="col-md-2 d-flex gap-2">
+                        <button type="submit" class="btn btn-primary rounded-pill flex-fill">
+                            <i class="fa fa-search"></i>
+                        </button>
+                        <a href="{{ path('app_voyage') }}" class="btn btn-outline-secondary rounded-pill">
+                            <i class="fa fa-times"></i>
+                        </a>
+                    </div>
+                </div>
+                <!-- Sort row -->
+                <div class="row mt-3">
+                    <div class="col-auto ms-auto">
+                        <a href="{{ path('app_voyage_recommandations_ia') }}"
+                           class="btn btn-sm btn-warning rounded-pill">
+                            <i class="fa fa-robot me-1"></i>Recommandations IA
+                        </a>
+                        <a href="{{ path('app_voyage_favoris') }}"
+                           class="btn btn-sm btn-outline-danger rounded-pill ms-2">
+                            <i class="fa fa-heart me-1"></i>Mes Favoris
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FLASH MESSAGES
+════════════════════════════════════════════════════════════ -->
+{% for msg in app.flashes('success') %}
+    <div class="container mb-3">
+        <div class="alert alert-success alert-dismissible fade show rounded-3" role="alert">
+            <i class="fa fa-check-circle me-2"></i>{{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+{% endfor %}
+{% for msg in app.flashes('error') %}
+    <div class="container mb-3">
+        <div class="alert alert-danger alert-dismissible fade show rounded-3" role="alert">
+            <i class="fa fa-exclamation-circle me-2"></i>{{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+{% endfor %}
+
+<!-- ═══════════════════════════════════════════════════════════
+     VOYAGE CARDS
+════════════════════════════════════════════════════════════ -->
 <div class="container mb-5">
     {% set favoris = app.session.get('favoris', []) %}
-    <div class="row g-4">
+    <div class="row g-4" id="voyageGrid">
         {% for voyage in voyages %}
         <div class="col-lg-4 col-md-6">
-            <div class="blog-item h-100">
-                <div class="blog-img">
-                    <div class="blog-img-inner">
-                        <img class="img-fluid w-100 rounded-top" 
-                             style="height: 220px; object-fit: cover;" 
-                             src="{{ voyage.image starts with 'http' ? voyage.image : asset('img/blog-' ~ (loop.index % 3 == 0 ? 3 : loop.index % 3) ~ '.jpg') }}" 
-                             alt="{{ voyage.titre }}">
-                    </div>
-                    <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
-                        <small class="flex-fill text-center border-end py-2">
-                            <i class="fa fa-calendar-alt text-primary me-1"></i>
-                            {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }}
-                        </small>
-                        <small class="flex-fill text-center border-end py-2">
- <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
- <br>
- <span class="text-muted" style="font-size:10px;">
- ~ {{ (voyage.prix * 0.29)|number_format(0) }} EUR |
- {{ (voyage.prix * 0.32)|number_format(0) }} USD
- </span>
-</small>
-                        <small class="flex-fill text-center py-2">
-                            <i class="fa fa-users text-primary me-1"></i>{{ voyage.nbPlaces }} places
-                        </small>
-                    </div>
-                </div>
-                <div class="blog-content border border-top-0 rounded-bottom p-4">
-                    <h4 class="mb-2">{{ voyage.titre }}</h4>
-                    <p class="text-muted mb-2" id="desc-{{ loop.index }}">
- {{ voyage.description|slice(0,100) }}...
-</p>
-<button class="btn btn-outline-secondary btn-sm rounded-pill mb-2"
- onclick="translateDesc({{ loop.index }}, '{{ voyage.description|slice(0,100)|e('js') }}')">
- <i class="fa fa-language me-1"></i>FR - EN
-</button>
+            <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden voyage-card"
+                 data-price="{{ voyage.prix }}"
+                 data-title="{{ voyage.titre|lower }}">
 
-                    <div class="d-flex gap-2 flex-wrap align-items-center">
-                        <span class="badge bg-primary rounded-pill px-3 py-2">
-                            {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }} → {{ voyage.dateFin ? voyage.dateFin|date('d/m/Y') : 'N/A' }}
+                {# ── Image ── #}
+                <div class="position-relative overflow-hidden" style="height:220px">
+                    <img class="w-100 h-100"
+                         style="object-fit:cover;transition:transform .4s"
+                         src="{{ voyage.image starts with 'http' ? voyage.image : asset('img/blog-' ~ (loop.index % 3 == 0 ? 3 : loop.index % 3) ~ '.jpg') }}"
+                         alt="{{ voyage.titre }}"
+                         onerror="this.src='https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=600'">
+
+                    {% if voyage.idDestination %}
+                    <span class="position-absolute top-0 start-0 m-2 badge bg-dark bg-opacity-75 rounded-pill">
+                        <i class="fa fa-map-marker-alt me-1"></i>
+                        {{ voyage.idDestination.pays }}
+                    </span>
+                    {% endif %}
+
+                    {% if voyage.dateDebut and voyage.dateFin %}
+                    {% set days = (voyage.dateFin.timestamp - voyage.dateDebut.timestamp) // 86400 %}
+                    <span class="position-absolute top-0 end-0 m-2 badge bg-primary rounded-pill">
+                        {{ days }}j
+                    </span>
+                    {% endif %}
+                </div>
+
+                {# ── Info bar ── #}
+                <div class="d-flex border-bottom text-center small bg-light">
+                    <div class="flex-fill py-2 border-end">
+                        <i class="fa fa-calendar-alt text-primary me-1"></i>
+                        {{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }}
+                    </div>
+                    <div class="flex-fill py-2 border-end">
+                        <i class="fa fa-tag text-success me-1"></i>
+                        <strong class="text-success">{{ voyage.prix }} TND</strong>
+                        <br>
+                        <span class="text-muted" style="font-size:10px">
+                            ≈ <span class="eur-{{ loop.index }}">…</span> EUR
                         </span>
-                        
-                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}" 
-                           class="btn rounded-pill py-1 px-3 ms-auto {{ voyage.id in favoris ? 'btn-danger' : 'btn-outline-danger' }}">
-                            <i class="fa fa-heart me-1"></i>
-                            {{ voyage.id in favoris ? 'Favori ❤' : 'Ajouter ♡' }}
-                        </a>
-                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id}) }}"
- class="btn btn-success rounded-pill py-1 px-3" target="_blank">
- <i class="fa fa-file-pdf me-1"></i>PDF
-</a>
-                        <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
-   class="btn btn-outline-secondary rounded-pill py-1 px-3">
-    <i class="fa fa-eye"></i>
-</a>
-                        
-
+                    </div>
+                    <div class="flex-fill py-2">
+                        <i class="fa fa-users text-primary me-1"></i>
+                        {{ voyage.nbPlaces }} places
                     </div>
                 </div>
-            </div>
+
+                {# ── Body ── #}
+                <div class="card-body p-4">
+                    <h5 class="card-title fw-bold mb-2">{{ voyage.titre }}</h5>
+
+                    <p class="card-text text-muted small mb-2" id="desc-{{ loop.index }}">
+                        {{ voyage.description|slice(0,110) }}…
+                    </p>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill mb-3"
+                            onclick="translateDesc({{ loop.index }}, '{{ voyage.description|slice(0,110)|e('js') }}')">
+                        <i class="fa fa-language me-1"></i>FR → EN
+                    </button>
+
+                    <div class="mb-3">
+                        {% if voyage.prix < 500 %}
+                            <span class="badge bg-success rounded-pill me-1">Budget</span>
+                        {% elseif voyage.prix < 1500 %}
+                            <span class="badge bg-warning text-dark rounded-pill me-1">Moyen gamme</span>
+                        {% else %}
+                            <span class="badge bg-danger rounded-pill me-1">Premium</span>
+                        {% endif %}
+                        {% if voyage.nbPlaces <= 5 %}
+                            <span class="badge bg-danger rounded-pill me-1 blink-badge">
+                                <i class="fa fa-fire me-1"></i>Dernières places !
+                            </span>
+                        {% endif %}
+                        {% if voyage.dateDebut %}
+                            {% set daysUntil = (voyage.dateDebut.timestamp - 'now'|date('U')) // 86400 %}
+                            {% if daysUntil >= 0 and daysUntil <= 7 %}
+                                <span class="badge bg-warning text-dark rounded-pill me-1">
+                                    <i class="fa fa-clock me-1"></i>Départ dans {{ daysUntil }}j
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    {# ── Action buttons ── #}
+                    <div class="d-flex gap-2 flex-wrap align-items-center">
+
+                        {# ══ GREEN RÉSERVER BUTTON ══ #}
+                        {% if voyage.nbPlaces > 0 %}
+                        <button class="btn btn-success rounded-pill py-1 px-3 btn-sm fw-bold"
+                                title="Réserver ce voyage"
+                                onclick="openReservationModal(
+                                    {{ voyage.id }},
+                                    '{{ voyage.titre|e('js') }}',
+                                    {{ voyage.prix }},
+                                    {{ voyage.nbPlaces }},
+                                    '{{ voyage.dateDebut ? voyage.dateDebut|date('Y-m-d') : '' }}',
+                                    '{{ voyage.dateFin ? voyage.dateFin|date('Y-m-d') : '' }}',
+                                    '{{ voyage.idDestination ? (voyage.idDestination.ville ~ ', ' ~ voyage.idDestination.pays)|e('js') : '' }}'
+                                )">
+                            <i class="fa fa-calendar-check me-1"></i>Réserver
+                        </button>
+                        {% else %}
+                        <button class="btn btn-secondary rounded-pill py-1 px-3 btn-sm" disabled>
+                            <i class="fa fa-ban me-1"></i>Complet
+                        </button>
+                        {% endif %}
+
+                        {# Favori #}
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}"
+                           class="btn rounded-pill py-1 px-3 btn-sm {{ voyage.id in favoris ? 'btn-danger' : 'btn-outline-danger' }}"
+                           title="{{ voyage.id in favoris ? 'Retirer des favoris' : 'Ajouter aux favoris' }}">
+                            <i class="fa fa-heart"></i>
+                        </a>
+
+                        {# PDF #}
+                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id}) }}"
+                           class="btn btn-outline-dark rounded-pill py-1 px-3 btn-sm" target="_blank"
+                           title="Télécharger PDF">
+                            <i class="fa fa-file-pdf"></i>
+                        </a>
+
+                        {# Voir détails #}
+                        <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
+                           class="btn btn-outline-primary rounded-pill py-1 px-3 btn-sm"
+                           title="Voir le détail">
+                            <i class="fa fa-eye"></i>
+                        </a>
+
+                        {# Share #}
+                        <button class="btn btn-outline-info rounded-pill py-1 px-3 btn-sm"
+                                title="Partager ce voyage"
+                                onclick="shareVoyage('{{ voyage.titre|e('js') }}', '{{ voyage.description|slice(0,80)|e('js') }}', '{{ path('app_voyage_show', {'id': voyage.id}) }}')">
+                            <i class="fa fa-share-alt"></i>
+                        </button>
+
+                        {# QR Code #}
+                        <button class="btn btn-outline-dark rounded-pill py-1 px-3 btn-sm"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#qr-{{ loop.index }}"
+                                title="QR Code">
+                            <i class="fa fa-qrcode"></i>
+                        </button>
+
+                        {# Météo #}
+                        {% if voyage.idDestination %}
+                        <button class="btn btn-outline-warning rounded-pill py-1 px-3 btn-sm"
+                                title="Météo à {{ voyage.idDestination.ville }}"
+                                onclick="showWeatherPopup('{{ voyage.idDestination.ville|e('js') }}', this)">
+                            <i class="fa fa-cloud-sun"></i>
+                        </button>
+                        {% endif %}
+
+                        {# Calendrier #}
+                        <button class="btn btn-outline-secondary rounded-pill py-1 px-3 btn-sm"
+                                title="Ajouter au calendrier"
+                                onclick="addToCalendar('{{ voyage.titre|e('js') }}', '{{ voyage.dateDebut ? voyage.dateDebut|date('Ymd') : '' }}', '{{ voyage.dateFin ? voyage.dateFin|date('Ymd') : '' }}')">
+                            <i class="fa fa-calendar-plus"></i>
+                        </button>
+                    </div>
+
+                    {# QR Code panel #}
+                    <div class="collapse mt-3" id="qr-{{ loop.index }}">
+                        <div class="border rounded-3 p-3 text-center bg-light">
+                            <p class="small text-muted mb-2 fw-bold">
+                                <i class="fa fa-qrcode me-1"></i>Scanner pour voir ce voyage
+                            </p>
+                            <img id="qrimg-{{ loop.index }}" src=""
+                                 alt="QR Code {{ voyage.titre }}" width="150" height="150"
+                                 class="img-fluid rounded border">
+                            <p class="small text-muted mt-2 mb-1">{{ voyage.titre }}</p>
+                            <a id="qrlink-{{ loop.index }}"
+                               href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
+                               class="btn btn-sm btn-outline-dark rounded-pill mt-1" target="_blank">
+                                <i class="fa fa-external-link-alt me-1"></i>Ouvrir
+                            </a>
+                            <script>
+                            (function(){
+                                var panel = document.getElementById('qr-{{ loop.index }}');
+                                var img   = document.getElementById('qrimg-{{ loop.index }}');
+                                var link  = document.getElementById('qrlink-{{ loop.index }}');
+                                panel.addEventListener('show.bs.collapse', function(){
+                                    var base = window.location.origin;
+                                    var url  = base + '{{ path('app_voyage_show', {'id': voyage.id}) }}';
+                                    img.src  = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='
+                                               + encodeURIComponent(url)
+                                               + '&color=13357B&bgcolor=ffffff&qzone=2';
+                                    link.href = url;
+                                });
+                            })();
+                            </script>
+                        </div>
+                    </div>
+
+                    {# Share panel #}
+                    <div class="collapse mt-3" id="sharePanel-{{ loop.index }}">
+                        <div class="border rounded-3 p-3 bg-light">
+                            <p class="small fw-bold mb-2"><i class="fa fa-share-alt me-1"></i>Partager via :</p>
+                            <div class="d-flex gap-2 flex-wrap">
+                                <a id="fbShare-{{ loop.index }}" href="#" target="_blank"
+                                   class="btn btn-sm btn-primary rounded-pill">
+                                    <i class="fab fa-facebook me-1"></i>Facebook
+                                </a>
+                                <a id="waShare-{{ loop.index }}" href="#" target="_blank"
+                                   class="btn btn-sm btn-success rounded-pill">
+                                    <i class="fab fa-whatsapp me-1"></i>WhatsApp
+                                </a>
+                                <a id="twShare-{{ loop.index }}" href="#" target="_blank"
+                                   class="btn btn-sm btn-info text-white rounded-pill">
+                                    <i class="fab fa-twitter me-1"></i>Twitter
+                                </a>
+                                <button onclick="copyShareLink({{ loop.index }})"
+                                        class="btn btn-sm btn-outline-dark rounded-pill">
+                                    <i class="fa fa-copy me-1"></i>Copier le lien
+                                </button>
+                            </div>
+                            <input id="shareUrl-{{ loop.index }}" type="hidden"
+                                   value="{{ path('app_voyage_show', {'id': voyage.id}) }}">
+                        </div>
+                    </div>
+
+                </div><!-- /card-body -->
+            </div><!-- /card -->
         </div>
         {% else %}
         <div class="col-12 text-center py-5">
-            <h4 class="text-muted">Aucun voyage trouvé</h4>
+            <i class="fa fa-plane text-muted" style="font-size:3rem;opacity:.3"></i>
+            <h4 class="text-muted mt-3">Aucun voyage trouvé</h4>
+            <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill mt-3">
+                <i class="fa fa-refresh me-1"></i>Réinitialiser les filtres
+            </a>
         </div>
         {% endfor %}
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGINATION
+════════════════════════════════════════════════════════════ -->
 <div class="container mb-4">
- <div class="d-flex justify-content-center">
- {{ knp_pagination_render(voyages) }}
- </div>
+    <div class="d-flex justify-content-center">
+        {{ knp_pagination_render(voyages) }}
+    </div>
 </div>
-<!-- Footer -->
-<div class="container-fluid footer py-5">
-    <div class="container py-5">
-        <div class="row g-5">
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">After Travel</h4>
-                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
-            </div>
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">Liens Rapides</h4>
-                <div class="d-flex flex-column">
-                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
-                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
-                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
-                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESERVATION MODAL (green theme)
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="reservationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 py-4" style="background:linear-gradient(135deg,#198754,#20c997)">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0">
+                        <i class="fa fa-calendar-check me-2"></i>Réserver ce voyage
+                    </h5>
+                    <div class="text-white-50 small" id="res-voyage-name"></div>
                 </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">Contact</h4>
-                <a class="text-white mb-2 d-block">
-                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
-                </a>
+            <div class="modal-body p-4">
+
+                {# Summary cards #}
+                <div class="row g-3 mb-4">
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-success" id="res-prix-unit">—</div>
+                            <div class="text-muted small">Prix / pers.</div>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-primary" id="res-places-dispo">—</div>
+                            <div class="text-muted small">Places dispo.</div>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-warning" id="res-total">—</div>
+                            <div class="text-muted small">Total estimé</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ path('app_reservation_create') }}" id="reservationForm">
+                    <input type="hidden" name="voyage_id"       id="res_voyage_id">
+                    <input type="hidden" name="utilisateur_id"  value="{{ app.user ? app.user.id : 0 }}">
+                    <input type="hidden" name="statut"          value="En attente">
+                    <input type="hidden" name="prix_total"      id="res_prix_total">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-users text-success me-1"></i>Nombre de personnes
+                            </label>
+                            <input type="number" name="nb_personnes" id="res_nb_personnes"
+                                   class="form-control rounded-pill" min="1" value="1" required
+                                   oninput="updateTotal()">
+                            <div class="form-text">Max <span id="res-max-val">—</span> places disponibles</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-calendar text-success me-1"></i>Date de réservation
+                            </label>
+                            <input type="date" name="date_reservation" id="res_date_reservation"
+                                   class="form-control rounded-pill" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-tag text-success me-1"></i>Type de voyage
+                            </label>
+                            <select name="type" class="form-select rounded-pill">
+                                <option value="Standard">Standard</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Famille">Famille</option>
+                                <option value="Groupe">Groupe</option>
+                                <option value="Lune de miel">Lune de miel</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-map-marker-alt text-success me-1"></i>Lieu de départ
+                            </label>
+                            <input type="text" name="lieu" id="res_lieu"
+                                   class="form-control rounded-pill"
+                                   placeholder="Ex: Tunis, Aéroport Carthage">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-comment text-success me-1"></i>Demandes spéciales (optionnel)
+                            </label>
+                            <textarea name="description" class="form-control rounded-3" rows="2"
+                                      placeholder="Régime alimentaire, accessibilité, chambre double…"></textarea>
+                        </div>
+                    </div>
+
+                    {# Total recap #}
+                    <div class="mt-4 p-3 rounded-3 border border-success bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-success fs-5">
+                                    <i class="fa fa-receipt me-2"></i>Total à payer
+                                </div>
+                                <div class="text-muted small" id="res-detail-line">— × — TND</div>
+                            </div>
+                            <div class="fs-3 fw-bold text-success" id="res-grand-total">0 TND</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-3">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
+                                data-bs-dismiss="modal">
+                            <i class="fa fa-times me-1"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success rounded-pill flex-fill fw-bold"
+                                id="res-submit-btn">
+                            <i class="fa fa-check-circle me-1"></i>Confirmer la réservation
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
-<div class="container-fluid copyright text-body py-4">
-    <div class="container text-center">
-        <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
+
+<!-- ═══════════════════════════════════════════════════════════
+     WEATHER POPUP (floating)
+════════════════════════════════════════════════════════════ -->
+<div id="weatherPopup"
+     class="card shadow-lg border-0 rounded-4 p-3"
+     style="display:none;position:fixed;bottom:80px;right:20px;width:260px;z-index:9999">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <strong id="wpCity" class="text-primary">Météo</strong>
+        <button class="btn-close btn-sm" onclick="document.getElementById('weatherPopup').style.display='none'"></button>
+    </div>
+    <div id="wpContent">Chargement…</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     TOAST
+════════════════════════════════════════════════════════════ -->
+<div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index:11000">
+    <div id="copyToast" class="toast align-items-center text-white bg-success border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body"><i class="fa fa-check-circle me-2"></i>Lien copié !</div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     FOOTER
+════════════════════════════════════════════════════════════ -->
+{% include '_footer.html.twig' ignore missing %}
+
+<!-- ═══════════════════════════════════════════════════════════
+     SCRIPTS
+════════════════════════════════════════════════════════════ -->
+<style>
+.voyage-card { transition: transform .25s, box-shadow .25s; }
+.voyage-card:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(0,0,0,.12) !important; }
+.voyage-card:hover img { transform: scale(1.04); }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+.blink-badge { animation: blink 1.5s infinite; }
+</style>
+
 <script>
-function translateDesc(index, text) {
- const btn = event.target.closest('button');
- btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Traduction...';
- btn.disabled = true;
- fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=fr|en')
- .then(r => r.json())
- .then(data => {
- const translated = data.responseData.translatedText;
- document.getElementById('desc-' + index).textContent = translated + '...';
- btn.innerHTML = '<i class="fa fa-language me-1"></i>EN - FR';
- btn.disabled = false;
- btn.onclick = function() {
- document.getElementById('desc-' + index).textContent = text + '...';
- btn.innerHTML = '<i class="fa fa-language me-1"></i>FR - EN';
- btn.onclick = function() { translateDesc(index, text); };
- };
- })
- .catch(() => { btn.innerHTML = 'FR - EN'; btn.disabled = false; });
+/* ════════════════════════════════════════════════════
+   RESERVATION MODAL LOGIC
+   ════════════════════════════════════════════════════ */
+var _resData = {};
+
+function openReservationModal(id, titre, prix, nbPlaces, dateDebut, dateFin, lieu) {
+    _resData = { id: id, titre: titre, prix: prix, nbPlaces: nbPlaces };
+
+    document.getElementById('res-voyage-name').textContent = titre;
+    document.getElementById('res_voyage_id').value = id;
+    document.getElementById('res-prix-unit').textContent = prix.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-places-dispo').textContent = nbPlaces;
+    document.getElementById('res-max-val').textContent = nbPlaces;
+    document.getElementById('res_nb_personnes').max = nbPlaces;
+    document.getElementById('res_nb_personnes').value = 1;
+    document.getElementById('res_lieu').value = lieu || '';
+
+    // Default reservation date = today
+    document.getElementById('res_date_reservation').value = new Date().toISOString().split('T')[0];
+
+    updateTotal();
+    new bootstrap.Modal(document.getElementById('reservationModal')).show();
 }
-</script>s
+
+function updateTotal() {
+    var nb = parseInt(document.getElementById('res_nb_personnes').value) || 1;
+    var prix = _resData.prix || 0;
+    var maxPlaces = _resData.nbPlaces || 99;
+
+    // Clamp value
+    if (nb < 1) { nb = 1; document.getElementById('res_nb_personnes').value = 1; }
+    if (nb > maxPlaces) { nb = maxPlaces; document.getElementById('res_nb_personnes').value = maxPlaces; }
+
+    var total = nb * prix;
+    document.getElementById('res_prix_total').value = total;
+    document.getElementById('res-total').textContent = total.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-grand-total').textContent = total.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-detail-line').textContent =
+        nb + ' pers. × ' + prix.toLocaleString('fr-FR') + ' TND';
+
+    // Disable submit if invalid
+    var btn = document.getElementById('res-submit-btn');
+    if (nb < 1 || nb > maxPlaces) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa fa-ban me-1"></i>Places insuffisantes';
+    } else {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fa fa-check-circle me-1"></i>Confirmer la réservation';
+    }
+}
+
+/* ════════════════════════════════════════════════════
+   LIVE EXCHANGE RATE
+   ════════════════════════════════════════════════════ */
+fetch('https://api.exchangerate.host/latest?base=TND&symbols=EUR,USD')
+    .then(r => r.json())
+    .then(d => {
+        var eurRate = d.rates?.EUR || 0.29;
+        document.getElementById('convRate').textContent = eurRate.toFixed(3);
+        document.querySelectorAll('[class^="eur-"]').forEach(function(el) {
+            var price = parseFloat(el.closest('.voyage-card')?.dataset.price || 0);
+            el.textContent = (price * eurRate).toFixed(0);
+        });
+    })
+    .catch(function(){ document.getElementById('convRate').textContent = '0.29'; });
+
+/* ════════════════════════════════════════════════════
+   TRANSLATE DESCRIPTION
+   ════════════════════════════════════════════════════ */
+function translateDesc(index, text) {
+    var btn = event.target.closest('button');
+    btn.innerHTML = '<i class="fa fa-spinner fa-spin me-1"></i>Traduction…';
+    btn.disabled = true;
+    fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair=fr|en')
+        .then(r=>r.json())
+        .then(function(data){
+            var tr = data.responseData.translatedText;
+            document.getElementById('desc-'+index).textContent = tr+'…';
+            btn.innerHTML = '<i class="fa fa-language me-1"></i>EN → FR';
+            btn.disabled = false;
+            btn.onclick = function(){
+                document.getElementById('desc-'+index).textContent = text+'…';
+                btn.innerHTML = '<i class="fa fa-language me-1"></i>FR → EN';
+                btn.onclick = function(){ translateDesc(index, text); };
+            };
+        })
+        .catch(function(){ btn.innerHTML = 'FR → EN'; btn.disabled = false; });
+}
+
+/* ════════════════════════════════════════════════════
+   SHARE
+   ════════════════════════════════════════════════════ */
+function shareVoyage(titre, desc, path) {
+    var url = window.location.origin + path;
+    if (navigator.share) {
+        navigator.share({ title: titre, text: desc, url: url }).catch(function(){});
+    } else {
+        var panels = document.querySelectorAll('[id^="sharePanel-"]');
+        panels.forEach(function(panel) {
+            var urlInput = panel.querySelector('input[id^="shareUrl-"]');
+            if (urlInput && window.location.origin + urlInput.value === url) {
+                var fbLink = panel.querySelector('[id^="fbShare-"]');
+                var waLink = panel.querySelector('[id^="waShare-"]');
+                var twLink = panel.querySelector('[id^="twShare-"]');
+                if (fbLink) fbLink.href = 'https://www.facebook.com/sharer/sharer.php?u='+encodeURIComponent(url);
+                if (waLink) waLink.href = 'https://wa.me/?text='+encodeURIComponent(titre+' - '+url);
+                if (twLink) twLink.href = 'https://twitter.com/intent/tweet?text='+encodeURIComponent(titre)+'&url='+encodeURIComponent(url);
+                new bootstrap.Collapse(panel, {toggle:true});
+            }
+        });
+    }
+}
+
+function copyShareLink(index) {
+    var full = window.location.origin + document.getElementById('shareUrl-'+index).value;
+    navigator.clipboard.writeText(full).then(function(){
+        new bootstrap.Toast(document.getElementById('copyToast')).show();
+    });
+}
+
+/* ════════════════════════════════════════════════════
+   QUICK WEATHER POPUP
+   ════════════════════════════════════════════════════ */
+function showWeatherPopup(city, btn) {
+    var popup = document.getElementById('weatherPopup');
+    var content = document.getElementById('wpContent');
+    document.getElementById('wpCity').textContent = '📍 '+city;
+    content.innerHTML = '<div class="text-center py-2"><i class="fa fa-spinner fa-spin"></i> Chargement…</div>';
+    popup.style.display = 'block';
+    fetch('https://nominatim.openstreetmap.org/search?q='+encodeURIComponent(city)+'&format=json&limit=1',
+          {headers:{'User-Agent':'AfterTravel/1.0'}})
+        .then(r=>r.json()).then(function(geo){
+            if(!geo.length) throw new Error('not found');
+            return fetch('https://api.open-meteo.com/v1/forecast?latitude='+geo[0].lat+
+                         '&longitude='+geo[0].lon+
+                         '&current_weather=true&hourly=relative_humidity_2m,precipitation_probability&forecast_days=1');
+        }).then(r=>r.json()).then(function(w){
+            var c = w.current_weather;
+            var codeDesc = c.weathercode===0?'☀️ Ciel dégagé':c.weathercode<=2?'⛅ Partiellement nuageux':
+                           c.weathercode===3?'☁️ Couvert':c.weathercode<=69?'🌧️ Pluie':
+                           c.weathercode<=79?'❄️ Neige':'⛈️ Orage';
+            var humidity = w.hourly.relative_humidity_2m[0]||'?';
+            var precip   = w.hourly.precipitation_probability[0]||0;
+            content.innerHTML =
+                '<div class="d-flex justify-content-between align-items-center mb-2">' +
+                '  <span class="fs-4">'+c.temperature+'°C</span>' +
+                '  <span class="text-muted small">'+codeDesc+'</span>' +
+                '</div>' +
+                '<div class="small text-muted mb-1"><i class="fa fa-wind me-1 text-info"></i>Vent : '+c.windspeed+' km/h</div>' +
+                '<div class="small text-muted mb-1"><i class="fa fa-tint me-1 text-primary"></i>Humidité : '+humidity+'%</div>' +
+                '<div class="small text-muted"><i class="fa fa-umbrella me-1 text-danger"></i>Pluie : '+precip+'%</div>';
+        }).catch(function(){
+            content.innerHTML = '<p class="text-danger small">Météo indisponible.</p>';
+        });
+}
+
+/* ════════════════════════════════════════════════════
+   ADD TO CALENDAR
+   ════════════════════════════════════════════════════ */
+function addToCalendar(title, start, end) {
+    if (!start) { alert('Dates non définies pour ce voyage.'); return; }
+    var endDate = end || start;
+    var ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//AfterTravel//FR\r\n' +
+              'BEGIN:VEVENT\r\n' +
+              'DTSTART;VALUE=DATE:'+start+'\r\n' +
+              'DTEND;VALUE=DATE:'+endDate+'\r\n' +
+              'SUMMARY:'+title+'\r\n' +
+              'DESCRIPTION:Voyage réservé via AfterTravel\r\n' +
+              'END:VEVENT\r\nEND:VCALENDAR';
+    var blob = new Blob([ics], {type:'text/calendar'});
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = title.replace(/\s+/g,'_')+'.ics';
+    a.click();
+}
+
+/* ── Exchange rate fallback per card ── */
+document.querySelectorAll('.voyage-card').forEach(function(card){
+    var price = parseFloat(card.dataset.price || 0);
+    var eurEl = card.querySelector('[class^="eur-"]');
+    if (eurEl && price > 0) { eurEl.textContent = (price * 0.29).toFixed(0); }
+});
+</script>
+
 {% endblock %}

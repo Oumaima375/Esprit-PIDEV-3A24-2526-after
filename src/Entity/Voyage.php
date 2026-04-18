@@ -10,8 +10,9 @@ use App\Entity\Reservation;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Component\Validator\Constraints as Assert;
+use App\Repository\VoyageRepository; 
 
-#[ORM\Entity(repositoryClass: App\Repository\VoyageRepository::class)]
+#[ORM\Entity(repositoryClass: VoyageRepository::class)]
 class Voyage
 {
     #[ORM\Id]
@@ -168,23 +169,23 @@ class Voyage
     }
 
     public function addActivite(Activite $activite): self
-    {
-        if (!$this->activites->contains($activite)) {
-            $this->activites->add($activite);
-            $activite->setIdVoyage($this);
-        }
-        return $this;
+{
+    if (!$this->activites->contains($activite)) {
+        $this->activites->add($activite);
+        $activite->setVoyage($this);
     }
+    return $this;
+}
 
-    public function removeActivite(Activite $activite): self
-    {
-        if ($this->activites->removeElement($activite)) {
-            if ($activite->getIdVoyage() === $this) {
-                $activite->setIdVoyage(null);
-            }
+   public function removeActivite(Activite $activite): self
+{
+    if ($this->activites->removeElement($activite)) {
+        if ($activite->getVoyage() === $this) {
+            $activite->setVoyage(null);
         }
-        return $this;
     }
+    return $this;
+}
 
     public function getDepenses(): Collection
     {

@@ -1,394 +1,1941 @@
-{% extends 'base_admin.html.twig' %}
-{% block title %}Dashboard Admin - Gestion Document{% endblock %}
-
-{% block body %}
-
-<!-- Flash Messages -->
-{% for message in app.flashes('success') %}
-    <div style="background:#22c55e; color:white; padding:12px 20px; border-radius:8px; margin:10px 20px;">
-        {{ message }}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TravelAdmin — Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg: #0d0f14; --surface: #14171f; --surface2: #1c2030; --border: #252a3a;
+    --accent: #4f8ef7; --accent2: #7c5cfc; --accent3: #f7774f; --accent4: #4fd1c5;
+    --success: #48bb78; --danger: #fc5c7d; --warning: #f6c94e;
+    --text: #e8ecf5; --muted: #8892aa; --sidebar-w: 248px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow-x: hidden; }
+  #sidebar { width: var(--sidebar-w); min-height: 100vh; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; position: fixed; top: 0; left: 0; z-index: 100; }
+  .sidebar-logo { padding: 24px 20px 18px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); }
+  .logo-icon { width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 18px; color: var(--text); letter-spacing: -.5px; }
+  .logo-sub { font-size: 10px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+  nav { flex: 1; padding: 14px 0; overflow-y: auto; }
+  .nav-label { font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); padding: 10px 20px 5px; }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 9px 16px; margin: 2px 8px; border-radius: 10px; cursor: pointer; transition: all .2s; color: var(--muted); font-size: 13.5px; font-weight: 500; position: relative; text-decoration: none; border: none; background: none; width: calc(100% - 16px); text-align: left; }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active { background: linear-gradient(135deg,rgba(79,142,247,.15),rgba(124,92,252,.15)); color: var(--text); }
+  .nav-item.active::before { content:''; position:absolute; left:0; top:50%; transform:translateY(-50%); width:3px; height:60%; background:linear-gradient(var(--accent),var(--accent2)); border-radius:0 3px 3px 0; }
+  .nav-item .icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; background:var(--surface2); }
+  .nav-item.active .icon { background:linear-gradient(135deg,var(--accent),var(--accent2)); }
+  .badge { margin-left:auto; background:var(--accent3); color:#fff; font-size:10px; padding:2px 7px; border-radius:10px; font-weight:600; }
+  .sidebar-footer { padding:14px; border-top:1px solid var(--border); }
+  .logout-btn { display:flex; align-items:center; gap:10px; padding:10px 14px; border-radius:10px; background:rgba(252,92,125,.08); color:var(--danger); cursor:pointer; transition:.2s; font-size:13px; font-weight:500; border:1px solid rgba(252,92,125,.15); width:100%; text-decoration:none; }
+  .logout-btn:hover { background:rgba(252,92,125,.18); }
+  #main { margin-left: var(--sidebar-w); flex: 1; min-height: 100vh; display: flex; flex-direction: column; }
+  .topbar { height:60px; background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 24px; gap:14px; position:sticky; top:0; z-index:50; }
+  .topbar-title { font-family:'Syne',sans-serif; font-weight:700; font-size:17px; flex:1; }
+  .topbar-search { display:flex; align-items:center; gap:8px; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:7px 13px; width:220px; }
+  .topbar-search input { background:none; border:none; outline:none; color:var(--text); font-size:13px; font-family:inherit; width:100%; }
+  .topbar-search input::placeholder { color:var(--muted); }
+  .avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--accent),var(--accent2)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; cursor:pointer; flex-shrink:0; }
+  .page-content { padding:24px; display:none; animation:fadeIn .2s ease; }
+  .page-content.active { display:block; }
+  @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+  .stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(190px,1fr)); gap:14px; margin-bottom:24px; }
+  .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; transition:transform .2s,box-shadow .2s; }
+  .stat-card:hover { transform:translateY(-2px); box-shadow:0 8px 30px rgba(0,0,0,.3); }
+  .stat-icon { width:40px; height:40px; border-radius:11px; display:flex; align-items:center; justify-content:center; font-size:19px; }
+  .stat-num { font-family:'Syne',sans-serif; font-size:26px; font-weight:800; }
+  .stat-label { font-size:12.5px; color:var(--muted); }
+  .stat-trend { font-size:12px; margin-top:2px; }
+  .stat-trend.up { color:var(--success); }
+  .stat-trend.down { color:var(--danger); }
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+  .section-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+  .btn-group { display:flex; gap:7px; flex-wrap:wrap; }
+  .btn { display:inline-flex; align-items:center; gap:6px; padding:8px 15px; border-radius:9px; font-size:13px; font-weight:500; cursor:pointer; border:none; font-family:inherit; transition:.2s; text-decoration:none; }
+  .btn-primary { background:linear-gradient(135deg,var(--accent),var(--accent2)); color:#fff; }
+  .btn-primary:hover { opacity:.88; transform:translateY(-1px); box-shadow:0 4px 14px rgba(79,142,247,.3); }
+  .btn-secondary { background:var(--surface2); color:var(--text); border:1px solid var(--border); }
+  .btn-secondary:hover { background:var(--border); color:var(--text); }
+  .btn-danger { background:rgba(252,92,125,.12); color:var(--danger); border:1px solid rgba(252,92,125,.22); }
+  .btn-danger:hover { background:rgba(252,92,125,.22); }
+  .btn-success { background:rgba(72,187,120,.12); color:var(--success); border:1px solid rgba(72,187,120,.22); }
+  .btn-success:hover { background:rgba(72,187,120,.22); }
+  .btn-warning { background:rgba(246,201,78,.12); color:var(--warning); border:1px solid rgba(246,201,78,.22); }
+  .btn-warning:hover { background:rgba(246,201,78,.22); }
+  .btn-sm { padding:5px 9px; font-size:12px; border-radius:7px; }
+  .table-wrap { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:20px; overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; }
+  thead th { padding:12px 14px; text-align:left; font-size:10.5px; letter-spacing:1px; text-transform:uppercase; color:var(--muted); background:var(--surface2); font-weight:600; border-bottom:1px solid var(--border); white-space:nowrap; }
+  tbody tr { border-bottom:1px solid var(--border); transition:background .15s; }
+  tbody tr:last-child { border-bottom:none; }
+  tbody tr:hover { background:var(--surface2); }
+  tbody td { padding:11px 14px; font-size:13.5px; }
+  .td-actions { display:flex; gap:5px; flex-wrap:wrap; }
+  .chip { display:inline-flex; align-items:center; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; white-space:nowrap; }
+  .chip-blue   { background:rgba(79,142,247,.15);  color:var(--accent);  }
+  .chip-green  { background:rgba(72,187,120,.15);  color:var(--success); }
+  .chip-orange { background:rgba(247,119,79,.15);  color:var(--accent3); }
+  .chip-red    { background:rgba(252,92,125,.15);  color:var(--danger);  }
+  .chip-purple { background:rgba(124,92,252,.15);  color:var(--accent2); }
+  .chip-teal   { background:rgba(79,209,197,.15);  color:var(--accent4); }
+  .chip-yellow { background:rgba(246,201,78,.15);  color:var(--warning); }
+  .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); z-index:300; display:none; align-items:center; justify-content:center; padding:16px; }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px; padding:26px; width:100%; max-width:560px; max-height:90vh; overflow-y:auto; animation:modalIn .22s ease; }
+  .modal-lg { max-width:680px; }
+  @keyframes modalIn { from{opacity:0;transform:scale(.94) translateY(10px)} to{opacity:1;transform:scale(1) translateY(0)} }
+  .modal-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+  .modal-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; display:flex; align-items:center; gap:8px; }
+  .modal-close { width:30px; height:30px; border-radius:8px; background:var(--surface2); border:none; color:var(--muted); font-size:17px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s; flex-shrink:0; }
+  .modal-close:hover { background:var(--border); color:var(--text); }
+  .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+  .form-grid .full { grid-column:1/-1; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
+  .form-group label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.6px; }
+  .form-group input, .form-group select, .form-group textarea { background:var(--surface2); border:1px solid var(--border); border-radius:9px; padding:9px 12px; color:var(--text); font-size:13.5px; font-family:inherit; outline:none; transition:border .2s,box-shadow .2s; width:100%; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(79,142,247,.12); }
+  .form-group textarea { resize:vertical; min-height:78px; }
+  .form-group select option { background:var(--surface2); }
+  .form-actions { display:flex; gap:9px; justify-content:flex-end; margin-top:18px; padding-top:16px; border-top:1px solid var(--border); }
+  .tabs { display:flex; gap:3px; background:var(--surface2); border-radius:11px; padding:4px; margin-bottom:16px; width:fit-content; }
+  .tab { padding:7px 16px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; transition:.2s; color:var(--muted); }
+  .tab.active { background:var(--surface); color:var(--text); box-shadow:0 2px 8px rgba(0,0,0,.3); }
+  .flash-wrap { padding:14px 24px 0; }
+  .flash-success { background:rgba(72,187,120,.12); border:1px solid rgba(72,187,120,.28); color:var(--success); padding:11px 16px; border-radius:10px; font-size:13.5px; }
+  .flash-error   { background:rgba(252,92,125,.12); border:1px solid rgba(252,92,125,.28); color:var(--danger);  padding:11px 16px; border-radius:10px; font-size:13.5px; }
+  #toast { position:fixed; bottom:24px; right:24px; background:var(--success); color:#fff; padding:11px 18px; border-radius:11px; font-size:13.5px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.4); display:none; z-index:999; max-width:340px; }
+  .empty-row td { color:var(--muted); text-align:center; padding:22px; font-style:italic; }
+  .api-banner { background:linear-gradient(135deg,rgba(79,142,247,.08),rgba(124,92,252,.08)); border:1px solid rgba(79,142,247,.2); border-radius:12px; padding:13px 17px; margin-bottom:18px; display:flex; align-items:center; gap:12px; font-size:13px; }
+  .api-dot { width:8px; height:8px; border-radius:50%; background:var(--success); box-shadow:0 0 8px var(--success); flex-shrink:0; animation:pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .dest-api-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:14px; margin-bottom:20px; }
+  .dest-api-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform .2s,box-shadow .2s; }
+  .dest-api-card:hover { transform:translateY(-3px); box-shadow:0 10px 32px rgba(0,0,0,.35); }
+  .dest-api-img { width:100%; height:120px; object-fit:cover; background:var(--surface2); }
+  .dest-api-img-ph { width:100%; height:120px; background:linear-gradient(135deg,var(--surface2),var(--border)); display:flex; align-items:center; justify-content:center; font-size:32px; }
+  .dest-api-body { padding:13px; }
+  .dest-api-name { font-family:'Syne',sans-serif; font-size:14px; font-weight:700; margin-bottom:3px; }
+  .dest-api-sub { font-size:12px; color:var(--muted); margin-bottom:9px; }
+  .dest-api-meta { display:flex; gap:5px; flex-wrap:wrap; }
+  .weather-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(155px,1fr)); gap:12px; margin-bottom:20px; }
+  .weather-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:14px; text-align:center; }
+  .weather-icon { font-size:28px; margin-bottom:6px; }
+  .weather-temp { font-family:'Syne',sans-serif; font-size:22px; font-weight:700; }
+  .weather-city { font-size:12px; color:var(--muted); margin-top:2px; }
+  ::-webkit-scrollbar { width:5px; height:5px; }
+  ::-webkit-scrollbar-track { background:transparent; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:10px; }
+  @media(max-width:768px) {
+    #sidebar { transform:translateX(-100%); }
+    #main { margin-left:0; }
+    .stats-grid { grid-template-columns:1fr 1fr; }
+    .form-grid { grid-template-columns:1fr; }
+    .form-grid .full { grid-column:1; }
+  }
+</style>
+</head>
+<body>
+{# ═══ SIDEBAR ═══ #}
+<aside id="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-icon">✈️</div>
+    <div>
+      <div class="logo-text">ADMIN</div>
+      <div class="logo-sub">AFTER TRAVEL</div>
     </div>
-{% endfor %}
+  </div>
+  <nav>
+    <div class="nav-label">Principal</div>
+    <button class="nav-item active" onclick="showPage('dashboard',this)">
+      <span class="icon">🏠</span> Dashboard
+    </button>
+    <div class="nav-label">Gestion</div>
+    <button class="nav-item" onclick="showPage('users',this)">
+      <span class="icon">👥</span> Utilisateurs
+    </button>
+    <button class="nav-item" onclick="showPage('voyage',this)">
+      <span class="icon">🗺️</span> Voyages &amp; Destinations
+    </button>
+    <button class="nav-item" onclick="showPage('activite',this)">
+      <span class="icon">🎯</span> Activités &amp; Planning
+    </button>
+    <button class="nav-item" onclick="showPage('document',this)">
+      <span class="icon">📄</span> Documents &amp; Catégories
+    </button>
+    <button class="nav-item" onclick="showPage('reservation',this)">
+      <span class="icon">📅</span> Réservations &amp; Paiements
+      {% if reservations is defined and reservations|length > 0 %}
+        <span class="badge">{{ reservations|length }}</span>
+      {% endif %}
+    </button>
+    <button class="nav-item" onclick="showPage('service',this)">
+      <span class="icon">💼</span> Services &amp; Offres
+    </button>
+    <button class="nav-item" onclick="showPage('depense',this)">
+      <span class="icon">💰</span> Dépenses
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="{{ path('_logout_main') }}" class="logout-btn">
+      <span>🔓</span> Se déconnecter
+    </a>
+  </div>
+</aside>
 
-{% for message in app.flashes('error') %}
-    <div style="background:#ef4444; color:white; padding:12px 20px; border-radius:8px; margin:10px 20px; font-weight:bold;">
-        {{ message }}
+{# ═══ MAIN ═══ #}
+<div id="main">
+  <div class="topbar">
+    <div class="topbar-title" id="topbar-title">Dashboard</div>
+    <div class="topbar-search">
+      <span>🔍</span>
+      <input type="text" placeholder="Rechercher…" oninput="filterTable(this.value)"/>
     </div>
-{% endfor %}
-
-<!-- Header -->
-<div style="background:white; border-radius:16px; padding:25px 30px; margin:20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <h1 style="font-size:22px; font-weight:bold; color:#1a2744; margin:0;">
-        🗂 ADMIN DOCUMENT DASHBOARD
-    </h1>
-    <p style="color:#94a3b8; margin:4px 0 0 0; font-size:14px;">Gestion complète des documents de voyage</p>
-</div>
-
-<!-- Stats Cards -->
-<div style="display:grid; grid-template-columns:repeat(4,1fr); gap:20px; margin:0 20px 20px 20px;">
-
-    <div style="background:#1a2744; border-radius:16px; padding:25px; text-align:center; box-shadow:0 4px 15px rgba(26,39,68,0.3);">
-        <div style="font-size:30px; margin-bottom:8px;">📄</div>
-        <div style="font-size:36px; font-weight:bold; color:white;">{{ total }}</div>
-        <div style="color:#94a3b8; font-size:14px; margin-top:4px;">Total Documents</div>
+    <div class="avatar" title="{{ app.user ? app.user.userIdentifier : 'Admin' }}">
+      {{ app.user ? app.user.userIdentifier|slice(0,2)|upper : 'AD' }}
     </div>
+  </div>
 
-    <div style="background:#2563eb; border-radius:16px; padding:25px; text-align:center; box-shadow:0 4px 15px rgba(37,99,235,0.3);">
-        <div style="font-size:30px; margin-bottom:8px;">📂</div>
-        <div style="font-size:36px; font-weight:bold; color:white;">{{ totalCategories }}</div>
-        <div style="color:#bfdbfe; font-size:14px; margin-top:4px;">Catégories</div>
-    </div>
+  {% for label, messages in app.flashes %}
+    {% for message in messages %}
+      <div class="flash-wrap">
+        <div class="flash-{{ label == 'success' ? 'success' : 'error' }}">{{ message }}</div>
+      </div>
+    {% endfor %}
+  {% endfor %}
 
-    <div style="background:#f5f5e8; border-radius:16px; padding:25px; text-align:center; border:2px solid #1a2744; box-shadow:0 4px 15px rgba(0,0,0,0.08);">
-        <div style="font-size:30px; margin-bottom:8px;">⚠️</div>
-        <div style="font-size:36px; font-weight:bold; color:#1a2744;">{{ expiresSoon }}</div>
-        <div style="color:#94a3b8; font-size:14px; margin-top:4px;">Expirent dans 30j</div>
-    </div>
-
-    <div style="background:#ef4444; border-radius:16px; padding:25px; text-align:center; box-shadow:0 4px 15px rgba(239,68,68,0.3);">
-        <div style="font-size:30px; margin-bottom:8px;">❌</div>
-        <div style="font-size:36px; font-weight:bold; color:white;">{{ expires }}</div>
-        <div style="color:#fecaca; font-size:14px; margin-top:4px;">Expirés</div>
-    </div>
-
-</div>
-
-<!-- Charts Row -->
-<div style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin:0 20px 20px 20px;">
-
-    <div style="background:white; border-radius:16px; padding:25px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <h3 style="color:#1a2744; font-size:16px; margin:0 0 20px 0;">🗂 Documents par catégorie</h3>
-        <canvas id="pieChart" width="400" height="300"></canvas>
-    </div>
-
-    <div style="background:white; border-radius:16px; padding:25px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-        <h3 style="color:#1a2744; font-size:16px; margin:0 0 20px 0;">📈 Uploads par mois</h3>
-        <canvas id="barChart" width="400" height="300"></canvas>
-    </div>
-
-</div>
-
-<!-- Gestion Catégories -->
-<div style="background:white; border-radius:16px; padding:25px; margin:0 20px 20px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <h3 style="color:#1a2744; font-size:16px; margin:0 0 20px 0; text-align:center;">🗂 Gestion des catégories</h3>
-
-    <div style="display:flex; gap:12px; justify-content:center; margin-bottom:20px;">
-        <input type="text" id="categorieInput" placeholder="Nom catégorie..."
-               style="padding:10px 16px; border:2px solid #e2e8f0; border-radius:10px; font-size:14px; width:300px; outline:none;">
-        <a href="{{ path('app_categorie_document_new') }}"
-           style="background:#2563eb; color:white; padding:10px 20px; border-radius:10px; text-decoration:none; font-size:14px; font-weight:bold; display:flex; align-items:center; gap:6px;">
-            ➕ Ajouter
-        </a>
-        <button onclick="modifierCategorie()"
-                style="background:#1a2744; color:white; padding:10px 20px; border-radius:10px; border:none; font-size:14px; font-weight:bold; cursor:pointer;">
-            ✏️ Modifier
-        </button>
-        <button onclick="supprimerCategorie()"
-                style="background:#ef4444; color:white; padding:10px 20px; border-radius:10px; border:none; font-size:14px; font-weight:bold; cursor:pointer;">
-            🗑 Supprimer
-        </button>
-    </div>
-
-    <div style="border:2px solid #e2e8f0; border-radius:12px; overflow:hidden;">
-        {% for cat in categories %}
-        <div class="cat-item"
-             data-id="{{ cat.idCategorie }}"
-             data-nom="{{ cat.libelle|e('html_attr') }}"
-             data-token="{{ csrf_token('delete' ~ cat.idCategorie) }}"
-             style="padding:12px 20px; border-bottom:1px solid #e2e8f0; cursor:pointer; color:#1a2744; font-weight:500; font-size:14px; background:white;"
-             onmouseover="if(!this.classList.contains('selected')){this.style.background='#dbeafe'; this.style.color='#2563eb';}"
-             onmouseout="if(!this.classList.contains('selected')){this.style.background='white'; this.style.color='#1a2744';}">
-            {{ cat.libelle }}
+  {# ════ DASHBOARD ════ #}
+  <div class="page-content active" id="page-dashboard">
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(79,142,247,.15)">👥</div>
+        <div class="stat-num" style="color:var(--accent)">{{ users is defined ? users|length : '—' }}</div>
+        <div class="stat-label">Utilisateurs</div>
+        <div class="stat-trend up">↑ Actifs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(124,92,252,.15)">🗺️</div>
+        <div class="stat-num" style="color:var(--accent2)">{{ voyages is defined ? voyages|length : '—' }}</div>
+        <div class="stat-label">Voyages actifs</div>
+        <div class="stat-trend up">↑ Disponibles</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(247,119,79,.15)">📅</div>
+        <div class="stat-num" style="color:var(--accent3)">{{ reservations is defined ? reservations|length : '—' }}</div>
+        <div class="stat-label">Réservations</div>
+        <div class="stat-trend up">↑ Total</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(79,209,197,.15)">💰</div>
+        <div class="stat-num" style="color:var(--accent4)">
+          {% if stats is defined and stats.totalRevenue is defined %}{{ (stats.totalRevenue/1000)|number_format(1) }}k{% else %}—{% endif %}
         </div>
+        <div class="stat-label">Revenus (TND)</div>
+        <div class="stat-trend up">↑ Ce mois</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(246,201,78,.15)">📄</div>
+        <div class="stat-num" style="color:var(--warning)">{{ docTotal is defined ? docTotal : '—' }}</div>
+        <div class="stat-label">Documents</div>
+        <div class="stat-trend {{ docExpires is defined and docExpires > 0 ? 'down' : 'up' }}">
+          {% if docExpires is defined and docExpires > 0 %}↓ {{ docExpires }} expirés{% else %}↑ À jour{% endif %}
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon" style="background:rgba(72,187,120,.15)">🎯</div>
+        <div class="stat-num" style="color:var(--success)">{{ activites is defined ? activites|length : '—' }}</div>
+        <div class="stat-label">Activités</div>
+        <div class="stat-trend up">↑ Disponibles</div>
+      </div>
+    </div>
+
+    <div class="section-header"><div class="section-title">🌤️ Météo Destinations</div></div>
+    <div class="weather-row" id="weatherRow">
+      {% if destinations is defined %}
+        {% for d in destinations|slice(0,4) %}
+          <div class="weather-card" data-city="{{ d.ville ?? d.pays }}">
+            <div class="weather-icon" id="wi-{{ loop.index }}">⏳</div>
+            <div class="weather-temp" id="wt-{{ loop.index }}">…</div>
+            <div class="weather-city">{{ d.ville ?? d.pays }}</div>
+          </div>
         {% endfor %}
+      {% endif %}
     </div>
 
-    {% if expires > 0 %}
-    <div style="text-align:center; margin-top:20px;">
-        <a href="{{ path('app_admin_archiver_expires') }}"
-           style="background:#ef4444; color:white; padding:12px 30px; border-radius:10px; text-decoration:none; font-size:14px; font-weight:bold;"
-           onclick="return confirm('Archiver et supprimer tous les documents expirés ?')">
-            🗑 Supprimer documents expirés ({{ expires }})
-        </a>
-    </div>
-    {% endif %}
-</div>
+    
 
-<!-- Documents Expirés -->
-{% if expires > 0 %}
-<div style="background:white; border-radius:16px; padding:25px; margin:0 20px 20px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <h3 style="color:#ef4444; font-size:16px; margin:0 0 20px 0;">❌ Documents expirés</h3>
-    <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr style="background:#f8fafc;">
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Nom</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Catégorie</th>
-                    {# TODO after merge — décommentez #}
-                    {# <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Utilisateur</th> #}
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Expiré le</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Action</th>
-                </tr>
-            </thead>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;flex-wrap:wrap">
+      <div>
+        <div class="section-header"><div class="section-title">Réservations récentes</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Utilisateur</th><th>Voyage</th><th>Statut</th></tr></thead>
             <tbody>
-                {% for doc in documentsExpires %}
-                <tr style="border-bottom:1px solid #f1f5f9;">
-                    <td style="padding:12px; color:#1a2744; font-weight:500;">{{ doc.nomDocument }}</td>
-                    <td style="padding:12px;">
-                        <span style="background:#fee2e2; color:#ef4444; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">
-                            {{ doc.categorie ? doc.categorie.libelle : 'N/A' }}
-                        </span>
+              {% if reservations is defined and reservations|length > 0 %}
+                {% for r in reservations|slice(0,5) %}
+                  <tr>
+                    <td>#{{ r.utilisateurId }}</td>
+                    <td>#{{ r.voyageId }}</td>
+                    <td>
+                      {%- set s = r.statut|lower -%}
+                      {%- if 'confirm' in s %}<span class="chip chip-green">Confirmé</span>
+                      {%- elseif 'attente' in s %}<span class="chip chip-orange">En attente</span>
+                      {%- elseif 'pay' in s %}<span class="chip chip-blue">Payé</span>
+                      {%- elseif 'annul' in s %}<span class="chip chip-red">Annulé</span>
+                      {%- else %}<span class="chip chip-purple">{{ r.statut }}</span>{%- endif %}
                     </td>
-                    {# TODO after merge — décommentez pour afficher l'email du user #}
-                    {# <td style="padding:12px; color:#64748b; font-size:13px;">
-                        {{ doc.user ? doc.user.email : 'N/A' }}
-                    </td> #}
-                    <td style="padding:12px; color:#ef4444; font-weight:bold;">
-                        {{ doc.dateExpiration ? doc.dateExpiration|date('d/m/Y') : 'N/A' }}
-                    </td>
-                    <td style="padding:12px;">
-                        <form method="post"
-                              action="{{ path('app_document_crud_delete', {'idDocument': doc.idDocument}) }}"
-                              onsubmit="return confirm('Supprimer ?')" style="display:inline">
-                            <input type="hidden" name="_token"
-                                   value="{{ csrf_token('delete' ~ doc.idDocument) }}">
-                            <button style="background:#ef4444; color:white; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:13px;">
-                                🗑
-                            </button>
-                        </form>
-                    </td>
-                </tr>
+                  </tr>
                 {% endfor %}
+              {% else %}
+                <tr class="empty-row"><td colspan="3">Aucune réservation</td></tr>
+              {% endif %}
             </tbody>
-        </table>
-    </div>
-</div>
-{% endif %}
-
-<!-- Tous les Documents — Vue Admin -->
-<div style="background:white; border-radius:16px; padding:25px; margin:0 20px 20px 20px; box-shadow:0 2px 8px rgba(0,0,0,0.06);">
-    <h3 style="color:#1a2744; font-size:16px; margin:0 0 20px 0;">📋 Tous les Documents</h3>
-
-    <div style="overflow-x:auto;">
-        <table style="width:100%; border-collapse:collapse;">
-            <thead>
-                <tr style="background:#f8fafc;">
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">#</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Nom</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Catégorie</th>
-                    {# TODO after merge — décommentez pour afficher l'utilisateur #}
-                    {# <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Utilisateur</th> #}
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">
-                        Utilisateur
-                        <small style="color:#cbd5e1; font-weight:normal;">(après intégration)</small>
-                    </th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Date Ajout</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Date Expiration</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Fichier</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">Statut</th>
-                    <th style="padding:12px; text-align:left; color:#64748b; font-size:13px;">
-                        Actions
-                        <small style="color:#cbd5e1; font-weight:normal;">(lecture seule après merge)</small>
-                    </th>
-                </tr>
-            </thead>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div class="section-header"><div class="section-title">Voyages récents</div></div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Voyage</th><th>Destination</th><th>Prix</th></tr></thead>
             <tbody>
-                {% for doc in allDocuments %}
-                <tr style="border-bottom:1px solid #f1f5f9; transition:background 0.2s;"
-                    onmouseover="this.style.background='#f8fafc'"
-                    onmouseout="this.style.background='white'">
+              {% if voyages is defined and voyages|length > 0 %}
+                {% for v in voyages|slice(0,5) %}
+                  <tr>
+                    <td>{{ v.titre ?? '—' }}</td>
+                    <td>{{ v.idDestination ? v.idDestination.pays : '—' }}</td>
+                    <td><span class="chip chip-blue">{{ v.prix }} TND</span></td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr class="empty-row"><td colspan="3">Aucun voyage</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  {# ════ USERS ════ #}
+  <div class="page-content" id="page-users">
+    <div class="section-header">
+      <div class="section-title">👥 Gestion des Utilisateurs</div>
+      <button class="btn btn-primary" onclick="openModal('modal-user-add')">＋ Ajouter Utilisateur</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Nom</th><th>Prénom</th><th>Email</th><th>Téléphone</th><th>Rôle</th><th>Vérifié</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% if users is defined and users|length > 0 %}
+            {% for u in users %}
+              <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.nom ?? '—' }}</td>
+                <td>{{ u.prenom ?? '—' }}</td>
+                <td>{{ u.email }}</td>
+                <td>{{ u.telephone ?? '—' }}</td>
+                <td>{% if 'ROLE_ADMIN' in u.roles %}<span class="chip chip-blue">Admin</span>{% else %}<span class="chip chip-purple">Client</span>{% endif %}</td>
+                <td>{% if u.isVerified() %}<span class="chip chip-green">✓ Vérifié</span>{% else %}<span class="chip chip-red">✗ Non vérifié</span>{% endif %}</td>
+                <td>
+                  <div class="td-actions">
+                    <button class="btn btn-secondary btn-sm" onclick="openEditUser({{ u.id }},'{{ u.nom|e('js') }}','{{ u.prenom|e('js') }}','{{ u.email|e('js') }}','{{ u.telephone|e('js') }}')">✏️</button>
+                    <form method="post" action="{{ path('user_delete',{id:u.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer cet utilisateur ?')">
+                      <input type="hidden" name="_token" value="{{ csrf_token('delete-user-'~u.id) }}">
+                      <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="8">Aucun utilisateur trouvé</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-                    <td style="padding:12px; color:#94a3b8; font-size:13px;">{{ doc.idDocument }}</td>
+  {# ════ VOYAGE & DESTINATION ════ #}
+  <div class="page-content" id="page-voyage">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('voyage','voyages',this)">🗺️ Voyages</div>
+      <div class="tab" onclick="switchTab('voyage','destinations',this)">📍 Destinations</div>
+    </div>
 
-                    <td style="padding:12px; color:#1a2744; font-weight:600;">{{ doc.nomDocument }}</td>
-
-                    <td style="padding:12px;">
-                        <span style="background:#dbeafe; color:#2563eb; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">
-                            {{ doc.categorie ? doc.categorie.libelle : 'N/A' }}
-                        </span>
-                    </td>
-
-                    {# Colonne Utilisateur — actuellement vide, active après merge #}
-                    <td style="padding:12px;">
-                        {# TODO after merge — remplacez par : {{ doc.user ? doc.user.email : 'N/A' }} #}
-                        <span style="background:#f1f5f9; color:#94a3b8; padding:4px 10px; border-radius:20px; font-size:11px;">
-                            🔒 Après intégration
-                        </span>
-                    </td>
-
-                    <td style="padding:12px; color:#64748b; font-size:13px;">
-                        {{ doc.dateAjout ? doc.dateAjout|date('d/m/Y') : 'N/A' }}
-                    </td>
-
-                    <td style="padding:12px; font-size:13px;
-                        {% if doc.dateExpiration and doc.dateExpiration < date() %}
-                            color:#ef4444; font-weight:bold;
-                        {% else %}
-                            color:#22c55e;
-                        {% endif %}">
-                        {{ doc.dateExpiration ? doc.dateExpiration|date('d/m/Y') : 'N/A' }}
-                    </td>
-
-                    <td style="padding:12px;">
-                        {% if doc.cheminFichier and doc.cheminFichier != 'aucun_fichier' %}
-                            {% if doc.cheminFichier starts with 'http' %}
-                                <a href="{{ doc.cheminFichier }}" target="_blank"
-                                   style="color:#2563eb; font-size:13px;">🔗 Voir</a>
-                            {% else %}
-                                <span style="color:#94a3b8; font-size:12px;">📎 {{ doc.cheminFichier|slice(0,20) }}...</span>
-                            {% endif %}
-                        {% else %}
-                            <span style="color:#cbd5e1; font-size:12px;">Aucun</span>
-                        {% endif %}
-                    </td>
-
-                    <td style="padding:12px;">
-                        {% if doc.dateExpiration and doc.dateExpiration < date() %}
-                            <span style="background:#fee2e2; color:#ef4444; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">❌ Expiré</span>
-                        {% else %}
-                            <span style="background:#dcfce7; color:#16a34a; padding:4px 10px; border-radius:20px; font-size:12px; font-weight:bold;">✅ Valide</span>
-                        {% endif %}
-                    </td>
-
-                    <td style="padding:12px;">
-                        <div style="display:flex; gap:6px;">
-                            {# Bouton Voir — toujours disponible pour l'admin #}
-                            <a href="{{ path('app_document_crud_show', {'idDocument': doc.idDocument}) }}"
-                               style="background:#2563eb; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;">
-                                👁
-                            </a>
-
-                            {# TODO after merge — bloquez ces boutons pour l'admin #}
-                            {# Remplacez par : #}
-                            {# {% if not is_granted('ROLE_ADMIN') %} #}
-                            <a href="{{ path('app_document_crud_edit', {'idDocument': doc.idDocument}) }}"
-                               style="background:#f59e0b; color:white; padding:5px 10px; border-radius:8px; text-decoration:none; font-size:12px;"
-                               title="Désactivé pour admin après intégration">
-                                ✏️
-                            </a>
-                            <form method="post"
-                                  action="{{ path('app_document_crud_delete', {'idDocument': doc.idDocument}) }}"
-                                  onsubmit="return confirm('Supprimer ce document ?')"
-                                  style="display:inline">
-                                <input type="hidden" name="_token"
-                                       value="{{ csrf_token('delete' ~ doc.idDocument) }}">
-                                <button style="background:#ef4444; color:white; border:none; padding:5px 10px; border-radius:8px; cursor:pointer; font-size:12px;"
-                                        title="Désactivé pour admin après intégration">
-                                    🗑
-                                </button>
-                            </form>
-                            {# {% endif %} #}
-                        </div>
-                    </td>
-
-                </tr>
-                {% else %}
+    <div id="voyage-tab-voyages">
+      <div class="section-header">
+        <div class="section-title">Gestion des Voyages</div>
+        <div class="btn-group">
+          <button onclick="exportCSV()" class="btn btn-secondary">📊 CSV</button>
+          <button onclick="printTable()" class="btn btn-secondary">🖨️ Print</button>
+          <button class="btn btn-primary" onclick="openModal('modal-voyage-add')">＋ Ajouter</button>
+        </div>
+      </div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-num">{{ voyages is defined ? voyages|length : 0 }}</div>
+          <div class="stat-label">Total voyages</div>
+        </div>
+        <div class="stat-card">
+          {% set totalPlaces = 0 %}
+          {% if voyages is defined %}{% for v in voyages %}{% set totalPlaces = totalPlaces + v.nbPlaces %}{% endfor %}{% endif %}
+          <div class="stat-num">{{ totalPlaces }}</div>
+          <div class="stat-label">Places totales</div>
+        </div>
+        <div class="stat-card">
+          {% set totalRevenu = 0 %}
+          {% if voyages is defined %}{% for v in voyages %}{% set totalRevenu = totalRevenu + v.prix %}{% endfor %}{% endif %}
+          <div class="stat-num">{{ totalRevenu|number_format(0) }}</div>
+          <div class="stat-label">Revenu potentiel (TND)</div>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table id="voyagesTable">
+          <thead><tr><th>#</th><th>Titre</th><th>Destination</th><th>Prix</th><th>Places</th><th>Dates</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if voyages is defined %}
+              {% for v in voyages %}
+                {% set today = 'now'|date('Y-m-d') %}
+                {% set debut = v.dateDebut ? v.dateDebut|date('Y-m-d') : null %}
+                {% set fin   = v.dateFin   ? v.dateFin|date('Y-m-d')   : null %}
+                {% if today < debut %}{% set status='À venir'  %}{% set col='chip-blue'  %}
+                {% elseif today > fin %}{% set status='Terminé' %}{% set col='chip-red'   %}
+                {% else %}{% set status='En cours' %}{% set col='chip-green' %}{% endif %}
                 <tr>
-                    <td colspan="9" style="padding:30px; text-align:center; color:#94a3b8;">
-                        Aucun document
-                    </td>
+                  <td>{{ v.id }}</td>
+                  <td><strong>{{ v.titre }}</strong></td>
+                  <td>{{ v.idDestination ? v.idDestination.pays : '—' }}</td>
+                  <td><strong>{{ v.prix }} TND</strong></td>
+                  <td>{{ v.nbPlaces }}</td>
+                  <td style="font-size:12px;color:var(--muted)">{{ v.dateDebut ? v.dateDebut|date('d/m/Y') : '—' }}<br>→ {{ v.dateFin ? v.dateFin|date('d/m/Y') : '—' }}</td>
+                  <td><span class="chip {{ col }}">{{ status }}</span></td>
+                  <td class="td-actions">
+                    <button onclick="openEditVoyage({{ v.id }},'{{ v.titre|e('js') }}',{{ v.prix }},'{{ v.description|e('js') }}','{{ v.dateDebut ? v.dateDebut|date('Y-m-d') : '' }}','{{ v.dateFin ? v.dateFin|date('Y-m-d') : '' }}',{{ v.nbPlaces }},'{{ v.idDestination ? v.idDestination.id : '' }}')" class="btn btn-secondary btn-sm">✏️</button>
+                    <a href="{{ path('app_voyage_pdf',{id:v.id}) }}" target="_blank" class="btn btn-success btn-sm">📄</a>
+                    <button onclick="showAdminQR('{{ v.titre|e('js') }}','{{ path('app_voyage_show',{id:v.id}) }}')" class="btn btn-secondary btn-sm">QR</button>
+                    <form method="post" action="{{ path('admin_voyage_delete',{id:v.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ce voyage ?')">
+                      <button class="btn btn-danger btn-sm">🗑️</button>
+                    </form>
+                  </td>
                 </tr>
-                {% endfor %}
-            </tbody>
+              {% endfor %}
+            {% endif %}
+          </tbody>
         </table>
+      </div>
     </div>
+
+    <div id="voyage-tab-destinations" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Gestion des Destinations</div>
+        <div class="btn-group">
+          <button class="btn btn-warning" onclick="loadDestinationsAPI()">🌍 Enrichir via API</button>
+          <button class="btn btn-primary" onclick="openModal('modal-destination-add')">＋ Ajouter</button>
+        </div>
+      </div>
+      <div class="api-banner">
+        <div class="api-dot"></div>
+        <div>Cliquez sur <strong>Enrichir via API</strong> pour charger les données pays depuis <strong>RestCountries API</strong> (capitale, population, monnaie, drapeau, langue)</div>
+      </div>
+      <div class="section-header"><div class="section-title">🌤️ Météo Destinations</div></div>
+    <div class="weather-row" id="weatherRow">
+      {% if destinations is defined %}
+        {% for d in destinations|slice(0,4) %}
+          <div class="weather-card" data-city="{{ d.ville ?? d.pays }}">
+            <div class="weather-icon" id="wi-{{ loop.index }}">⏳</div>
+            <div class="weather-temp" id="wt-{{ loop.index }}">…</div>
+            <div class="weather-city">{{ d.ville ?? d.pays }}</div>
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+      <div class="dest-api-grid" id="destApiGrid" style="display:none"></div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Pays</th><th>Ville</th><th>Continent</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% for d in destinations %}
+              <tr>
+                <td>{{ d.id }}</td>
+                <td>{{ d.pays }}</td>
+                <td>{{ d.ville }}</td>
+                <td><span class="chip chip-blue">{{ d.continent }}</span></td>
+                <td class="td-actions">
+                  <button onclick="openEditDestination({{ d.id }},'{{ d.pays|e('js') }}','{{ d.ville|e('js') }}','{{ d.continent|e('js') }}')" class="btn btn-secondary btn-sm">✏️</button>
+                  <form method="post" action="{{ path('admin_destination_delete',{id:d.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                    <button class="btn btn-danger btn-sm">🗑️</button>
+                  </form>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {# ════ ACTIVITE & PLANNING ════ #}
+  <div class="page-content" id="page-activite">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('activite','activites',this)">🎯 Activités</div>
+      <div class="tab" onclick="switchTab('activite','plannings',this)">📆 Planning</div>
+    </div>
+
+    <div id="activite-tab-activites">
+      <div class="section-header">
+        <div class="section-title">Gestion des Activités</div>
+        <button class="btn btn-primary" onclick="openModal('modal-activite-add')">＋ Ajouter Activité</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nom</th><th>Catégorie</th><th>Lieu</th><th>Prix</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if activites is defined and activites|length > 0 %}
+              {% for a in activites %}
+                <tr>
+                  <td>{{ a.idActivite }}</td>
+                  <td><strong>{{ a.nom ?? '—' }}</strong></td>
+                  <td><span class="chip chip-teal">{{ a.categorie ?? '—' }}</span></td>
+                  <td>{{ a.lieu ?? '—' }}</td>
+                  <td>{{ a.prix is not null ? a.prix~' TND' : '—' }}</td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditActivite({{ a.idActivite }},'{{ a.nom|e('js') }}','{{ a.description|e('js') }}','{{ a.categorie|e('js') }}','{{ a.lieu|e('js') }}',{{ a.prix ?? 0 }})" class="btn btn-secondary btn-sm">✏️</button>
+                      <a href="{{ path('app_activite_delete',{id:a.idActivite}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ?')">🗑️</a>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="6">Aucune activité trouvée</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="activite-tab-plannings" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Gestion du Planning</div>
+        <button class="btn btn-primary" onclick="openModal('modal-planning-add')">＋ Ajouter Planning</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Activité</th><th>Date</th><th>Heure début</th><th>Durée (min)</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% set hasPlanning = false %}
+            {% if activites is defined %}
+              {% for a in activites %}
+                {% if a.plannings is defined %}
+                  {% for p in a.plannings %}
+                    {% set hasPlanning = true %}
+                    <tr>
+                      <td>{{ p.idPlanning }}</td>
+                      <td><span class="chip chip-teal">{{ a.nom ?? '—' }}</span></td>
+                      <td>{{ p.dateActivite ? p.dateActivite|date('d/m/Y') : '—' }}</td>
+                      <td>{{ p.heureDebut ?? '—' }}</td>
+                      <td>{{ p.duree ?? '—' }}</td>
+                      <td>
+                        <div class="td-actions">
+                          <button onclick="openEditPlanning({{ p.idPlanning }},{{ a.idActivite }},'{{ p.dateActivite ? p.dateActivite|date('Y-m-d') : '' }}','{{ p.heureDebut|e('js') }}',{{ p.duree ?? 0 }})" class="btn btn-secondary btn-sm">✏️</button>
+                          <a href="{{ path('admin_planning_delete',{id:p.idPlanning}) }}" class="btn btn-danger btn-sm" onclick="return confirm('Supprimer ?')">🗑️</a>
+                        </div>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% if not hasPlanning %}
+              <tr class="empty-row"><td colspan="6">Aucun planning trouvé</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# ════ DOCUMENT & CATEGORIE ════ #}
+  <div class="page-content" id="page-document">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('document','documents',this)">📄 Documents</div>
+      <div class="tab" onclick="switchTab('document','categories',this)">🏷️ Catégories</div>
+    </div>
+
+    <div id="document-tab-documents">
+      <div class="section-header">
+        <div class="section-title">Gestion des Documents</div>
+        <button class="btn btn-primary" onclick="openModal('modal-document-add')">＋ Ajouter Document</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Nom</th><th>Catégorie</th><th>Date ajout</th><th>Expiration</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if allDocuments is defined and allDocuments|length > 0 %}
+              {% for doc in allDocuments %}
+                <tr>
+                  <td>{{ doc.idDocument }}</td>
+                  <td>📎 {{ doc.nomDocument }}</td>
+                  <td>{% if doc.categorie %}<span class="chip chip-blue">{{ doc.categorie.libelle }}</span>{% else %}<span class="chip chip-purple">Sans catégorie</span>{% endif %}</td>
+                  <td>{{ doc.dateAjout is not null ? doc.dateAjout|date('d/m/Y') : '—' }}</td>
+                  <td>{{ doc.dateExpiration is not null ? doc.dateExpiration|date('d/m/Y') : '—' }}</td>
+                  <td>{% if doc.dateExpiration is not null and doc.dateExpiration < date() %}<span class="chip chip-red">Expiré</span>{% else %}<span class="chip chip-green">Valide</span>{% endif %}</td>
+                  <td>
+                    <div class="td-actions">
+                      {% if doc.cheminFichier and doc.cheminFichier != 'aucun_fichier' %}
+                        <a href="{{ doc.cheminFichier }}" target="_blank" class="btn btn-success btn-sm">👁️</a>
+                      {% endif %}
+                      <button onclick="openEditDocument({{ doc.idDocument }},'{{ doc.nomDocument|e('js') }}','{{ doc.dateExpiration ? doc.dateExpiration|date('Y-m-d') : '' }}',{{ doc.categorie ? doc.categorie.idCategorie : 'null' }})" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_document_crud_delete',{idDocument:doc.idDocument}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-doc-'~doc.idDocument) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="7">Aucun document trouvé</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="document-tab-categories" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Catégories de Documents</div>
+        <button class="btn btn-primary" onclick="openModal('modal-categorie-add')">＋ Ajouter Catégorie</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Libellé</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if categories is defined and categories|length > 0 %}
+              {% for cat in categories %}
+                <tr>
+                  <td>{{ cat.idCategorie }}</td>
+                  <td><strong>{{ cat.libelle }}</strong></td>
+                  <td style="color:var(--muted);font-size:13px">{{ cat.description ?? '—' }}</td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditCategorie({{ cat.idCategorie }},'{{ cat.libelle|e('js') }}','{{ cat.description|e('js') }}')" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_categorie_document_delete',{idCategorie:cat.idCategorie}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-cat-'~cat.idCategorie) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="4">Aucune catégorie trouvée</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {# ════ RESERVATION & PAIEMENT ════ #}
+  <div class="page-content" id="page-reservation">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('reservation','reservations',this)">📅 Réservations</div>
+      <div class="tab" onclick="switchTab('reservation','paiements',this)">💳 Paiements</div>
+    </div>
+
+    <div id="reservation-tab-reservations">
+      <div class="section-header">
+        <div class="section-title">Gestion des Réservations</div>
+        <button class="btn btn-primary" onclick="openModal('modal-reservation-add')">＋ Ajouter Réservation</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Utilisateur</th><th>Voyage</th><th>Date</th><th>Personnes</th><th>Total</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if reservations is defined and reservations|length > 0 %}
+              {% for r in reservations %}
+                <tr>
+                  <td>{{ r.id }}</td>
+                  <td>#{{ r.utilisateurId }}</td>
+                  <td>#{{ r.voyageId }}</td>
+                  <td>{{ r.dateReservation ? r.dateReservation|date('d/m/Y') : '—' }}</td>
+                  <td>{{ r.nbPersonnes ?? '—' }}</td>
+                  <td><strong>{{ r.prixTotal is not null ? r.prixTotal~' TND' : '—' }}</strong></td>
+                  <td>
+                    {%- set s = r.statut|lower -%}
+                    {%- if 'confirm' in s %}<span class="chip chip-green">Confirmé</span>
+                    {%- elseif 'attente' in s %}<span class="chip chip-orange">En attente</span>
+                    {%- elseif 'pay' in s %}<span class="chip chip-blue">Payé</span>
+                    {%- elseif 'annul' in s %}<span class="chip chip-red">Annulé</span>
+                    {%- else %}<span class="chip chip-purple">{{ r.statut }}</span>{%- endif %}
+                  </td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditReservation({{ r.id }},'{{ r.statut|e('js') }}',{{ r.nbPersonnes ?? 0 }},{{ r.prixTotal ?? 0 }})" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_admin_reservation_delete',{id:r.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-res-'~r.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="8">Aucune réservation trouvée</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="reservation-tab-paiements" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Gestion des Paiements</div>
+        <button class="btn btn-primary" onclick="openModal('modal-paiement-add')">＋ Ajouter Paiement</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Référence</th><th>Réservation</th><th>Montant</th><th>Méthode</th><th>Date</th><th>Statut</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if payments is defined and payments|length > 0 %}
+              {% for p in payments %}
+                <tr>
+                  <td>{{ p.id }}</td>
+                  <td><code style="font-size:12px;color:var(--accent)">{{ p.reference }}</code></td>
+                  <td>#{{ p.reservationId }}</td>
+                  <td><strong>{{ p.montant }} {{ p.devise }}</strong></td>
+                  <td><span class="chip chip-teal">{{ p.methode }}</span></td>
+                  <td>{{ p.datePaiementObject ? p.datePaiementObject|date('d/m/Y') : '—' }}</td>
+                  <td>
+                    {%- set ps = p.statut|lower -%}
+                    {%- if 'success' in ps or 'succès' in ps or 'complet' in ps %}<span class="chip chip-green">Succès</span>
+                    {%- elseif 'pending' in ps or 'attente' in ps %}<span class="chip chip-orange">En attente</span>
+                    {%- elseif 'fail' in ps or 'echec' in ps or 'échoué' in ps %}<span class="chip chip-red">Échoué</span>
+                    {%- elseif 'refund' in ps or 'rembours' in ps %}<span class="chip chip-purple">Remboursé</span>
+                    {%- else %}<span class="chip chip-blue">{{ p.statut }}</span>{%- endif %}
+                  </td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditPaiement({{ p.id }},'{{ p.reference|e('js') }}',{{ p.montant }},'{{ p.methode|e('js') }}','{{ p.statut|e('js') }}')" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_admin_payment_delete',{id:p.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-pay-'~p.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="8">Aucun paiement trouvé</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# ════ SERVICE & OFFRE ════ #}
+  <div class="page-content" id="page-service">
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('service','services',this)">💼 Services</div>
+      <div class="tab" onclick="switchTab('service','offres',this)">🎁 Offres</div>
+    </div>
+    <div id="service-tab-services">
+      <div class="section-header">
+        <div class="section-title">Tous les Services</div>
+        <button class="btn btn-primary" onclick="openModal('modal-service-add')">＋ Ajouter Service</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titre</th><th>Description</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if services is defined and services|length > 0 %}
+              {% for s in services %}
+                <tr>
+                  <td>{{ s.id }}</td>
+                  <td><strong>{{ s.titre ?? s.nomService ?? '—' }}</strong></td>
+                  <td style="max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)">{{ s.description ?? '—' }}</td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditService({{ s.id }},'{{ (s.titre ?? s.nomService ?? '')|e('js') }}','{{ s.description|e('js') }}')" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_service_delete',{id:s.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-svc-'~s.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="4">Aucun service trouvé</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div id="service-tab-offres" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Toutes les Offres</div>
+        <button class="btn btn-primary" onclick="openModal('modal-offre-add')">＋ Ajouter Offre</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>#</th><th>Titre</th><th>Prix</th><th>Durée</th><th>Actions</th></tr></thead>
+          <tbody>
+            {% if offres is defined and offres|length > 0 %}
+              {% for o in offres %}
+                <tr>
+                  <td>{{ o.id }}</td>
+                  <td><strong>{{ o.titre ?? '—' }}</strong></td>
+                  <td>{{ o.prix is not null ? o.prix~' TND' : '—' }}</td>
+                  <td>{{ o.duree is not null ? o.duree~' j' : '—' }}</td>
+                  <td>
+                    <div class="td-actions">
+                      <button onclick="openEditOffre({{ o.id }},'{{ o.titre|e('js') }}',{{ o.prix ?? 0 }},{{ o.duree ?? 0 }})" class="btn btn-secondary btn-sm">✏️</button>
+                      <form method="post" action="{{ path('app_offre_delete',{id:o.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete-offre-'~o.id) }}">
+                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr class="empty-row"><td colspan="5">Aucune offre trouvée</td></tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  {# ════ DEPENSE ════ #}
+  {#
+  <div class="page-content" id="page-depense">
+    <div class="section-header">
+      <div class="section-title">💰 Gestion des Dépenses</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Libellé</th><th>Catégorie</th><th>Montant</th><th>Date</th></tr></thead>
+        <tbody>
+          {% if depenses is defined and depenses|length > 0 %}
+            {% for dep in depenses %}
+              <tr>
+                <td>{{ dep.id }}</td>
+                <td>{{ dep.libelle ?? dep.description ?? '—' }}</td>
+                <td><span class="chip chip-orange">{{ dep.categorie ?? '—' }}</span></td>
+                <td><strong>{{ dep.montant is not null ? dep.montant~' TND' : '—' }}</strong></td>
+                <td>{{ dep.date is not null ? dep.date|date('d/m/Y') : '—' }}</td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="5">Aucune dépense trouvée</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+#}{# /main #}
+{# ══════════ MODALS ADD ══════════ #}
+
+{# ADD USER #}
+<div class="modal-overlay" id="modal-user-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👤 Ajouter un Utilisateur</div>
+      <button class="modal-close" onclick="closeModal('modal-user-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('user_new') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('user_new') }}">
+      <div class="form-grid">
+        <div class="form-group"><label>Nom</label><input type="text" name="user[nom]" placeholder="Dupont" required></div>
+        <div class="form-group"><label>Prénom</label><input type="text" name="user[prenom]" placeholder="Jean" required></div>
+        <div class="form-group full"><label>Email</label><input type="email" name="user[email]" placeholder="jean@example.com" required></div>
+        <div class="form-group"><label>Mot de passe</label><input type="password" name="user[password]" placeholder="••••••••" required></div>
+        <div class="form-group"><label>Téléphone</label><input type="text" name="user[telephone]" placeholder="+216 …"></div>
+        <div class="form-group full"><label>Rôle</label>
+          <select name="user[role]"><option value="ROLE_USER">Client</option><option value="ROLE_ADMIN">Administrateur</option></select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-user-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-{% endblock %}
+{# EDIT USER #}
+<div class="modal-overlay" id="modal-user-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier Utilisateur</div>
+      <button class="modal-close" onclick="closeModal('modal-user-edit')">✕</button>
+    </div>
+    <form method="post" id="formUserEdit">
+      <div class="form-grid">
+        <div class="form-group"><label>Nom</label><input type="text" name="user[nom]" id="editUserNom" required></div>
+        <div class="form-group"><label>Prénom</label><input type="text" name="user[prenom]" id="editUserPrenom" required></div>
+        <div class="form-group full"><label>Email</label><input type="email" name="user[email]" id="editUserEmail" required></div>
+        <div class="form-group full"><label>Téléphone</label><input type="text" name="user[telephone]" id="editUserTel"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-user-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
 
-{% block javascripts %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-{{ parent() }}
+{# ADD VOYAGE #}
+<div class="modal-overlay" id="modal-voyage-add">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">🗺️ Ajouter un Voyage</div>
+      <button class="modal-close" onclick="closeModal('modal-voyage-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('admin_voyage_new') }}" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="voyage_type[titre]" placeholder="Ex: Paris Ville Lumière" required></div>
+        <div class="form-group"><label>Prix (TND)</label><input type="number" name="voyage_type[prix][amount]" step="0.01" placeholder="0.00" min="0" required></div>
+        <div class="form-group"><label>Nb places</label><input type="number" name="voyage_type[nbPlaces]" placeholder="20" min="1" required></div>
+        <div class="form-group"><label>Date début</label><input type="date" name="voyage_type[dateDebut]" required></div>
+        <div class="form-group"><label>Date fin</label><input type="date" name="voyage_type[dateFin]" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="voyage_type[description]" placeholder="Décrivez votre voyage…" required></textarea></div>
+        <div class="form-group full"><label>Image (URL)</label><input type="text" name="voyage_type[image]" placeholder="https://images.unsplash.com/…"></div>
+        <div class="form-group full"><label>Destination</label>
+          <select name="voyage_type[idDestination]" required>
+            <option value="">— Choisir —</option>
+            {% if destinations is defined %}{% for d in destinations %}<option value="{{ d.id }}">{{ d.pays }}{% if d.ville %} — {{ d.ville }}{% endif %}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-voyage-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT VOYAGE #}
+<div class="modal-overlay" id="modal-voyage-edit">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier un Voyage</div>
+      <button class="modal-close" onclick="closeModal('modal-voyage-edit')">✕</button>
+    </div>
+    <form method="post" id="formVoyageEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="voyage_type[titre]" id="editVoyageTitre" required></div>
+        <div class="form-group"><label>Prix (TND)</label><input type="number" name="voyage_type[prix][amount]" id="editVoyagePrix" step="0.01" min="0" required></div>
+        <div class="form-group"><label>Nb places</label><input type="number" name="voyage_type[nbPlaces]" id="editVoyagePlaces" min="1" required></div>
+        <div class="form-group"><label>Date début</label><input type="date" name="voyage_type[dateDebut]" id="editVoyageDebut" required></div>
+        <div class="form-group"><label>Date fin</label><input type="date" name="voyage_type[dateFin]" id="editVoyageFin" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="voyage_type[description]" id="editVoyageDesc" required></textarea></div>
+        <div class="form-group full"><label>Destination</label>
+          <select name="voyage_type[idDestination]" id="editVoyageDest" required>
+            <option value="">— Choisir —</option>
+            {% if destinations is defined %}{% for d in destinations %}<option value="{{ d.id }}">{{ d.pays }}{% if d.ville %} — {{ d.ville }}{% endif %}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-voyage-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD DESTINATION #}
+<div class="modal-overlay" id="modal-destination-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📍 Ajouter une Destination</div>
+      <button class="modal-close" onclick="closeModal('modal-destination-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('admin_destination_new') }}" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="form-group"><label>Pays</label><input type="text" name="destination_type[pays]" placeholder="Ex: France" required></div>
+        <div class="form-group"><label>Ville</label><input type="text" name="destination_type[ville]" placeholder="Ex: Paris" required></div>
+        <div class="form-group"><label>Continent</label><input type="text" name="destination_type[continent]" placeholder="Ex: Europe" required></div>
+        <div class="form-group"><label>Image (URL)</label><input type="text" name="destination_type[image]" placeholder="https://…"></div>
+        <div class="form-group full"><label>Description</label><textarea name="destination_type[description]" placeholder="Description de la destination…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-destination-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT DESTINATION #}
+<div class="modal-overlay" id="modal-destination-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier une Destination</div>
+      <button class="modal-close" onclick="closeModal('modal-destination-edit')">✕</button>
+    </div>
+    <form method="post" id="formDestEdit">
+      <div class="form-grid">
+        <div class="form-group"><label>Pays</label><input type="text" name="destination_type[pays]" id="editDestPays" required></div>
+        <div class="form-group"><label>Ville</label><input type="text" name="destination_type[ville]" id="editDestVille" required></div>
+        <div class="form-group full"><label>Continent</label><input type="text" name="destination_type[continent]" id="editDestContinent" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-destination-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD ACTIVITE #}
+<div class="modal-overlay" id="modal-activite-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎯 Ajouter une Activité</div>
+      <button class="modal-close" onclick="closeModal('modal-activite-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_activite_add') }}" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="form-group full"><label>Nom</label><input type="text" name="activite_type[nom]" placeholder="Ex: Randonnée en montagne" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="activite_type[description]" placeholder="Décrivez l'activité…"></textarea></div>
+        <div class="form-group"><label>Catégorie</label><input type="text" name="activite_type[categorie]" placeholder="Sport, Culture…" required></div>
+        <div class="form-group"><label>Lieu</label><input type="text" name="activite_type[lieu]" placeholder="Tunis, Hammamet…" required></div>
+        <div class="form-group"><label>Prix (TND)</label><input type="number" name="activite_type[prix]" step="0.01" placeholder="50.00" min="0" required></div>
+        <div class="form-group"><label>Photo</label><input type="file" name="activite_type[image]" accept="image/*"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-activite-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT ACTIVITE #}
+<div class="modal-overlay" id="modal-activite-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier une Activité</div>
+      <button class="modal-close" onclick="closeModal('modal-activite-edit')">✕</button>
+    </div>
+    <form method="post" id="formActiviteEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Nom</label><input type="text" name="activite_type[nom]" id="editActiviteNom" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="activite_type[description]" id="editActiviteDesc"></textarea></div>
+        <div class="form-group"><label>Catégorie</label><input type="text" name="activite_type[categorie]" id="editActiviteCat" required></div>
+        <div class="form-group"><label>Lieu</label><input type="text" name="activite_type[lieu]" id="editActiviteLieu" required></div>
+        <div class="form-group full"><label>Prix (TND)</label><input type="number" name="activite_type[prix]" id="editActivitePrix" step="0.01" min="0" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-activite-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD PLANNING #}
+<div class="modal-overlay" id="modal-planning-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📆 Ajouter un Planning</div>
+      <button class="modal-close" onclick="closeModal('modal-planning-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('admin_planning_add') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Activité</label>
+          <select name="planning[idActivite]" required>
+            <option value="">— Choisir une activité —</option>
+            {% if activites is defined %}{% for a in activites %}<option value="{{ a.idActivite }}">{{ a.nom }}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" name="planning[dateActivite]" required></div>
+        <div class="form-group"><label>Heure début (HH:MM)</label><input type="text" name="planning[heureDebut]" placeholder="09:00" pattern="\d{2}:\d{2}" required></div>
+        <div class="form-group full"><label>Durée (minutes)</label><input type="number" name="planning[duree]" placeholder="60" min="1" max="480" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-planning-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT PLANNING #}
+<div class="modal-overlay" id="modal-planning-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier un Planning</div>
+      <button class="modal-close" onclick="closeModal('modal-planning-edit')">✕</button>
+    </div>
+    <form method="post" id="formPlanningEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Activité</label>
+          <select name="planning[idActivite]" id="editPlanningActivite" required>
+            <option value="">— Choisir —</option>
+            {% if activites is defined %}{% for a in activites %}<option value="{{ a.idActivite }}">{{ a.nom }}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+        <div class="form-group"><label>Date</label><input type="date" name="planning[dateActivite]" id="editPlanningDate" required></div>
+        <div class="form-group"><label>Heure début</label><input type="text" name="planning[heureDebut]" id="editPlanningHeure" pattern="\d{2}:\d{2}" required></div>
+        <div class="form-group full"><label>Durée (min)</label><input type="number" name="planning[duree]" id="editPlanningDuree" min="1" max="480" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-planning-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+{# ADD DOCUMENT #}
+<div class="modal-overlay" id="modal-document-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📄 Ajouter un Document</div>
+      <button class="modal-close" onclick="closeModal('modal-document-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_admin_document_new') }}" enctype="multipart/form-data">
+      <div class="form-grid">
+        <div class="form-group full"><label>Nom du document</label><input type="text" name="document_crud[nomDocument]" placeholder="Ex: Passeport 2025" required></div>
+        <div class="form-group full"><label>Fichier</label><input type="file" name="document_crud[fichier]" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx"></div>
+        <div class="form-group"><label>Date d'ajout</label><input type="date" name="document_crud[dateAjout]" required></div>
+        <div class="form-group"><label>Date d'expiration</label><input type="date" name="document_crud[dateExpiration]"></div>
+        <div class="form-group full"><label>Catégorie</label>
+          <select name="document_crud[categorie]">
+            <option value="">— Sans catégorie (IA détecte automatiquement) —</option>
+            {% if categories is defined %}{% for cat in categories %}<option value="{{ cat.idCategorie }}">{{ cat.libelle }}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-document-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT DOCUMENT #}
+<div class="modal-overlay" id="modal-document-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier un Document</div>
+      <button class="modal-close" onclick="closeModal('modal-document-edit')">✕</button>
+    </div>
+    <form method="post" id="formDocumentEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Nom du document</label><input type="text" name="document_crud[nomDocument]" id="editDocNom" required></div>
+        <div class="form-group"><label>Date d'expiration</label><input type="date" name="document_crud[dateExpiration]" id="editDocExpiration"></div>
+        <div class="form-group"><label>Catégorie</label>
+          <select name="document_crud[categorie]" id="editDocCategorie">
+            <option value="">— Sans catégorie —</option>
+            {% if categories is defined %}{% for cat in categories %}<option value="{{ cat.idCategorie }}">{{ cat.libelle }}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-document-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD CATEGORIE DOCUMENT #}
+<div class="modal-overlay" id="modal-categorie-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🏷️ Ajouter une Catégorie</div>
+      <button class="modal-close" onclick="closeModal('modal-categorie-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_categorie_document_new') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Libellé</label><input type="text" name="categorie_document[libelle]" placeholder="Ex: Passeports" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="categorie_document[description]" placeholder="Description de la catégorie…"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-categorie-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT CATEGORIE DOCUMENT #}
+<div class="modal-overlay" id="modal-categorie-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier une Catégorie</div>
+      <button class="modal-close" onclick="closeModal('modal-categorie-edit')">✕</button>
+    </div>
+    <form method="post" id="formCategorieEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Libellé</label><input type="text" name="categorie_document[libelle]" id="editCatLibelle" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="categorie_document[description]" id="editCatDesc"></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-categorie-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD RESERVATION #}
+<div class="modal-overlay" id="modal-reservation-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📅 Ajouter une Réservation</div>
+      <button class="modal-close" onclick="closeModal('modal-reservation-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_admin_reservations') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('reservation_new') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Voyage</label>
+          <select name="reservation[voyageId]" required>
+            <option value="">— Choisir un voyage —</option>
+            {% if voyages is defined %}{% for v in voyages %}<option value="{{ v.id }}">{{ v.titre }} ({{ v.prix }} TND)</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+        <div class="form-group full"><label>ID Utilisateur</label><input type="number" name="reservation[utilisateurId]" placeholder="Ex: 5" required></div>
+        <div class="form-group"><label>Date</label><input type="date" name="reservation[dateReservation]" required></div>
+        <div class="form-group"><label>Nb personnes</label><input type="number" name="reservation[nbPersonnes]" placeholder="2" min="1" required></div>
+        <div class="form-group"><label>Prix total (TND)</label><input type="number" name="reservation[prixTotal]" step="0.01" placeholder="0.00" min="0"></div>
+        <div class="form-group"><label>Statut</label>
+          <select name="reservation[statut]">
+            <option value="En attente">En attente</option>
+            <option value="Confirmé">Confirmé</option>
+            <option value="Payé">Payé</option>
+            <option value="Annulé">Annulé</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reservation-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT RESERVATION #}
+<div class="modal-overlay" id="modal-reservation-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier une Réservation</div>
+      <button class="modal-close" onclick="closeModal('modal-reservation-edit')">✕</button>
+    </div>
+    <form method="post" id="formReservationEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Statut</label>
+          <select name="reservation[statut]" id="editResStatut">
+            <option value="En attente">En attente</option>
+            <option value="Confirmé">Confirmé</option>
+            <option value="Payé">Payé</option>
+            <option value="Annulé">Annulé</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Nb personnes</label><input type="number" name="reservation[nbPersonnes]" id="editResPersonnes" min="1" required></div>
+        <div class="form-group"><label>Prix total (TND)</label><input type="number" name="reservation[prixTotal]" id="editResPrix" step="0.01" min="0"></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-reservation-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD PAIEMENT #}
+<div class="modal-overlay" id="modal-paiement-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💳 Ajouter un Paiement</div>
+      <button class="modal-close" onclick="closeModal('modal-paiement-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_admin_payments') }}">
+      <input type="hidden" name="_token" value="{{ csrf_token('paiement_new') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Référence</label><input type="text" name="paiement[reference]" placeholder="PAY-2025-001" required></div>
+        <div class="form-group full"><label>ID Réservation</label><input type="number" name="paiement[reservationId]" placeholder="Ex: 3" required></div>
+        <div class="form-group"><label>Montant</label><input type="number" name="paiement[montant]" step="0.01" placeholder="0.00" min="0" required></div>
+        <div class="form-group"><label>Devise</label>
+          <select name="paiement[devise]"><option value="TND">TND</option><option value="EUR">EUR</option><option value="USD">USD</option></select>
+        </div>
+        <div class="form-group"><label>Méthode</label>
+          <select name="paiement[methode]">
+            <option value="Virement">Virement</option>
+            <option value="Carte">Carte bancaire</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Stripe">Stripe</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Statut</label>
+          <select name="paiement[statut]">
+            <option value="En attente">En attente</option>
+            <option value="Succès">Succès</option>
+            <option value="Échoué">Échoué</option>
+            <option value="Remboursé">Remboursé</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Date paiement</label><input type="date" name="paiement[datePaiement]" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-paiement-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT PAIEMENT #}
+<div class="modal-overlay" id="modal-paiement-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier un Paiement</div>
+      <button class="modal-close" onclick="closeModal('modal-paiement-edit')">✕</button>
+    </div>
+    <form method="post" id="formPaiementEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Référence</label><input type="text" name="paiement[reference]" id="editPayRef" required></div>
+        <div class="form-group"><label>Montant</label><input type="number" name="paiement[montant]" id="editPayMontant" step="0.01" min="0" required></div>
+        <div class="form-group"><label>Méthode</label>
+          <select name="paiement[methode]" id="editPayMethode">
+            <option value="Virement">Virement</option>
+            <option value="Carte">Carte bancaire</option>
+            <option value="Espèces">Espèces</option>
+            <option value="Stripe">Stripe</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Statut</label>
+          <select name="paiement[statut]" id="editPayStatut">
+            <option value="En attente">En attente</option>
+            <option value="Succès">Succès</option>
+            <option value="Échoué">Échoué</option>
+            <option value="Remboursé">Remboursé</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-paiement-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD SERVICE #}
+<div class="modal-overlay" id="modal-service-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">💼 Ajouter un Service</div>
+      <button class="modal-close" onclick="closeModal('modal-service-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_service_new') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="service_type[titre]" placeholder="Ex: Transfer Aéroport" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="service_type[description]" placeholder="Décrivez le service…" required></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-service-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT SERVICE #}
+<div class="modal-overlay" id="modal-service-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier un Service</div>
+      <button class="modal-close" onclick="closeModal('modal-service-edit')">✕</button>
+    </div>
+    <form method="post" id="formServiceEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="service_type[titre]" id="editServiceTitre" required></div>
+        <div class="form-group full"><label>Description</label><textarea name="service_type[description]" id="editServiceDesc" required></textarea></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-service-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# ADD OFFRE #}
+<div class="modal-overlay" id="modal-offre-add">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🎁 Ajouter une Offre</div>
+      <button class="modal-close" onclick="closeModal('modal-offre-add')">✕</button>
+    </div>
+    <form method="post" action="{{ path('app_offre_new') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="offre_type[titre]" placeholder="Ex: Pack Transfer Gold" required></div>
+        <div class="form-group"><label>Prix (TND)</label><input type="number" name="offre_type[prix]" step="0.01" placeholder="120" min="0" required></div>
+        <div class="form-group"><label>Durée (jours)</label><input type="number" name="offre_type[duree]" placeholder="1" min="0" required></div>
+        <div class="form-group full"><label>Service lié</label>
+          <select name="offre_type[service]" required>
+            <option value="">— Choisir —</option>
+            {% if services is defined %}{% for sv in services %}<option value="{{ sv.id }}">{{ sv.titre ?? sv.nomService ?? 'Service #'~sv.id }}</option>{% endfor %}{% endif %}
+          </select>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-offre-add')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{# EDIT OFFRE #}
+<div class="modal-overlay" id="modal-offre-edit">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✏️ Modifier une Offre</div>
+      <button class="modal-close" onclick="closeModal('modal-offre-edit')">✕</button>
+    </div>
+    <form method="post" id="formOffreEdit">
+      <div class="form-grid">
+        <div class="form-group full"><label>Titre</label><input type="text" name="offre_type[titre]" id="editOffreTitre" required></div>
+        <div class="form-group"><label>Prix (TND)</label><input type="number" name="offre_type[prix]" id="editOffrePrix" step="0.01" min="0" required></div>
+        <div class="form-group"><label>Durée (jours)</label><input type="number" name="offre_type[duree]" id="editOffreDuree" min="0" required></div>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-offre-edit')">Annuler</button>
+        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="toast"></div>
 <script>
-    let selectedCategorieId  = null;
-    let selectedCategorieNom = null;
-    let selectedToken        = null;
+function showPage(id, el) {
+  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  const titles = {
+    dashboard:'Dashboard', users:'Utilisateurs', voyage:'Voyages & Destinations',
+    activite:'Activités & Planning', document:'Documents & Catégories',
+    reservation:'Réservations & Paiements', service:'Services & Offres', depense:'Dépenses'
+  };
+  document.getElementById('topbar-title').textContent = titles[id] || id;
+}
 
-    document.addEventListener('DOMContentLoaded', function() {
-        document.querySelectorAll('.cat-item').forEach(item => {
-            item.addEventListener('click', function() {
-                selectedCategorieId  = this.dataset.id;
-                selectedCategorieNom = this.dataset.nom;
-                selectedToken        = this.dataset.token;
-                document.getElementById('categorieInput').value = selectedCategorieNom;
+function switchTab(page, tabId, el) {
+  document.querySelectorAll('[id^="' + page + '-tab-"]').forEach(t => t.style.display = 'none');
+  document.getElementById(page + '-tab-' + tabId).style.display = 'block';
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+}
 
-                document.querySelectorAll('.cat-item').forEach(el => {
-                    el.style.background = 'white';
-                    el.style.color      = '#1a2744';
-                    el.classList.remove('selected');
-                });
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-                this.style.background = '#dbeafe';
-                this.style.color      = '#2563eb';
-                this.classList.add('selected');
-            });
-        });
-    });
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-overlay.open').forEach(o => o.classList.remove('open'));
+});
 
-    function modifierCategorie() {
-        if (!selectedCategorieId) { alert('⚠️ Sélectionnez une catégorie !'); return; }
-        window.location.href = '/categorie/document/' + selectedCategorieId + '/edit';
+function filterTable(q) {
+  const query = q.toLowerCase();
+  const activePage = document.querySelector('.page-content.active');
+  if (!activePage) return;
+  activePage.querySelectorAll('tbody tr:not(.empty-row)').forEach(row => {
+    row.style.display = row.textContent.toLowerCase().includes(query) ? '' : 'none';
+  });
+}
+
+function toast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.flash-success').forEach(f => toast(f.textContent.trim(), 'success'));
+  document.querySelectorAll('.flash-error').forEach(f => toast(f.textContent.trim(), 'error'));
+  loadWeather();
+});
+
+// ── Edit openers ──
+function openEditUser(id, nom, prenom, email, tel) {
+  document.getElementById('editUserNom').value = nom;
+  document.getElementById('editUserPrenom').value = prenom;
+  document.getElementById('editUserEmail').value = email;
+  document.getElementById('editUserTel').value = tel;
+  document.getElementById('formUserEdit').action = '/admin/utilisateurs/' + id + '/edit';
+  openModal('modal-user-edit');
+}
+
+function openEditVoyage(id, titre, prix, desc, debut, fin, places, destId) {
+  document.getElementById('editVoyageTitre').value = titre;
+  document.getElementById('editVoyagePrix').value = prix;
+  document.getElementById('editVoyageDesc').value = desc;
+  document.getElementById('editVoyageDebut').value = debut;
+  document.getElementById('editVoyageFin').value = fin;
+  document.getElementById('editVoyagePlaces').value = places;
+  const sel = document.getElementById('editVoyageDest');
+  if (sel && destId) sel.value = destId;
+  document.getElementById('formVoyageEdit').action = '/admin/voyage/edit/' + id;
+  openModal('modal-voyage-edit');
+}
+
+function openEditDestination(id, pays, ville, continent) {
+  document.getElementById('editDestPays').value = pays;
+  document.getElementById('editDestVille').value = ville;
+  document.getElementById('editDestContinent').value = continent;
+  document.getElementById('formDestEdit').action = '/admin/destination/edit/' + id;
+  openModal('modal-destination-edit');
+}
+
+function openEditActivite(id, nom, desc, cat, lieu, prix) {
+  document.getElementById('editActiviteNom').value = nom;
+  document.getElementById('editActiviteDesc').value = desc;
+  document.getElementById('editActiviteCat').value = cat;
+  document.getElementById('editActiviteLieu').value = lieu;
+  document.getElementById('editActivitePrix').value = prix;
+  document.getElementById('formActiviteEdit').action = '/activite/edit/' + id;
+  openModal('modal-activite-edit');
+}
+
+function openEditPlanning(id, activiteId, date, heure, duree) {
+  document.getElementById('editPlanningActivite').value = activiteId;
+  document.getElementById('editPlanningDate').value = date;
+  document.getElementById('editPlanningHeure').value = heure;
+  document.getElementById('editPlanningDuree').value = duree;
+  document.getElementById('formPlanningEdit').action = '/admin/planning/edit/' + id;
+  openModal('modal-planning-edit');
+}
+
+function openEditDocument(id, nom, expiration, catId) {
+  document.getElementById('editDocNom').value = nom;
+  document.getElementById('editDocExpiration').value = expiration;
+  const sel = document.getElementById('editDocCategorie');
+  if (sel && catId) sel.value = catId;
+  document.getElementById('formDocumentEdit').action = '/documents/' + id + '/edit';
+  openModal('modal-document-edit');
+}
+
+function openEditCategorie(id, libelle, desc) {
+  document.getElementById('editCatLibelle').value = libelle;
+  document.getElementById('editCatDesc').value = desc;
+  document.getElementById('formCategorieEdit').action = '/categorie-document/' + id + '/edit';
+  openModal('modal-categorie-edit');
+}
+
+function openEditReservation(id, statut, nb, prix) {
+  document.getElementById('editResStatut').value = statut;
+  document.getElementById('editResPersonnes').value = nb;
+  document.getElementById('editResPrix').value = prix;
+  document.getElementById('formReservationEdit').action = '/admin/reservations/' + id + '/edit';
+  openModal('modal-reservation-edit');
+}
+
+function openEditPaiement(id, ref, montant, methode, statut) {
+  document.getElementById('editPayRef').value = ref;
+  document.getElementById('editPayMontant').value = montant;
+  document.getElementById('editPayMethode').value = methode;
+  document.getElementById('editPayStatut').value = statut;
+  document.getElementById('formPaiementEdit').action = '/admin/payments/' + id + '/edit';
+  openModal('modal-paiement-edit');
+}
+
+function openEditService(id, titre, desc) {
+  document.getElementById('editServiceTitre').value = titre;
+  document.getElementById('editServiceDesc').value = desc;
+  document.getElementById('formServiceEdit').action = '/service/' + id + '/edit';
+  openModal('modal-service-edit');
+}
+
+function openEditOffre(id, titre, prix, duree) {
+  document.getElementById('editOffreTitre').value = titre;
+  document.getElementById('editOffrePrix').value = prix;
+  document.getElementById('editOffreDuree').value = duree;
+  document.getElementById('formOffreEdit').action = '/offre/' + id + '/edit';
+  openModal('modal-offre-edit');
+}
+
+// ── Utilities ──
+function exportCSV() {
+  let rows = [["ID","Titre","Destination","Prix","Places","Statut"]];
+  document.querySelectorAll("#voyagesTable tbody tr").forEach(r => {
+    let c = r.children;
+    if (c.length >= 7) rows.push([c[0].innerText.trim(), c[1].innerText.trim(), c[2].innerText.trim(), c[3].innerText.trim(), c[4].innerText.trim(), c[6].innerText.trim()]);
+  });
+  let csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g,'""') + '"').join(",")).join("\n");
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob(["\uFEFF" + csv], {type:'text/csv;charset=utf-8;'}));
+  a.download = "voyages_" + new Date().toISOString().slice(0,10) + ".csv";
+  a.click();
+}
+
+function printTable() { window.print(); }
+
+function showAdminQR(title, path) {
+  let url = window.location.origin + path;
+  window.open("https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" + encodeURIComponent(url), '_blank', 'width=380,height=420');
+}
+
+// ── RestCountries API ──
+async function loadDestinationsAPI() {
+  const grid = document.getElementById('destApiGrid');
+  if (!grid) return;
+  grid.style.display = 'grid';
+  grid.innerHTML = '<div style="color:var(--muted);padding:16px;grid-column:1/-1">⏳ Chargement RestCountries API…</div>';
+  const rows = document.querySelectorAll('#voyage-tab-destinations tbody tr');
+  const pays = [...new Set([...rows].map(r => r.children[1]?.innerText.trim()).filter(p => p && p !== '—'))];
+  if (!pays.length) { grid.innerHTML = '<div style="color:var(--muted);padding:16px;grid-column:1/-1">Aucun pays à enrichir.</div>'; return; }
+  const cards = await Promise.all(pays.map(async p => {
+    try {
+      const r = await fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(p) + '?fields=name,capital,population,currencies,flags,continents,languages');
+      if (!r.ok) throw new Error();
+      const data = await r.json();
+      const c = data[0];
+      const capital   = c.capital?.[0] ?? '—';
+      const pop       = c.population ? (c.population/1e6).toFixed(1)+'M' : '—';
+      const currency  = Object.values(c.currencies??{})[0]?.name ?? '—';
+      const flag      = c.flags?.svg ?? c.flags?.png ?? '';
+      const continent = c.continents?.[0] ?? '—';
+      const langs     = Object.values(c.languages??{}).slice(0,2).join(', ') || '—';
+      return `<div class="dest-api-card">
+        ${flag ? `<img src="${flag}" class="dest-api-img" alt="${p}" loading="lazy">` : '<div class="dest-api-img-ph">🌍</div>'}
+        <div class="dest-api-body">
+          <div class="dest-api-name">${c.name.common}</div>
+          <div class="dest-api-sub">🏙️ ${capital} · ${continent}</div>
+          <div class="dest-api-meta">
+            <span class="chip chip-blue">👥 ${pop}</span>
+            <span class="chip chip-teal">💰 ${currency}</span>
+            <span class="chip chip-purple">🗣️ ${langs}</span>
+          </div>
+        </div></div>`;
+    } catch(e) {
+      return `<div class="dest-api-card"><div class="dest-api-img-ph">🌍</div><div class="dest-api-body"><div class="dest-api-name">${p}</div><div class="dest-api-sub" style="color:var(--danger)">Données non disponibles</div></div></div>`;
     }
+  }));
+  grid.innerHTML = cards.join('');
+  toast('✅ Enrichi via RestCountries API !', 'success');
+}
 
-    function supprimerCategorie() {
-        if (!selectedCategorieId) { alert('⚠️ Sélectionnez une catégorie !'); return; }
-        if (!confirm('Supprimer "' + selectedCategorieNom + '" ?')) return;
+// ── OpenWeatherMap API ──
+const OWM_KEY = 'bd5e378503939ddaee76f12ad7a97608';
 
-        const form       = document.createElement('form');
-        form.method      = 'POST';
-        form.action      = '/categorie/document/' + selectedCategorieId;
-        const tokenInput = document.createElement('input');
-        tokenInput.type  = 'hidden';
-        tokenInput.name  = '_token';
-        tokenInput.value = selectedToken;
-        form.appendChild(tokenInput);
-        document.body.appendChild(form);
-        form.submit();
+async function loadWeather() {
+  const cards = document.querySelectorAll('#weatherRow .weather-card');
+  for (let i = 0; i < cards.length; i++) {
+    const city = cards[i].getAttribute('data-city');
+    if (!city) continue;
+    try {
+      const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OWM_KEY}&units=metric&lang=fr`);
+      if (!r.ok) throw new Error();
+      const d = await r.json();
+      const temp = Math.round(d.main.temp);
+      const icon = weatherIcon(d.weather[0].id);
+      const idx = i + 1;
+      const wi = document.getElementById('wi-' + idx);
+      const wt = document.getElementById('wt-' + idx);
+      if (wi) wi.textContent = icon;
+      if (wt) wt.textContent = temp + '°C';
+    } catch(e) {
+      const wi = document.getElementById('wi-' + (i+1));
+      const wt = document.getElementById('wt-' + (i+1));
+      if (wi) wi.textContent = '🌡️';
+      if (wt) wt.textContent = '—';
     }
+  }
+}
 
-    // Auto-refresh 30s
-    setTimeout(() => window.location.reload(), 30000);
-
-    // ===== PieChart =====
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-            labels: [{% for row in parCategorie %}'{{ row.libelle|e('js') }}',{% endfor %}],
-            datasets: [{
-                data: [{% for row in parCategorie %}{{ row.total }},{% endfor %}],
-                backgroundColor: [
-                    '#2563eb','#ef4444','#22c55e','#f59e0b',
-                    '#8b5cf6','#06b6d4','#ec4899','#14b8a6'
-                ],
-                borderWidth: 2,
-                borderColor: 'white'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } }
-        }
-    });
-
-    // ===== BarChart =====
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: [{% for row in uploadsParMois %}'{{ row.month }}',{% endfor %}],
-            datasets: [{
-                label: 'Uploads',
-                data: [{% for row in uploadsParMois %}{{ row.total }},{% endfor %}],
-                backgroundColor: '#ef4444',
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: { legend: { position: 'bottom' } },
-            scales: { y: { beginAtZero: true } }
-        }
-    });
+function weatherIcon(code) {
+  if (code >= 200 && code < 300) return '⛈️';
+  if (code >= 300 && code < 500) return '🌧️';
+  if (code >= 500 && code < 600) return '🌦️';
+  if (code >= 600 && code < 700) return '❄️';
+  if (code >= 700 && code < 800) return '🌫️';
+  if (code === 800) return '☀️';
+  if (code === 801) return '🌤️';
+  return '☁️';
+}
 </script>
-{% endblock %}
+{# ══════════════════════════════════════════════════════════════════
+   ADMIN CHATBOT — AfterTravelBot
+   Paste this block right before </body> in admin/dashboard.html.twig
+   It uses /admin/chatbot/send which has live DB context injected.
+══════════════════════════════════════════════════════════════════ #}
+
+{# ── Chatbot styles ── #}
+<style>
+/* ─── Chatbot toggle button ─── */
+#cb-toggle {
+  position: fixed; bottom: 28px; right: 28px; z-index: 9000;
+  width: 56px; height: 56px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; cursor: pointer; box-shadow: 0 6px 22px rgba(79,142,247,.45);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; transition: transform .25s, box-shadow .25s;
+  animation: cb-pulse 3s infinite;
+}
+#cb-toggle:hover { transform: scale(1.12); box-shadow: 0 10px 32px rgba(79,142,247,.6); animation: none; }
+@keyframes cb-pulse { 0%,100%{box-shadow:0 6px 22px rgba(79,142,247,.45)} 50%{box-shadow:0 6px 32px rgba(124,92,252,.7)} }
+
+/* ─── Chatbot panel ─── */
+#cb-panel {
+  position: fixed; bottom: 96px; right: 28px; z-index: 8999;
+  width: 380px; max-height: 560px; display: flex; flex-direction: column;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.55); overflow: hidden;
+  transform: scale(.9) translateY(20px); opacity: 0; pointer-events: none;
+  transition: transform .22s cubic-bezier(.34,1.56,.64,1), opacity .22s;
+}
+#cb-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+
+/* ─── Panel header ─── */
+.cb-header {
+  padding: 16px 18px; background: linear-gradient(135deg,rgba(79,142,247,.12),rgba(124,92,252,.12));
+  border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.cb-avatar {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.cb-info { flex: 1 }
+.cb-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; }
+.cb-status { font-size: 11px; color: var(--success); display: flex; align-items: center; gap: 4px; }
+.cb-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); animation: pulse 2s infinite; }
+.cb-close { background: none; border: none; color: var(--muted); font-size: 18px; cursor: pointer; line-height: 1; padding: 4px; border-radius: 6px; transition: .2s; }
+.cb-close:hover { background: var(--surface2); color: var(--text); }
+
+/* ─── Quick chips ─── */
+.cb-chips { display: flex; gap: 6px; flex-wrap: wrap; padding: 10px 14px 0; flex-shrink: 0; }
+.cb-chip {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 20px;
+  padding: 4px 11px; font-size: 11.5px; color: var(--muted); cursor: pointer;
+  transition: .2s; white-space: nowrap;
+}
+.cb-chip:hover { background: rgba(79,142,247,.15); border-color: var(--accent); color: var(--accent); }
+
+/* ─── Messages ─── */
+#cb-messages {
+  flex: 1; overflow-y: auto; padding: 14px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.cb-msg { max-width: 86%; animation: msgIn .18s ease; }
+@keyframes msgIn { from{opacity:0;transform:translateY(5px)} to{opacity:1;transform:translateY(0)} }
+.cb-msg.bot { align-self: flex-start; }
+.cb-msg.user { align-self: flex-end; }
+.cb-bubble {
+  padding: 10px 14px; border-radius: 16px; font-size: 13.5px; line-height: 1.5;
+  white-space: pre-wrap; word-break: break-word;
+}
+.cb-msg.bot .cb-bubble {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-bottom-left-radius: 4px; color: var(--text);
+}
+.cb-msg.user .cb-bubble {
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  color: #fff; border-bottom-right-radius: 4px;
+}
+.cb-time { font-size: 10px; color: var(--muted); margin-top: 3px; }
+.cb-msg.user .cb-time { text-align: right; }
+
+/* ─── Typing indicator ─── */
+.cb-typing { display: flex; gap: 4px; align-items: center; padding: 10px 14px; }
+.cb-typing span {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--muted);
+  animation: cb-bounce .8s infinite;
+}
+.cb-typing span:nth-child(2) { animation-delay: .15s; }
+.cb-typing span:nth-child(3) { animation-delay: .30s; }
+@keyframes cb-bounce { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-6px)} }
+
+/* ─── Input row ─── */
+.cb-input-row {
+  display: flex; gap: 8px; padding: 12px 14px;
+  border-top: 1px solid var(--border); flex-shrink: 0; align-items: flex-end;
+}
+#cb-input {
+  flex: 1; background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 9px 13px; color: var(--text); font-size: 13.5px;
+  font-family: inherit; outline: none; resize: none; max-height: 100px; overflow-y: auto;
+  transition: border .2s;
+}
+#cb-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(79,142,247,.12); }
+#cb-input::placeholder { color: var(--muted); }
+#cb-send {
+  width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border: none; cursor: pointer; color: #fff; font-size: 16px;
+  display: flex; align-items: center; justify-content: center; transition: .2s;
+}
+#cb-send:hover { opacity: .85; transform: scale(1.06); }
+#cb-send:disabled { opacity: .45; transform: none; cursor: default; }
+
+@media(max-width:768px) {
+  #cb-panel { width: calc(100vw - 32px); right: 16px; }
+  #cb-toggle { right: 16px; bottom: 16px; }
+}
+</style>
+
+{# ── Toggle button ── #}
+<button id="cb-toggle" title="AfterTravelBot — Assistant IA" onclick="toggleChatbot()">🤖</button>
+
+{# ── Chatbot panel ── #}
+<div id="cb-panel">
+  <div class="cb-header">
+    <div class="cb-avatar">🤖</div>
+    <div class="cb-info">
+      <div class="cb-name">AfterTravelBot</div>
+      <div class="cb-status"><span class="cb-dot"></span> En ligne · IA connectée à la DB</div>
+    </div>
+    <button class="cb-close" onclick="toggleChatbot()" title="Fermer">✕</button>
+  </div>
+
+  <div class="cb-chips" id="cb-chips">
+    <span class="cb-chip" onclick="cbAsk('Montre-moi tous les voyages')">🗺️ Voyages</span>
+    <span class="cb-chip" onclick="cbAsk('Liste les destinations')">📍 Destinations</span>
+    <span class="cb-chip" onclick="cbAsk('Combien de réservations en attente ?')">📅 Réservations</span>
+    <span class="cb-chip" onclick="cbAsk('Quel est le revenu total ?')">💰 Revenus</span>
+    <span class="cb-chip" onclick="cbAsk('Montre-moi les activités disponibles')">🎯 Activités</span>
+    <span class="cb-chip" onclick="cbAsk('Quels utilisateurs sont admins ?')">👥 Admins</span>
+  </div>
+
+  <div id="cb-messages"></div>
+
+  <div class="cb-input-row">
+    <textarea id="cb-input" rows="1" placeholder="Posez une question sur l'app…"
+      oninput="cbAutoResize(this)"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();cbSend();}"></textarea>
+    <button id="cb-send" onclick="cbSend()" title="Envoyer">➤</button>
+  </div>
+</div>
+
+{# ── Chatbot script ── #}
+<script>
+(function() {
+  const history = [];
+  let open = false;
+  let busy = false;
+
+  function toggleChatbot() {
+    open = !open;
+    document.getElementById('cb-panel').classList.toggle('open', open);
+    if (open && history.length === 0) {
+      cbAddMsg('bot',
+        '👋 Bonjour ! Je suis **AfterTravelBot**, votre assistant IA connecté en direct à la base de données.\n\n' +
+        'Je peux répondre à toutes vos questions sur :\n' +
+        '🗺️ Voyages & Destinations\n📅 Réservations & Paiements\n👥 Utilisateurs\n🎯 Activités & Planning\n💼 Services & Offres\n📄 Documents\n\n' +
+        'Que souhaitez-vous savoir ?'
+      );
+    }
+    if (open) setTimeout(() => document.getElementById('cb-input').focus(), 120);
+  }
+  window.toggleChatbot = toggleChatbot;
+
+  function cbAsk(text) {
+    document.getElementById('cb-input').value = text;
+    cbSend();
+  }
+  window.cbAsk = cbAsk;
+
+  function cbSend() {
+    const input = document.getElementById('cb-input');
+    const text = input.value.trim();
+    if (!text || busy) return;
+    input.value = '';
+    cbAutoResize(input);
+
+    cbAddMsg('user', text);
+    history.push({ role: 'user', content: text });
+    cbShowTyping();
+    busy = true;
+    document.getElementById('cb-send').disabled = true;
+
+    fetch('/admin/chatbot/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages: history })
+    })
+    .then(r => r.json())
+    .then(data => {
+      cbHideTyping();
+      busy = false;
+      document.getElementById('cb-send').disabled = false;
+      if (data.error) {
+        cbAddMsg('bot', '❌ Erreur : ' + data.error);
+      } else {
+        const reply = data.response || '🤔 Aucune réponse reçue.';
+        cbAddMsg('bot', reply);
+        history.push({ role: 'assistant', content: reply });
+        // keep history manageable (last 20 turns)
+        if (history.length > 40) history.splice(0, 2);
+      }
+    })
+    .catch(err => {
+      cbHideTyping();
+      busy = false;
+      document.getElementById('cb-send').disabled = false;
+      cbAddMsg('bot', '❌ Erreur réseau. Vérifiez votre connexion.');
+    });
+  }
+  window.cbSend = cbSend;
+
+  function cbAddMsg(role, text) {
+    const messages = document.getElementById('cb-messages');
+    const div = document.createElement('div');
+    div.className = 'cb-msg ' + role;
+    const now = new Date();
+    const t = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+    // render **bold** and newlines
+    const formatted = text
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\n/g, '<br>');
+    div.innerHTML = `<div class="cb-bubble">${formatted}</div><div class="cb-time">${t}</div>`;
+    messages.appendChild(div);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  let typingEl = null;
+  function cbShowTyping() {
+    if (typingEl) return;
+    const messages = document.getElementById('cb-messages');
+    typingEl = document.createElement('div');
+    typingEl.className = 'cb-msg bot';
+    typingEl.id = 'cb-typing-ind';
+    typingEl.innerHTML = '<div class="cb-bubble cb-typing"><span></span><span></span><span></span></div>';
+    messages.appendChild(typingEl);
+    messages.scrollTop = messages.scrollHeight;
+  }
+
+  function cbHideTyping() {
+    if (typingEl) { typingEl.remove(); typingEl = null; }
+  }
+
+  function cbAutoResize(el) {
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+  }
+  window.cbAutoResize = cbAutoResize;
+})();
+</script>
+
+</body>
+</html>

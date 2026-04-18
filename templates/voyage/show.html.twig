@@ -26,7 +26,7 @@
             <h2 class="mb-4">{{ voyage.titre }}</h2>
             <p class="mb-4">{{ voyage.description }}</p>
 
-            <!-- BADGES DETAILS -->
+            <!-- Details badges -->
             <div class="row g-3 mb-4">
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
@@ -35,7 +35,6 @@
                         <p class="mb-0">{{ voyage.dateDebut ? voyage.dateDebut|date('d/m/Y') : 'N/A' }}</p>
                     </div>
                 </div>
-
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-calendar-check text-primary fa-2x mb-2"></i>
@@ -43,7 +42,6 @@
                         <p class="mb-0">{{ voyage.dateFin ? voyage.dateFin|date('d/m/Y') : 'N/A' }}</p>
                     </div>
                 </div>
-
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-tag text-primary fa-2x mb-2"></i>
@@ -51,7 +49,6 @@
                         <p class="mb-0 text-primary fw-bold">{{ voyage.prix }} TND</p>
                     </div>
                 </div>
-
                 <div class="col-6">
                     <div class="bg-light rounded p-3 text-center">
                         <i class="fa fa-users text-primary fa-2x mb-2"></i>
@@ -61,11 +58,11 @@
                 </div>
             </div>
 
-            <!-- ✅ METEO -->
+            <!-- METEO -->
             {% if meteo %}
             <div class="bg-light rounded p-4 mb-4">
                 <h5 class="text-primary mb-3">
-                    <i class="fa fa-cloud-sun me-2"></i>Meteo a {{ meteo.ville }}
+                    <i class="fa fa-cloud-sun me-2"></i>Meteo à {{ meteo.ville }}
                 </h5>
                 <div class="row g-3 text-center">
                     <div class="col-6">
@@ -83,7 +80,7 @@
             </div>
             {% endif %}
 
-            <!-- ✅ TIMEZONE -->
+            <!-- TIMEZONE -->
             {% if timezone %}
             <div class="bg-light rounded p-4 mb-4">
                 <h5 class="text-primary mb-3">
@@ -106,13 +103,186 @@
             </div>
             {% endif %}
 
-            <!-- BUTTONS -->
-            
+            <!-- QR CODE -->
+            <div class="bg-light rounded p-4 mb-4">
+                <h5 class="text-primary mb-3">
+                    <i class="fa fa-qrcode me-2"></i>QR Code du voyage
+                </h5>
+                <div class="text-center">
+                    {% set voyageUrl = app.request.schemeAndHttpHost ~ path('app_voyage_show', {'id': voyage.id}) %}
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ voyageUrl|url_encode }}&color=13357B&bgcolor=ffffff&qzone=2"
+                         alt="QR Code {{ voyage.titre }}"
+                         width="180" height="180"
+                         class="img-fluid rounded mb-2">
+                    <p class="small text-muted mb-2">Scannez pour partager ce voyage</p>
+                    <a href="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ voyageUrl|url_encode }}&color=13357B&bgcolor=ffffff&qzone=2"
+                       class="btn btn-outline-primary btn-sm rounded-pill"
+                       download="qr-{{ voyage.titre|lower|replace({' ': '-'}) }}.png"
+                       target="_blank">
+                        <i class="fa fa-download me-1"></i>Télécharger le QR
+                    </a>
+                </div>
+            </div>
+
+            <!-- ══ RÉSERVER BUTTON (NEW) ══ -->
+            <div class="mb-3">
+                {% if voyage.nbPlaces > 0 %}
+                <button class="btn btn-success rounded-pill py-2 px-5 fw-bold w-100"
+                        style="font-size:1.1rem"
+                        onclick="openReservationModal(
+                            {{ voyage.id }},
+                            '{{ voyage.titre|e('js') }}',
+                            {{ voyage.prix }},
+                            {{ voyage.nbPlaces }},
+                            '{{ voyage.dateDebut ? voyage.dateDebut|date('Y-m-d') : '' }}',
+                            '{{ voyage.dateFin ? voyage.dateFin|date('Y-m-d') : '' }}',
+                            '{{ voyage.idDestination ? (voyage.idDestination.ville ~ ', ' ~ voyage.idDestination.pays)|e('js') : '' }}'
+                        )">
+                    <i class="fa fa-calendar-check me-2"></i>Réserver ce voyage
+                </button>
+                {% else %}
+                <button class="btn btn-secondary rounded-pill py-2 px-5 w-100 fw-bold" disabled>
+                    <i class="fa fa-ban me-1"></i>Complet — plus de places disponibles
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Action buttons -->
+            <div class="d-flex gap-2 flex-wrap">
+                <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}"
+                   class="btn btn-outline-danger rounded-pill py-2 px-4">
+                    <i class="fa fa-heart me-1"></i>Ajouter aux favoris
+                </a>
+                <a href="{{ path('app_voyage_pdf', {'id': voyage.id}) }}"
+                   class="btn btn-outline-dark rounded-pill py-2 px-4" target="_blank">
+                    <i class="fa fa-file-pdf me-1"></i>Télécharger PDF
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- FOOTER -->
+<!-- ═══════════════════════════════════════════════════════════
+     RESERVATION MODAL (identical to voyage/index — green theme)
+════════════════════════════════════════════════════════════ -->
+<div class="modal fade" id="reservationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 py-4" style="background:linear-gradient(135deg,#198754,#20c997)">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0">
+                        <i class="fa fa-calendar-check me-2"></i>Réserver ce voyage
+                    </h5>
+                    <div class="text-white-50 small" id="res-voyage-name"></div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                {# Summary cards #}
+                <div class="row g-3 mb-4">
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-success" id="res-prix-unit">—</div>
+                            <div class="text-muted small">Prix / pers.</div>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-primary" id="res-places-dispo">—</div>
+                            <div class="text-muted small">Places dispo.</div>
+                        </div>
+                    </div>
+                    <div class="col-4 text-center">
+                        <div class="border rounded-3 p-3">
+                            <div class="fs-5 fw-bold text-warning" id="res-total">—</div>
+                            <div class="text-muted small">Total estimé</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form method="POST" action="{{ path('app_reservation_create') }}" id="reservationForm">
+                    <input type="hidden" name="voyage_id"       id="res_voyage_id">
+                    <input type="hidden" name="utilisateur_id"  value="{{ app.user ? app.user.id : 0 }}">
+                    <input type="hidden" name="statut"          value="En attente">
+                    <input type="hidden" name="prix_total"      id="res_prix_total">
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-users text-success me-1"></i>Nombre de personnes
+                            </label>
+                            <input type="number" name="nb_personnes" id="res_nb_personnes"
+                                   class="form-control rounded-pill" min="1" value="1" required
+                                   oninput="updateTotal()">
+                            <div class="form-text">Max <span id="res-max-val">—</span> places disponibles</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-calendar text-success me-1"></i>Date de réservation
+                            </label>
+                            <input type="date" name="date_reservation" id="res_date_reservation"
+                                   class="form-control rounded-pill" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-tag text-success me-1"></i>Type de voyage
+                            </label>
+                            <select name="type" class="form-select rounded-pill">
+                                <option value="Standard">Standard</option>
+                                <option value="Premium">Premium</option>
+                                <option value="Famille">Famille</option>
+                                <option value="Groupe">Groupe</option>
+                                <option value="Lune de miel">Lune de miel</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-map-marker-alt text-success me-1"></i>Lieu de départ
+                            </label>
+                            <input type="text" name="lieu" id="res_lieu"
+                                   class="form-control rounded-pill"
+                                   placeholder="Ex: Tunis, Aéroport Carthage">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-bold small">
+                                <i class="fa fa-comment text-success me-1"></i>Demandes spéciales (optionnel)
+                            </label>
+                            <textarea name="description" class="form-control rounded-3" rows="2"
+                                      placeholder="Régime alimentaire, accessibilité, chambre double…"></textarea>
+                        </div>
+                    </div>
+
+                    {# Total recap #}
+                    <div class="mt-4 p-3 rounded-3 border border-success bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold text-success fs-5">
+                                    <i class="fa fa-receipt me-2"></i>Total à payer
+                                </div>
+                                <div class="text-muted small" id="res-detail-line">— × — TND</div>
+                            </div>
+                            <div class="fs-3 fw-bold text-success" id="res-grand-total">0 TND</div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 d-flex gap-3">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill flex-fill"
+                                data-bs-dismiss="modal">
+                            <i class="fa fa-times me-1"></i>Annuler
+                        </button>
+                        <button type="submit" class="btn btn-success rounded-pill flex-fill fw-bold"
+                                id="res-submit-btn">
+                            <i class="fa fa-check-circle me-1"></i>Confirmer la réservation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
 <div class="container-fluid footer py-5">
     <div class="container py-5">
         <div class="row g-5">
@@ -120,7 +290,6 @@
                 <h4 class="mb-4 text-white">After Travel</h4>
                 <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
             </div>
-
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Liens Rapides</h4>
                 <div class="d-flex flex-column">
@@ -130,7 +299,6 @@
                     <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
                 </div>
             </div>
-
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Contact</h4>
                 <a class="text-white mb-2 d-block">
@@ -140,12 +308,62 @@
         </div>
     </div>
 </div>
-
 <div class="container-fluid copyright text-body py-4">
     <div class="container text-center">
         <i class="fas fa-copyright me-2"></i>
         <span class="text-white">After Travel</span>, All rights reserved.
     </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     RESERVATION MODAL JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<script>
+var _resData = {};
+
+function openReservationModal(id, titre, prix, nbPlaces, dateDebut, dateFin, lieu) {
+    _resData = { id: id, titre: titre, prix: prix, nbPlaces: nbPlaces };
+
+    document.getElementById('res-voyage-name').textContent  = titre;
+    document.getElementById('res_voyage_id').value          = id;
+    document.getElementById('res-prix-unit').textContent    = prix.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-places-dispo').textContent = nbPlaces;
+    document.getElementById('res-max-val').textContent      = nbPlaces;
+    document.getElementById('res_nb_personnes').max         = nbPlaces;
+    document.getElementById('res_nb_personnes').value       = 1;
+    document.getElementById('res_lieu').value               = lieu || '';
+
+    // Default reservation date = today
+    document.getElementById('res_date_reservation').value = new Date().toISOString().split('T')[0];
+
+    updateTotal();
+    new bootstrap.Modal(document.getElementById('reservationModal')).show();
+}
+
+function updateTotal() {
+    var nb       = parseInt(document.getElementById('res_nb_personnes').value) || 1;
+    var prix     = _resData.prix     || 0;
+    var maxPlaces = _resData.nbPlaces || 99;
+
+    if (nb < 1)         { nb = 1;         document.getElementById('res_nb_personnes').value = 1; }
+    if (nb > maxPlaces) { nb = maxPlaces; document.getElementById('res_nb_personnes').value = maxPlaces; }
+
+    var total = nb * prix;
+    document.getElementById('res_prix_total').value        = total;
+    document.getElementById('res-total').textContent       = total.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-grand-total').textContent = total.toLocaleString('fr-FR') + ' TND';
+    document.getElementById('res-detail-line').textContent =
+        nb + ' pers. × ' + prix.toLocaleString('fr-FR') + ' TND';
+
+    var btn = document.getElementById('res-submit-btn');
+    if (nb < 1 || nb > maxPlaces) {
+        btn.disabled  = true;
+        btn.innerHTML = '<i class="fa fa-ban me-1"></i>Places insuffisantes';
+    } else {
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="fa fa-check-circle me-1"></i>Confirmer la réservation';
+    }
+}
+</script>
 
 {% endblock %}

@@ -63,7 +63,20 @@
                 padding: 8px 14px;
             }
 
-            /* Flash messages (from other branch) */
+            /* ── AI badge on dropdown item ── */
+            .dropdown-item .badge-ai {
+                font-size: 9px;
+                padding: 2px 6px;
+                border-radius: 20px;
+                background: linear-gradient(135deg, #6366f1, #a855f7);
+                color: #fff;
+                font-weight: 700;
+                letter-spacing: 0.5px;
+                vertical-align: middle;
+                margin-left: 4px;
+            }
+
+            /* Flash messages */
             .flash-stack {
                 position: fixed;
                 top: 18px;
@@ -83,10 +96,104 @@
                 background: #fff;
             }
 
-            .flash-message--success { background:#ecfdf3; border-color:#86efac; color:#166534; }
-            .flash-message--error { background:#fef2f2; border-color:#fca5a5; color:#991b1b; }
-            .flash-message--warning { background:#fff7ed; border-color:#fdba74; color:#9a3412; }
-            .flash-message--info { background:#eff6ff; border-color:#93c5fd; color:#1d4ed8; }
+            /* Auth toast */
+            #auth-toast {
+                position: fixed;
+                bottom: 32px;
+                left: 50%;
+                transform: translateX(-50%) translateY(20px);
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.25s ease, transform 0.25s ease;
+                pointer-events: none;
+                min-width: 340px;
+                max-width: 90vw;
+            }
+            #auth-toast.show {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+                pointer-events: auto;
+            }
+            #auth-toast .auth-toast-inner {
+                background: #1a1a2e;
+                color: #fff;
+                border-radius: 16px;
+                padding: 18px 22px;
+                box-shadow: 0 8px 40px rgba(0,0,0,0.28);
+                display: flex;
+                align-items: center;
+                gap: 16px;
+            }
+            #auth-toast .auth-toast-icon {
+                width: 42px;
+                height: 42px;
+                border-radius: 50%;
+                background: linear-gradient(135deg, #3b5bdb, #74c0fc);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                flex-shrink: 0;
+                font-size: 18px;
+            }
+            #auth-toast .auth-toast-text {
+                flex: 1;
+            }
+            #auth-toast .auth-toast-text strong {
+                display: block;
+                font-size: 14px;
+                font-weight: 700;
+                margin-bottom: 2px;
+            }
+            #auth-toast .auth-toast-text span {
+                font-size: 12.5px;
+                opacity: 0.75;
+            }
+            #auth-toast .auth-toast-actions {
+                display: flex;
+                gap: 8px;
+                flex-shrink: 0;
+            }
+            #auth-toast .btn-toast-login {
+                background: linear-gradient(135deg, #3b5bdb, #4dabf7);
+                color: #fff;
+                border: none;
+                border-radius: 10px;
+                padding: 8px 16px;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                white-space: nowrap;
+                text-decoration: none;
+            }
+            #auth-toast .btn-toast-register {
+                background: rgba(255,255,255,0.12);
+                color: #fff;
+                border: 1.5px solid rgba(255,255,255,0.2);
+                border-radius: 10px;
+                padding: 8px 16px;
+                font-size: 13px;
+                font-weight: 700;
+                cursor: pointer;
+                white-space: nowrap;
+                text-decoration: none;
+            }
+            #auth-toast .btn-toast-close {
+                background: none;
+                border: none;
+                color: rgba(255,255,255,0.5);
+                font-size: 18px;
+                cursor: pointer;
+                padding: 0 0 0 4px;
+                line-height: 1;
+            }
+            /* Greyed restricted items for guests */
+            .nav-restricted {
+                opacity: 0.45 !important;
+                cursor: not-allowed !important;
+            }
+            .nav-restricted:hover {
+                opacity: 0.6 !important;
+            }
         </style>
     {% endblock %}
 </head>
@@ -95,9 +202,9 @@
 
 {# FLASH MESSAGES #}
 {% set flashSuccess = app.flashes('success') %}
-{% set flashError = app.flashes('error') %}
+{% set flashError   = app.flashes('error') %}
 {% set flashWarning = app.flashes('warning') %}
-{% set flashInfo = app.flashes('info') %}
+{% set flashInfo    = app.flashes('info') %}
 
 {% if flashSuccess or flashError or flashWarning or flashInfo %}
     <div class="flash-stack">
@@ -116,8 +223,8 @@
     </div>
 {% endif %}
 
-<!-- NAVBAR (KEPT FROM YOUR VERSION) -->
-<div class="container-fluid position-relative p-0">
+<!-- NAVBAR -->
+<div class="container-fluid position-relative p-0 sticky-top">
     <nav class="navbar navbar-expand-lg navbar-light px-4 px-lg-5 py-3 py-lg-0">
 
         <a href="{{ path('app_home') }}" class="navbar-brand p-0">
@@ -129,12 +236,11 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarCollapse">
-
             <div class="navbar-nav ms-auto py-0 align-items-lg-center">
 
                 <a href="{{ path('app_home') }}" class="nav-item nav-link">Accueil</a>
 
-                {# ── Voyage dropdown ── #}
+                {# ── Voyage dropdown (with AI Recommendation added) ── #}
                 <div class="nav-item dropdown">
                     <a href="{{ path('app_voyage') }}" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
                         Voyage
@@ -149,31 +255,36 @@
                         <li><a class="dropdown-item" href="{{ path('app_voyage_recommandations') }}">
                             <i class="fa fa-star me-2 text-primary"></i>Recommandations
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ path('app_voyage_favoris') }}">
+                        <li><a class="dropdown-item" href="{{ path('app_voyage_favoris') }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-heart me-2 text-primary"></i>Mes Favoris
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="{{ path('app_voyage_recommandations_ia') }}">
+                            <i class="fa fa-robot me-2" style="color:#6366f1;"></i>Recommandations IA
+                            <span class="badge-ai">AI</span>
                         </a></li>
                     </ul>
                 </div>
 
                 {# ── Réservation & Paiement dropdown ── #}
                 <div class="nav-item dropdown">
-                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                    <a href="#" class="nav-link dropdown-toggle {% if not app.user %}nav-restricted{% endif %}" data-bs-toggle="dropdown" {% if not app.user %}data-auth-required{% endif %}>
                         Réservation
                     </a>
                     <ul class="dropdown-menu">
                         <li><h6 class="dropdown-header"><i class="fa fa-calendar-check me-1"></i> Réservations</h6></li>
-                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations'}) }}">
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations'}) }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-list me-2 text-primary"></i>Mes Réservations
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations', modal: 'reservation'}) }}">
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'reservations', modal: 'reservation'}) }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-plus-circle me-2 text-primary"></i>Nouvelle Réservation
                         </a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header"><i class="fa fa-credit-card me-1"></i> Paiements</h6></li>
-                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments'}) }}">
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments'}) }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-wallet me-2 text-primary"></i>Mes Paiements
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments', modal: 'payment'}) }}">
+                        <li><a class="dropdown-item" href="{{ path('app_dashboard', {view: 'payments', modal: 'payment'}) }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-plus-circle me-2 text-primary"></i>Nouveau Paiement
                         </a></li>
                     </ul>
@@ -189,19 +300,18 @@
                         <li><a class="dropdown-item" href="{{ path('app_activite') }}">
                             <i class="fa fa-list me-2 text-primary"></i>Toutes les Activités
                         </a></li>
-                      
                         <li><hr class="dropdown-divider"></li>
                         <li><h6 class="dropdown-header"><i class="fa fa-calendar-alt me-1"></i> Plannings</h6></li>
                         <li><a class="dropdown-item" href="{{ path('app_planning') }}">
                             <i class="fa fa-calendar me-2 text-primary"></i>Tous les Plannings
                         </a></li>
-                     
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item" href="{{ path('app_activite_qr') }}">
+                        <li><a class="dropdown-item" href="{{ path('app_activite_qr') }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-qrcode me-2 text-primary"></i>Générer QR Code
                         </a></li>
                     </ul>
                 </div>
+
                 {# ── Document dropdown ── #}
                 <div class="nav-item dropdown">
                     <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
@@ -212,7 +322,7 @@
                         <li><a class="dropdown-item" href="{{ path('app_document_crud_index') }}">
                             <i class="fa fa-list me-2 text-primary"></i>Tous les Documents
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ path('app_document_crud_new') }}">
+                        <li><a class="dropdown-item" href="{{ path('app_document_crud_new') }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-plus-circle me-2 text-primary"></i>Nouveau Document
                         </a></li>
                         <li><a class="dropdown-item" href="{{ path('app_document_stats') }}">
@@ -223,34 +333,67 @@
                         <li><a class="dropdown-item" href="{{ path('app_categorie_document_index') }}">
                             <i class="fa fa-folder me-2 text-primary"></i>Catégories
                         </a></li>
-                        <li><a class="dropdown-item" href="{{ path('app_categorie_document_new') }}">
+                        <li><a class="dropdown-item" href="{{ path('app_categorie_document_new') }}" {% if not app.user %}data-auth-required{% endif %}>
                             <i class="fa fa-folder-plus me-2 text-primary"></i>Nouvelle Catégorie
                         </a></li>
                     </ul>
                 </div>
-                <a href="#" class="nav-item nav-link">Services</a>
-                <a href="#" class="nav-item nav-link">Dépense</a>
 
+                {# ── Services & Offres dropdown ── #}
+                <div class="nav-item dropdown">
+                    <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
+                        Services
+                    </a>
+                    <div class="dropdown-menu" style="min-width: 230px;">
+
+                        <h6 class="dropdown-header">
+                            <i class="fa fa-cogs me-1"></i> Services
+                        </h6>
+                        <a href="{{ path('app_service_index') }}" class="dropdown-item">
+                            <i class="fa fa-list me-2 text-primary"></i>Tous les Services
+                        </a>
+                        <a href="{{ path('app_service_new') }}" class="dropdown-item" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-plus-circle me-2 text-success"></i>Ajouter un Service
+                        </a>
+                        <a href="{{ path('app_service_stats') }}" class="dropdown-item">
+                            <i class="fa fa-chart-bar me-2 text-info"></i>Statistiques
+                        </a>
+
+                        <div class="dropdown-divider"></div>
+
+                        <h6 class="dropdown-header">
+                            <i class="fa fa-tags me-1"></i> Offres
+                        </h6>
+                        <a href="{{ path('app_offre_index') }}" class="dropdown-item">
+                            <i class="fa fa-list me-2 text-primary"></i>Toutes les Offres
+                        </a>
+                        <a href="{{ path('app_offre_new') }}" class="dropdown-item" {% if not app.user %}data-auth-required{% endif %}>
+                            <i class="fa fa-plus-circle me-2 text-success"></i>Ajouter une Offre
+                        </a>
+                        <a href="{{ path('app_offre_export_pdf') }}" class="dropdown-item">
+                            <i class="fa fa-file-pdf me-2 text-danger"></i>Exporter PDF
+                        </a>
+
+                    </div>
+                </div>
+
+                <a href="#" class="nav-item nav-link" {% if not app.user %}data-auth-required{% endif %}>Dépense</a>
                 <a href="{{ path('app_about') }}" class="nav-item nav-link">About</a>
 
                 {% if app.user %}
                     <div class="nav-item dropdown ms-lg-3">
-
                         <a class="nav-profile-chip dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <span class="nav-profile-initials">
                                 {{ (app.user.prenom|first ~ app.user.nom|first)|upper }}
                             </span>
                             {{ app.user.prenom }} {{ app.user.nom }}
                         </a>
-
                         <ul class="dropdown-menu dropdown-menu-end">
-
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_profile') }}">
                                     <i class="fa fa-user"></i> Profil
                                 </a>
                             </li>
-
                             {% if is_granted('ROLE_ADMIN') %}
                             <li>
                                 <a class="dropdown-item" href="{{ path('app_admin_home') }}">
@@ -258,19 +401,16 @@
                                 </a>
                             </li>
                             {% endif %}
-
                             <li><hr class="dropdown-divider"></li>
-
                             <li>
                                 <a class="dropdown-item text-danger" href="{{ path('_logout_main') }}">
                                     Logout
                                 </a>
                             </li>
-
                         </ul>
                     </div>
                 {% else %}
-                    <a href="{{ path('app_login') }}" class="nav-item nav-link">Connexion</a>
+                    <a href="{{ path('app_login') }}" class="nav-item nav-link">Se Connecter</a>
                 {% endif %}
 
             </div>
@@ -294,6 +434,43 @@
         }, 3200);
     </script>
 {% endblock %}
+{% if not app.user %}
+<div id="auth-toast" role="alert">
+    <div class="auth-toast-inner">
+        <div class="auth-toast-icon">🔒</div>
+        <div class="auth-toast-text">
+            <strong>Connexion requise</strong>
+            <span>Créez un compte ou connectez-vous pour accéder à cette fonctionnalité.</span>
+        </div>
+        <div class="auth-toast-actions">
+            <a href="{{ path('app_login') }}" class="btn-toast-login">Se connecter</a>
+            <a href="{{ path('app_register') }}" class="btn-toast-register">S'inscrire</a>
+        </div>
+        <button class="btn-toast-close" onclick="hideAuthToast()" aria-label="Fermer">&times;</button>
+    </div>
+</div>
+
+<script>
+var _authToastTimer = null;
+function showAuthToast(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    var t = document.getElementById('auth-toast');
+    t.classList.add('show');
+    clearTimeout(_authToastTimer);
+    _authToastTimer = setTimeout(hideAuthToast, 4500);
+}
+function hideAuthToast() {
+    document.getElementById('auth-toast').classList.remove('show');
+}
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('[data-auth-required]').forEach(function(el) {
+        el.classList.add('nav-restricted');
+        el.addEventListener('click', showAuthToast);
+    });
+});
+</script>
+{% endif %}
 
 </body>
 </html>

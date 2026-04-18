@@ -7,7 +7,7 @@ use Doctrine\ORM\Mapping as ORM;
 use App\Entity\Service;
 use App\Repository\OffreRepository;
 
-#[ORM\Entity(repositoryClass: App\Repository\OffreRepository::class)]
+#[ORM\Entity(repositoryClass: OffreRepository::class)]
 class Offre
 {
 
@@ -36,6 +36,12 @@ class Offre
     public function setId_offre($value)
     {
         $this->id_offre = $value;
+    }
+
+    /** Alias for Twig: offre.id */
+    public function getId(): ?int
+    {
+        return $this->id_offre;
     }
 
     public function getTitre()
@@ -76,6 +82,19 @@ class Offre
     public function setId_service($value)
     {
         $this->id_service = $value;
+    }
+
+    /** Alias for Twig: offre.service → returns the Service object */
+    public function getService(): ?Service
+    {
+        return $this->id_service;
+    }
+
+    /** Alias for Twig: offre.service = ... */
+    public function setService(?Service $service): static
+    {
+        $this->id_service = $service;
+        return $this;
     }
 
     public function getIdOffre(): ?int

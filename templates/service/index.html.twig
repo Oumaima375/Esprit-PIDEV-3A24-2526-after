@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+{% block title %}Nos Services{% endblock %}
+{% block body %}
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">Nos Services</h1>
+            <p class="text-white fs-5">Découvrez tous nos services disponibles</p>
+        </div>
+    </div>
+</div>
+<div class="container mb-5">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <form method="get" action="{{ path('app_service_index') }}" class="d-flex gap-2">
+                <input type="text" name="search" value="{{ app.request.get('search') }}"
+                    class="form-control" placeholder="Rechercher un service...">
+                <button type="submit" class="btn btn-primary">🔍</button>
+                {% if app.request.get('search') %}
+                    <a href="{{ path('app_service_index') }}" class="btn btn-secondary">✕</a>
+                {% endif %}
+            </form>
+        </div>
+        <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
+            <a href="{{ path('app_service_stats') }}" class="btn btn-success">
+                📊 Statistiques
+            </a>
+            <a href="{{ path('app_service_new') }}" class="btn btn-primary">
+                ➕ Ajouter un service
+            </a>
+        </div>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="alert alert-success">{{ message }}</div>
+    {% endfor %}
+    {% for message in app.flashes('error') %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+
+    <div class="row g-4">
+        {% for service in services %}
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header text-white" style="background-color: #1a3a6e;">
+                    <h5 class="mb-0">{{ service.titre }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">{{ service.description|slice(0, 100) }}{% if service.description|length > 100 %}...{% endif %}</p>
+                    <span class="badge bg-info">{{ service.offres|length }} offre(s)</span>
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2">
+                    <a href="{{ path('app_service_show', {'id': service.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
+                    <a href="{{ path('app_service_edit', {'id': service.id}) }}" class="btn btn-sm btn-outline-warning">Modifier</a>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12 text-center py-5">
+            <h4 class="text-muted">Aucun service trouvé</h4>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+{{ include('_footer.html.twig') }}
+{% endblock %}

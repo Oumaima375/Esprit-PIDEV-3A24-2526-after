@@ -40,3 +40,4 @@ services:
     App\Service\ChatbotService:
         arguments:
             $apiKey: '%env(GROQ_API_KEY)%'
+            

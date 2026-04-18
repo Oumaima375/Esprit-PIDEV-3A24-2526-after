@@ -1,0 +1,61 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Offre — {{ offre.titre }}{% endblock %}
+
+{% block body %}
+<div class="container-fluid page-header py-5 mb-5">
+    <h1 class="text-white display-3 mb-0">{{ offre.titre }}</h1>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-7">
+            <div class="card shadow">
+                <div class="card-header text-white" style="background-color: #1a3a6e;">
+                    <h5 class="mb-0"><i class="fa fa-tag me-2"></i>Détails de l'offre</h5>
+                </div>
+                <div class="card-body">
+
+                    <dl class="row">
+                        <dt class="col-sm-4 text-muted">ID</dt>
+                        <dd class="col-sm-8">{{ offre.id }}</dd>
+
+                        <dt class="col-sm-4 text-muted">Titre</dt>
+                        <dd class="col-sm-8"><strong>{{ offre.titre }}</strong></dd>
+
+                        <dt class="col-sm-4 text-muted">Prix</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-success fs-6">{{ offre.prix }} €</span>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Durée</dt>
+                        <dd class="col-sm-8">
+                            <span class="badge bg-info fs-6">{{ offre.duree }} jours</span>
+                        </dd>
+
+                        <dt class="col-sm-4 text-muted">Service</dt>
+                        <dd class="col-sm-8">
+                            <a href="{{ path('app_service_show', {'id': offre.service.id}) }}"
+                               class="badge bg-primary text-decoration-none fs-6">
+                                {{ offre.service.titre }}
+                            </a>
+                        </dd>
+                    </dl>
+
+                </div>
+                <div class="card-footer bg-white border-0 d-flex gap-2 align-items-center">
+                    <a href="{{ path('app_offre_edit', {'id': offre.id}) }}" class="btn btn-warning">
+                        <i class="fa fa-edit me-1"></i>Modifier
+                    </a>
+                    <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">
+                        <i class="fa fa-arrow-left me-1"></i>Retour aux offres
+                    </a>
+                    <div class="ms-auto">
+                        {{ include('offre/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

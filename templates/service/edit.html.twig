@@ -1,0 +1,36 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier Service{% endblock %}
+
+{% block body %}
+<div class="container-fluid page-header py-5 mb-5">
+    <h1 class="text-white display-3 mb-0">✏️ Modifier le Service</h1>
+</div>
+
+<div class="container mb-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #1a3a6e; color: white;">
+                    <h4 class="mb-0">✏️ Modifier le Service</h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+                    {{ form_widget(form) }}
+                    <div class="d-flex gap-2 mt-3">
+                        <button type="submit" class="btn btn-warning">Enregistrer les modifications</button>
+                        <a href="{{ path('app_service_index') }}" class="btn btn-secondary">Annuler</a>
+                    </div>
+                    {{ form_end(form) }}
+
+                    <hr class="mt-4">
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="text-muted small">Zone dangereuse :</span>
+                        {{ include('service/_delete_form.html.twig') }}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

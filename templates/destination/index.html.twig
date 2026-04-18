@@ -1,147 +1,784 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}After Travel - Destinations{% endblock %}
+{% block title %}After Travel — Destinations{% endblock %}
+
+{% block stylesheets %}
+{{ parent() }}
+<style>
+/* ══════════════════════════════════════════════════════════
+   DESTINATION INDEX — styled to match voyage/index
+   ══════════════════════════════════════════════════════════ */
+:root {
+  --primary: #0d6efd;
+  --primary-dark: #0b5ed7;
+  --surface: #ffffff;
+  --surface2: #f8f9fa;
+  --border: #e9ecef;
+  --text: #212529;
+  --muted: #6c757d;
+  --success: #198754;
+  --warning: #ffc107;
+  --danger: #dc3545;
+  --shadow: 0 4px 20px rgba(0,0,0,.08);
+  --shadow-hover: 0 12px 40px rgba(13,110,253,.18);
+}
+
+/* ─── Card ─── */
+.dest-card {
+  background: var(--surface); border-radius: 18px; overflow: hidden;
+  box-shadow: var(--shadow); transition: transform .25s, box-shadow .25s;
+  display: flex; flex-direction: column; height: 100%;
+  border: 1px solid var(--border);
+}
+.dest-card:hover { transform: translateY(-6px); box-shadow: var(--shadow-hover); }
+.dest-card-img-wrap { position: relative; overflow: hidden; height: 220px; }
+.dest-card-img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform .4s;
+}
+.dest-card:hover .dest-card-img { transform: scale(1.06); }
+.dest-card-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.65) 0%, transparent 60%);
+  pointer-events: none;
+}
+.dest-card-badges {
+  position: absolute; top: 12px; left: 12px; display: flex; gap: 6px; flex-wrap: wrap;
+}
+.dest-badge {
+  padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.25);
+}
+.dest-badge-continent { background: rgba(0,0,0,.65); color: #fff; }
+.dest-badge-voyages { background: rgba(255,193,7,.85); color: #212529; }
+.dest-card-flag {
+  position: absolute; bottom: 12px; right: 12px;
+  height: 22px; border-radius: 3px; box-shadow: 0 2px 6px rgba(0,0,0,.3);
+}
+.dest-card-body { padding: 18px; flex: 1; display: flex; flex-direction: column; gap: 10px; }
+.dest-card-title { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 0; }
+.dest-card-subtitle { font-size: 13px; color: var(--muted); }
+
+/* ─── Info pills row ─── */
+.dest-info-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.dest-info-pill {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px 9px; font-size: 12px; color: var(--text);
+  display: flex; align-items: center; gap: 4px;
+}
+.dest-info-pill .pil { font-size: 13px; }
+
+/* ─── Weather badge ─── */
+.dest-weather {
+  display: flex; align-items: center; gap: 7px;
+  background: linear-gradient(135deg, #e3f2fd, #e8f5e9);
+  border-radius: 10px; padding: 7px 12px; font-size: 13px; font-weight: 500;
+}
+.dest-weather-icon { font-size: 22px; }
+.dest-weather-temp { font-weight: 700; font-size: 1rem; color: var(--primary); }
+.dest-weather-desc { font-size: 11px; color: var(--muted); }
+
+/* ─── Exchange rate ─── */
+.dest-exchange {
+  background: linear-gradient(135deg, #fff8e1, #fffde7);
+  border: 1px solid #ffe082;
+  border-radius: 10px; padding: 7px 12px; font-size: 12.5px; color: #795548;
+}
+.dest-exchange-label { font-weight: 700; color: #f57c00; }
+
+/* ─── Skeleton ─── */
+.skeleton { background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+@keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.skeleton-text { height: 14px; margin: 4px 0; }
+.skeleton-weather { height: 40px; border-radius: 10px; }
+
+/* ─── Action buttons — same style as voyage/index ─── */
+.dest-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: auto; padding-top: 6px; }
+
+/* ─── Info bar — matches voyage info bar ─── */
+.dest-infobar {
+  display: flex; border-bottom: 1px solid var(--border); text-align: center;
+  font-size: 12px; background: var(--surface2);
+}
+.dest-infobar-cell { flex: 1; padding: 8px 4px; border-right: 1px solid var(--border); }
+.dest-infobar-cell:last-child { border-right: none; }
+
+/* ─── Modal ─── */
+.dest-modal-img { width: 100%; height: 260px; object-fit: cover; border-radius: 12px; margin-bottom: 16px; }
+.dest-modal-infos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dest-modal-info-item { background: var(--surface2); border-radius: 10px; padding: 10px 14px; }
+.dest-modal-info-label { font-size: 10px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted); font-weight: 600; }
+.dest-modal-info-value { font-size: 14px; font-weight: 600; color: var(--text); margin-top: 2px; }
+.wiki-excerpt {
+  background: linear-gradient(135deg, #fafafa, #f4f5f7);
+  border-left: 3px solid var(--primary); border-radius: 0 10px 10px 0;
+  padding: 12px 16px; font-size: 13px; line-height: 1.6; color: var(--text); margin-top: 10px;
+}
+.wiki-src { font-size: 11px; color: var(--muted); text-align: right; margin-top: 6px; }
+.modal-voyages-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.modal-voyage-item {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 14px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.modal-voyage-title { font-weight: 600; font-size: 13.5px; }
+.modal-voyage-meta { font-size: 11.5px; color: var(--muted); }
+.modal-voyage-price { font-weight: 700; font-size: 14px; color: var(--primary); white-space: nowrap; }
+.no-results-wrap { text-align: center; padding: 60px 20px; }
+.no-results-icon { font-size: 56px; margin-bottom: 16px; }
+.unsplash-attr { font-size: 9px; color: rgba(255,255,255,.5); position: absolute; bottom: 4px; left: 8px; }
+
+@media(max-width:576px) {
+  .dest-modal-infos { grid-template-columns: 1fr; }
+}
+</style>
+{% endblock %}
 
 {% block body %}
 
+{# ════ HERO — matches voyage/index style ════ #}
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
         <div class="text-center">
-            <h1 class="text-white display-3 mb-3">Nos Destinations</h1>
-            <p class="text-white fs-5">Découvrez toutes nos destinations à travers le monde</p>
+            <h1 class="text-white display-3 mb-3 fw-bold">
+                <i class="fa fa-globe-americas me-2"></i>Nos Destinations
+            </h1>
+            <p class="text-white fs-5">Explorez le monde avec After Travel</p>
         </div>
     </div>
 </div>
 
+{# ════ STATS BANNER — matches voyage/index ════ #}
+<div class="container mb-4">
+    <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-primary" id="stat-dest">{{ destinations|length }}</div>
+                <div class="text-muted small">Destinations</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-success" id="stat-voyages">—</div>
+                <div class="text-muted small">Voyages actifs</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-warning" id="stat-continents">—</div>
+                <div class="text-muted small">Continents couverts</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="border rounded-3 p-3 shadow-sm">
+                <div class="fs-3 fw-bold text-danger" id="stat-eur">⟳</div>
+                <div class="text-muted small">EUR/TND (live)</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ════ FILTERS — matches voyage/index filter style ════ #}
 <div class="container mb-5">
-    <div class="row g-4">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-end">
+                <div class="col-md-5">
+                    <label class="form-label fw-bold small">
+                        <i class="fa fa-search text-primary me-1"></i>Recherche
+                    </label>
+                    <input type="text" id="dest-search" class="form-control rounded-pill"
+                           placeholder="Pays, ville, continent…" oninput="filterDestinations()">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label fw-bold small">Trier par</label>
+                    <select id="sort-select" class="form-select rounded-pill" onchange="filterDestinations()">
+                        <option value="default">Tri par défaut</option>
+                        <option value="name">A → Z</option>
+                        <option value="name-desc">Z → A</option>
+                        <option value="voyages">Plus de voyages</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold small">Continent</label>
+                    <select id="continent-select" class="form-select rounded-pill" onchange="setContinentFromSelect()">
+                        <option value="">Tous</option>
+                        {% set continents = [] %}
+                        {% for d in destinations %}
+                            {% if d.continent not in continents %}
+                                {% set continents = continents|merge([d.continent]) %}
+                            {% endif %}
+                        {% endfor %}
+                        {% for c in continents %}
+                            <option value="{{ c }}">{{ c }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex gap-2">
+                    <button class="btn btn-outline-secondary rounded-pill flex-fill" onclick="resetFilters()">
+                        <i class="fa fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <span class="text-muted small">
+                    <strong id="shown-count">{{ destinations|length }}</strong> destination(s) affichée(s)
+                </span>
+                <div>
+                    {% for c in continents %}
+                        <span class="badge bg-light text-dark border me-1 rounded-pill continent-pill"
+                              style="cursor:pointer;font-size:12px"
+                              data-continent="{{ c }}"
+                              onclick="setContinentFilter(this, '{{ c|e('html_attr') }}')">{{ c }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ════ DESTINATION GRID ════ #}
+<div class="container mb-5">
+    <div class="row g-4" id="dest-grid">
         {% for destination in destinations %}
-        <div class="col-lg-4 col-md-6">
-            <div class="blog-item h-100">
-                <div class="blog-img">
-                    <div class="blog-img-inner">
-                        <img class="img-fluid w-100 rounded-top"
-                             style="height: 220px; object-fit: cover;"
-                             src="{{ destination.image and destination.image starts with 'http' ? destination.image : asset('img/about-img.jpg') }}"
-                             alt="{{ destination.pays }}">
+        <div class="col-lg-4 col-md-6 dest-col"
+             data-pays="{{ destination.pays|lower }}"
+             data-ville="{{ destination.ville|lower }}"
+             data-continent="{{ destination.continent }}"
+             data-id="{{ destination.id }}"
+             data-voyages="{{ destination.voyages|length }}">
+            <div class="dest-card h-100">
+
+                {# ── Image with overlay ── #}
+                <div class="dest-card-img-wrap">
+                    <img class="dest-card-img" id="img-{{ destination.id }}"
+                         src="{{ destination.image and destination.image starts with 'http' ? destination.image : 'https://source.unsplash.com/featured/600x400/?' ~ destination.pays|url_encode }}"
+                         alt="{{ destination.pays }}"
+                         onerror="this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=600&q=80'">
+                    <div class="dest-card-overlay"></div>
+                    <div class="dest-card-badges">
+                        <span class="dest-badge dest-badge-continent">
+                            <i class="fa fa-map-marker-alt me-1"></i>{{ destination.continent }}
+                        </span>
+                        {% if destination.voyages|length > 0 %}
+                            <span class="dest-badge dest-badge-voyages">
+                                {{ destination.voyages|length }} voyage{{ destination.voyages|length > 1 ? 's' : '' }}
+                            </span>
+                        {% endif %}
                     </div>
-                    <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
-                        <small class="flex-fill text-center border-end py-2">
-                            <i class="fa fa-globe text-primary me-1"></i>{{ destination.pays }}
-                        </small>
-                        <small class="flex-fill text-center border-end py-2">
-                            <i class="fa fa-city text-primary me-1"></i>{{ destination.ville }}
-                        </small>
-                        <small class="flex-fill text-center py-2">
-                            <i class="fa fa-map text-primary me-1"></i>{{ destination.continent }}
-                        </small>
+                    <img id="flag-{{ destination.id }}" class="dest-card-flag" src="" alt="Flag" style="display:none">
+                    <div class="unsplash-attr" id="photo-attr-{{ destination.id }}"></div>
+                </div>
+
+                {# ── Info bar — matches voyage card info bar ── #}
+                <div class="dest-infobar">
+                    <div class="dest-infobar-cell">
+                        <i class="fa fa-city text-primary me-1"></i>
+                        {{ destination.ville }}
+                    </div>
+                    <div class="dest-infobar-cell">
+                        <i class="fa fa-plane text-success me-1"></i>
+                        <strong class="text-success">{{ destination.voyages|length }}</strong> voyage{{ destination.voyages|length > 1 ? 's' : '' }}
+                    </div>
+                    <div class="dest-infobar-cell">
+                        <i class="fa fa-thermometer-half text-warning me-1"></i>
+                        <span id="temp-mini-{{ destination.id }}">…</span>
                     </div>
                 </div>
 
-                <div class="blog-content border border-top-0 rounded-bottom p-4">
-                    <h4 class="mb-3">{{ destination.pays }} — {{ destination.ville }}</h4>
-
-                    <div id="country-info-{{ loop.index }}" class="mb-3" style="min-height: 60px;">
-                        <span class="spinner-border spinner-border-sm text-primary me-1"></span>
-                        <span class="text-muted small">Chargement des infos...</span>
+                {# ── Card body ── #}
+                <div class="dest-card-body">
+                    <div>
+                        <h5 class="dest-card-title">{{ destination.pays }}</h5>
+                        <p class="dest-card-subtitle">
+                            <i class="fa fa-globe me-1"></i>{{ destination.continent }}
+                        </p>
                     </div>
 
-                    <div class="d-flex gap-2 flex-wrap">
-                    <a href="{{ path('app_destination_show', {'id': destination.id}) }}"
- class="btn btn-outline-secondary rounded-pill py-1 px-3">
- <i class="fa fa-eye"></i>
-</a>
-                        
+                    {# Country info pills (loaded by RestCountries) #}
+                    <div id="pills-{{ destination.id }}" class="dest-info-row">
+                        <span class="dest-info-pill skeleton skeleton-text" style="width:90px">&nbsp;</span>
+                        <span class="dest-info-pill skeleton skeleton-text" style="width:70px">&nbsp;</span>
+                        <span class="dest-info-pill skeleton skeleton-text" style="width:80px">&nbsp;</span>
+                    </div>
+
+                    {# Weather (loaded by OpenWeatherMap) #}
+                    <div id="weather-{{ destination.id }}" class="dest-weather">
+                        <div class="skeleton skeleton-weather" style="width:100%">&nbsp;</div>
+                    </div>
+
+                    {# Exchange rate (loaded async) #}
+                    <div id="exchange-{{ destination.id }}" class="dest-exchange" style="display:none"></div>
+
+                    {# Action buttons — same pill style as voyage/index ── #}
+                    <div class="d-flex gap-2 flex-wrap align-items-center mt-auto pt-2">
+                        <a href="{{ path('app_destination_show', {'id': destination.id}) }}"
+                           class="btn btn-outline-primary rounded-pill py-1 px-3 btn-sm"
+                           title="Voir la destination">
+                            <i class="fa fa-eye"></i>
+                        </a>
+                        <button class="btn btn-outline-success rounded-pill py-1 px-3 btn-sm"
+                                title="Carte"
+                                onclick="openMapModal({{ destination.id }}, '{{ destination.ville|e('js') }}, {{ destination.pays|e('js') }}')">
+                            <i class="fa fa-map-marker-alt"></i>
+                        </button>
+                        <button class="btn btn-outline-secondary rounded-pill py-1 px-3 btn-sm"
+                                title="Détails pays"
+                                onclick="openDetailModal({{ destination.id }}, '{{ destination.pays|e('js') }}', '{{ destination.ville|e('js') }}', '{{ destination.continent|e('js') }}')">
+                            <i class="fa fa-info-circle"></i>
+                        </button>
+                        {% if destination.voyages|length > 0 %}
+                        <button class="btn btn-outline-warning rounded-pill py-1 px-3 btn-sm"
+                                title="Voir les voyages"
+                                onclick="openDetailModal({{ destination.id }}, '{{ destination.pays|e('js') }}', '{{ destination.ville|e('js') }}', '{{ destination.continent|e('js') }}')">
+                            <i class="fa fa-plane me-1"></i>{{ destination.voyages|length }}
+                        </button>
+                        {% endif %}
                     </div>
                 </div>
+
             </div>
         </div>
         {% else %}
         <div class="col-12 text-center py-5">
-            <h4 class="text-muted">Aucune destination trouvée</h4>
-            <a href="{{ path('app_destination_new') }}" class="btn btn-primary rounded-pill mt-3">Ajouter une destination</a>
+            <i class="fa fa-globe text-muted" style="font-size:3rem;opacity:.3"></i>
+            <h4 class="text-muted mt-3">Aucune destination trouvée</h4>
         </div>
         {% endfor %}
     </div>
+
+    {# No-results fallback #}
+    <div id="no-results" class="no-results-wrap" style="display:none">
+        <div class="no-results-icon">🔍</div>
+        <h4 class="text-muted">Aucune destination ne correspond à votre recherche</h4>
+        <button class="btn btn-outline-primary rounded-pill mt-3" onclick="resetFilters()">Réinitialiser</button>
+    </div>
 </div>
 
-<div class="container-fluid footer py-5">
-    <div class="container py-5">
-        <div class="row g-5">
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">After Travel</h4>
-                <p class="text-white">Votre plateforme de voyage tout-en-un.</p>
+{# ════ MAP MODAL ════ #}
+<div class="modal fade" id="mapModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold" id="map-modal-title">📍 Carte</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">Liens Rapides</h4>
-                <div class="d-flex flex-column">
-                    <a href="{{ path('app_home') }}" class="text-white mb-2">Home</a>
-                    <a href="{{ path('app_voyage') }}" class="text-white mb-2">Voyages</a>
-                    <a href="{{ path('app_destination') }}" class="text-white mb-2">Destinations</a>
-                    <a href="{{ path('app_about') }}" class="text-white mb-2">About</a>
+            <div class="modal-body p-3">
+                <iframe id="map-frame" style="width:100%;height:360px;border:none;border-radius:10px" src="" loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# ════ DETAIL MODAL ════ #}
+<div class="modal fade" id="detailModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header border-0" style="background:linear-gradient(135deg,#0d6efd,#6610f2)">
+                <div>
+                    <h5 class="modal-title fw-bold text-white mb-0" id="detail-modal-title">Destination</h5>
+                    <div class="text-white-50 small" id="detail-modal-sub"></div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="detail-modal-body">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <div class="mt-2 text-muted small">Chargement des données…</div>
                 </div>
             </div>
-            <div class="col-md-6 col-lg-4">
-                <h4 class="mb-4 text-white">Contact</h4>
-                <a class="text-white mb-2 d-block">
-                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
-                </a>
-            </div>
         </div>
     </div>
 </div>
 
-<div class="container-fluid copyright text-body py-4">
-    <div class="container text-center">
-        <i class="fas fa-copyright me-2"></i>
-        <span class="text-white">After Travel</span>, All rights reserved.
-    </div>
-</div>
-
+{# ════ FOOTER ════ #}
+{% include '_footer.html.twig' ignore missing %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const countries = [
-        {% for destination in destinations %}
-        { index: {{ loop.index }}, pays: "{{ destination.pays|e('js') }}" },
-        {% endfor %}
-    ];
+/* ══════════════════════════════════════════════════════════
+   DATA — injected from Twig
+   ══════════════════════════════════════════════════════════ */
+const DESTINATIONS = [
+  {% for destination in destinations %}
+  {
+    id: {{ destination.id }},
+    pays: {{ destination.pays|json_encode|raw }},
+    ville: {{ destination.ville|json_encode|raw }},
+    continent: {{ destination.continent|json_encode|raw }},
+    image: {{ (destination.image ?: '')|json_encode|raw }},
+    nbVoyages: {{ destination.voyages|length }},
+    voyages: [
+      {% for v in destination.voyages %}
+      {
+        id: {{ v.id }},
+        titre: {{ v.titre|json_encode|raw }},
+        prix: {{ v.prix }},
+        dateDebut: {{ (v.dateDebut ? v.dateDebut|date('d/m/Y') : '')|json_encode|raw }},
+        dateFin: {{ (v.dateFin ? v.dateFin|date('d/m/Y') : '')|json_encode|raw }},
+        nbPlaces: {{ v.nbPlaces }}
+      }{% if not loop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+];
 
-    countries.forEach(function(c) {
-        fetch('https://restcountries.com/v3.1/name/' + encodeURIComponent(c.pays) + '?fields=name,capital,currencies,languages,flags')
-        .then(r => r.json())
-        .then(data => {
-            if (data && data[0]) {
-                const country = data[0];
+/* ── Hero counters ── */
+(function() {
+  const continentSet = new Set(DESTINATIONS.map(d => d.continent));
+  document.getElementById('stat-voyages').textContent =
+    DESTINATIONS.reduce((s, d) => s + d.nbVoyages, 0);
+  document.getElementById('stat-continents').textContent = continentSet.size;
+})();
 
-                const capital = country.capital ? country.capital[0] : 'N/A';
+/* ── Live EUR/TND ── */
+fetch('https://api.exchangerate.host/latest?base=TND&symbols=EUR,USD')
+    .then(r => r.json())
+    .then(d => {
+        var eurRate = d.rates?.EUR || 0.29;
+        document.getElementById('stat-eur').textContent = eurRate.toFixed(3);
+    })
+    .catch(function(){ document.getElementById('stat-eur').textContent = '0.29'; });
 
-                const currencies = country.currencies
-                    ? Object.values(country.currencies).map(cur => cur.name).join(', ')
-                    : 'N/A';
+/* ══════════════════════════════════════════════════════════
+   FILTER & SORT
+   ══════════════════════════════════════════════════════════ */
+let activeContinentFilter = '';
 
-                const languages = country.languages
-                    ? Object.values(country.languages).join(', ')
-                    : 'N/A';
-
-                const flag = country.flags ? country.flags.png : '';
-
-                document.getElementById('country-info-' + c.index).innerHTML =
-                    (flag ? '<img src="'+flag+'" style="height:25px;border-radius:3px;" class="mb-2"> ' : '') +
-                    '<p class="mb-1 small"><b>Capitale:</b> ' + capital + '</p>' +
-                    '<p class="mb-1 small"><b>Devise:</b> ' + currencies + '</p>' +
-                    '<p class="mb-0 small"><b>Langue:</b> ' + languages + '</p>';
-            } else {
-                document.getElementById('country-info-' + c.index).innerHTML =
-                    '<p class="text-muted small mb-0">Infos non disponibles</p>';
-            }
-        })
-        .catch(() => {
-            document.getElementById('country-info-' + c.index).innerHTML =
-                '<p class="text-muted small mb-0">Infos non disponibles</p>';
-        });
+function setContinentFilter(el, value) {
+    document.querySelectorAll('.continent-pill').forEach(p => {
+        p.classList.remove('bg-primary', 'text-white');
+        p.classList.add('bg-light', 'text-dark');
     });
+    if (el) {
+        el.classList.remove('bg-light', 'text-dark');
+        el.classList.add('bg-primary', 'text-white');
+    }
+    activeContinentFilter = value;
+    filterDestinations();
+}
+
+function setContinentFromSelect() {
+    activeContinentFilter = document.getElementById('continent-select').value;
+    filterDestinations();
+}
+
+function filterDestinations() {
+    const q = document.getElementById('dest-search').value.toLowerCase().trim();
+    const sort = document.getElementById('sort-select').value;
+    const cols = [...document.querySelectorAll('.dest-col')];
+    let shown = 0;
+
+    cols.forEach(col => {
+        const pays = col.dataset.pays || '';
+        const ville = col.dataset.ville || '';
+        const continent = col.dataset.continent || '';
+        const matchQ = !q || pays.includes(q) || ville.includes(q) || continent.toLowerCase().includes(q);
+        const matchC = !activeContinentFilter || continent === activeContinentFilter;
+        col.style.display = matchQ && matchC ? '' : 'none';
+        if (matchQ && matchC) shown++;
+    });
+
+    const grid = document.getElementById('dest-grid');
+    const sorted = cols.filter(c => c.style.display !== 'none');
+    if (sort === 'name') sorted.sort((a, b) => a.dataset.pays.localeCompare(b.dataset.pays));
+    if (sort === 'name-desc') sorted.sort((a, b) => b.dataset.pays.localeCompare(a.dataset.pays));
+    if (sort === 'voyages') sorted.sort((a, b) => Number(b.dataset.voyages) - Number(a.dataset.voyages));
+    sorted.forEach(el => grid.appendChild(el));
+
+    document.getElementById('shown-count').textContent = shown;
+    document.getElementById('no-results').style.display = shown === 0 ? '' : 'none';
+}
+
+function resetFilters() {
+    document.getElementById('dest-search').value = '';
+    document.getElementById('sort-select').value = 'default';
+    document.getElementById('continent-select').value = '';
+    activeContinentFilter = '';
+    document.querySelectorAll('.continent-pill').forEach(p => {
+        p.classList.remove('bg-primary', 'text-white');
+        p.classList.add('bg-light', 'text-dark');
+    });
+    filterDestinations();
+}
+
+/* ══════════════════════════════════════════════════════════
+   API 1 — RestCountries
+   ══════════════════════════════════════════════════════════ */
+const countryCache = {};
+
+async function loadCountryData(dest) {
+    if (countryCache[dest.pays]) return countryCache[dest.pays];
+    try {
+        const r = await fetch(`https://restcountries.com/v3.1/name/${encodeURIComponent(dest.pays)}?fields=name,capital,currencies,languages,flags,population,timezones,region`);
+        if (!r.ok) throw new Error('not ok');
+        const data = await r.json();
+        countryCache[dest.pays] = data[0];
+        return data[0];
+    } catch { return null; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   API 2 — OpenWeatherMap
+   ══════════════════════════════════════════════════════════ */
+const OWM_KEY = 'bd5e378503939ddaee76f12ad7a97608';
+
+async function loadWeather(dest) {
+    const city = dest.ville || dest.pays;
+    try {
+        const r = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(city)}&appid=${OWM_KEY}&units=metric&lang=fr`);
+        if (!r.ok) throw new Error();
+        return await r.json();
+    } catch { return null; }
+}
+
+function weatherIcon(code) {
+    if (code >= 200 && code < 300) return '⛈️';
+    if (code >= 300 && code < 500) return '🌧️';
+    if (code >= 500 && code < 600) return '🌦️';
+    if (code >= 600 && code < 700) return '❄️';
+    if (code >= 700 && code < 800) return '🌫️';
+    if (code === 800) return '☀️';
+    if (code === 801) return '🌤️';
+    return '⛅';
+}
+
+/* ══════════════════════════════════════════════════════════
+   API 3 — Frankfurter (exchange rates)
+   ══════════════════════════════════════════════════════════ */
+let exchangeRates = null;
+
+async function loadExchangeRates() {
+    try {
+        const r = await fetch('https://api.frankfurter.app/latest?from=EUR');
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        exchangeRates = data.rates;
+        exchangeRates['EUR'] = 1;
+    } catch { exchangeRates = {}; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   CARD ENRICHMENT
+   ══════════════════════════════════════════════════════════ */
+async function enrichCard(dest) {
+    const [c, w] = await Promise.all([loadCountryData(dest), loadWeather(dest)]);
+
+    // RestCountries pills
+    const pillsEl = document.getElementById(`pills-${dest.id}`);
+    if (pillsEl) {
+        if (c) {
+            const capital  = c.capital?.[0] ?? '—';
+            const pop      = c.population ? (c.population/1e6).toFixed(1)+'M' : '—';
+            const currency = Object.keys(c.currencies ?? {})[0] ?? '—';
+            const flag     = c.flags?.svg || c.flags?.png || '';
+            const timezone = c.timezones?.[0] ?? '—';
+            pillsEl.innerHTML = `
+                <span class="dest-info-pill"><span class="pil">🏛️</span>${capital}</span>
+                <span class="dest-info-pill"><span class="pil">👥</span>${pop}</span>
+                <span class="dest-info-pill"><span class="pil">💱</span>${currency}</span>
+                <span class="dest-info-pill"><span class="pil">🕐</span>${timezone}</span>`;
+            if (flag) {
+                const flagEl = document.getElementById(`flag-${dest.id}`);
+                if (flagEl) { flagEl.src = flag; flagEl.style.display = ''; }
+            }
+            if (exchangeRates && currency && currency !== 'EUR' && exchangeRates[currency]) {
+                const rate = exchangeRates[currency];
+                const exEl = document.getElementById(`exchange-${dest.id}`);
+                if (exEl) {
+                    exEl.style.display = '';
+                    exEl.innerHTML = `<span class="dest-exchange-label">💶 Taux :</span> 1 EUR = <strong>${rate.toFixed(2)} ${currency}</strong>`;
+                }
+            }
+        } else {
+            pillsEl.innerHTML = `<span class="dest-info-pill" style="color:var(--muted)">Infos non disponibles</span>`;
+        }
+    }
+
+    // Weather
+    const wEl = document.getElementById(`weather-${dest.id}`);
+    const miniEl = document.getElementById(`temp-mini-${dest.id}`);
+    if (wEl) {
+        if (w) {
+            const temp     = Math.round(w.main.temp);
+            const feelsLike = Math.round(w.main.feels_like);
+            const desc     = w.weather[0].description;
+            const icon     = weatherIcon(w.weather[0].id);
+            const humidity = w.main.humidity;
+            const wind     = Math.round(w.wind.speed * 3.6);
+            if (miniEl) miniEl.textContent = temp + '°C';
+            wEl.innerHTML = `
+                <div class="dest-weather-icon">${icon}</div>
+                <div class="flex-grow-1">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="dest-weather-temp">${temp}°C</span>
+                        <span class="dest-weather-desc text-capitalize">${desc}</span>
+                    </div>
+                    <div style="font-size:11px;color:var(--muted)">
+                        Ressenti ${feelsLike}°C · 💧${humidity}% · 🌬️${wind} km/h
+                    </div>
+                </div>`;
+        } else {
+            if (miniEl) miniEl.textContent = 'N/A';
+            wEl.innerHTML = `<span class="dest-weather-icon">🌡️</span><span style="color:var(--muted);font-size:12px">Météo indisponible</span>`;
+        }
+    }
+}
+
+/* ══════════════════════════════════════════════════════════
+   MAP MODAL
+   ══════════════════════════════════════════════════════════ */
+function openMapModal(id, location) {
+    const encoded = encodeURIComponent(location);
+    document.getElementById('map-modal-title').textContent = '📍 ' + location;
+    document.getElementById('map-frame').src =
+        `https://maps.google.com/maps?q=${encoded}&t=m&z=11&output=embed&iwloc=B`;
+    new bootstrap.Modal(document.getElementById('mapModal')).show();
+}
+
+/* ══════════════════════════════════════════════════════════
+   DETAIL MODAL — Wikipedia + RestCountries + Voyages
+   ══════════════════════════════════════════════════════════ */
+async function openDetailModal(id, pays, ville, continent) {
+    document.getElementById('detail-modal-title').textContent = `${pays} — ${ville}`;
+    document.getElementById('detail-modal-sub').textContent = continent;
+    document.getElementById('detail-modal-body').innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <div class="mt-2 text-muted small">Chargement des données…</div>
+        </div>`;
+    new bootstrap.Modal(document.getElementById('detailModal')).show();
+
+    const dest = DESTINATIONS.find(d => d.id === id) || { id, pays, ville, continent, voyages: [], nbVoyages: 0 };
+    const [c, w, wiki] = await Promise.all([loadCountryData(dest), loadWeather(dest), loadWikipedia(pays)]);
+
+    const capital  = c?.capital?.[0] ?? '—';
+    const pop      = c?.population ? c.population.toLocaleString('fr-FR') : '—';
+    const currency = Object.keys(c?.currencies ?? {})[0] ?? '—';
+    const currName = Object.values(c?.currencies ?? {})[0]?.name ?? '—';
+    const lang     = Object.values(c?.languages ?? {}).join(', ') || '—';
+    const tz       = c?.timezones?.[0] ?? '—';
+    const region   = c?.region ?? continent;
+    const flag     = c?.flags?.svg || c?.flags?.png || '';
+    const imgSrc   = dest.image || `https://source.unsplash.com/featured/700x400/?${encodeURIComponent(pays + ',travel')}`;
+
+    const wIcon    = w ? weatherIcon(w.weather[0].id) : '🌡️';
+    const wTemp    = w ? Math.round(w.main.temp) + '°C' : '—';
+    const wDesc    = w ? w.weather[0].description : 'Indisponible';
+    const wHumid   = w ? w.main.humidity + '%' : '—';
+    const wWind    = w ? Math.round((w.wind?.speed || 0) * 3.6) + ' km/h' : '—';
+
+    let exHTML = '';
+    if (exchangeRates && currency && currency !== 'EUR' && exchangeRates[currency]) {
+        const rate = exchangeRates[currency];
+        exHTML = `<div class="dest-modal-info-item">
+            <div class="dest-modal-info-label">💶 Taux de change</div>
+            <div class="dest-modal-info-value">1 EUR = ${rate.toFixed(2)} ${currency}</div>
+        </div>`;
+    }
+
+    let voyagesHTML = '<p class="text-muted small">Aucun voyage pour cette destination.</p>';
+    if (dest.voyages && dest.voyages.length > 0) {
+        voyagesHTML = `<div class="modal-voyages-list">` + dest.voyages.map(v => `
+            <div class="modal-voyage-item">
+                <div>
+                    <div class="modal-voyage-title">🗺️ ${v.titre}</div>
+                    <div class="modal-voyage-meta">${v.dateDebut} → ${v.dateFin} · ${v.nbPlaces} places</div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="modal-voyage-price">${v.prix.toLocaleString('fr-FR')} TND</span>
+                    <a href="/voyage/${v.id}" class="btn btn-success btn-sm rounded-pill px-3">
+                        <i class="fa fa-calendar-check me-1"></i>Réserver
+                    </a>
+                </div>
+            </div>`).join('') + `</div>`;
+    }
+
+    document.getElementById('detail-modal-body').innerHTML = `
+        <div class="row g-4">
+            <div class="col-md-5">
+                <div style="position:relative">
+                    <img src="${imgSrc}" class="dest-modal-img" alt="${pays}"
+                         onerror="this.src='https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=700&q=80'">
+                    ${flag ? `<img src="${flag}" style="position:absolute;bottom:8px;right:8px;height:28px;border-radius:4px;box-shadow:0 2px 8px rgba(0,0,0,.3)" alt="flag">` : ''}
+                </div>
+                <h6 class="fw-bold mb-2 mt-3">🌤️ Météo actuelle à ${ville}</h6>
+                <div class="dest-weather mb-3">
+                    <div class="dest-weather-icon">${wIcon}</div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="dest-weather-temp">${wTemp}</span>
+                            <span class="dest-weather-desc text-capitalize">${wDesc}</span>
+                        </div>
+                        <div style="font-size:11px;color:var(--muted)">💧 ${wHumid} · 🌬️ ${wWind}</div>
+                    </div>
+                </div>
+                <a href="https://maps.google.com/maps?q=${encodeURIComponent(ville + ', ' + pays)}&t=m&z=11"
+                   target="_blank" class="btn btn-outline-primary btn-sm rounded-pill w-100">
+                    <i class="fa fa-map-marker-alt me-1"></i> Ouvrir dans Google Maps
+                </a>
+                <iframe style="width:100%;height:160px;border:none;border-radius:10px;margin-top:10px"
+                        src="https://maps.google.com/maps?q=${encodeURIComponent(ville + ', ' + pays)}&t=m&z=10&output=embed&iwloc=B"
+                        loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
+            <div class="col-md-7">
+                <h6 class="fw-bold mb-3">📊 Informations pays</h6>
+                <div class="dest-modal-infos mb-3">
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">🏛️ Capitale</div><div class="dest-modal-info-value">${capital}</div></div>
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">👥 Population</div><div class="dest-modal-info-value">${pop}</div></div>
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">💱 Devise</div><div class="dest-modal-info-value">${currency} — ${currName}</div></div>
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">🗣️ Langue(s)</div><div class="dest-modal-info-value">${lang}</div></div>
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">🕐 Fuseau horaire</div><div class="dest-modal-info-value">${tz}</div></div>
+                    <div class="dest-modal-info-item"><div class="dest-modal-info-label">🌍 Région</div><div class="dest-modal-info-value">${region}</div></div>
+                    ${exHTML}
+                </div>
+                ${wiki ? `
+                <h6 class="fw-bold mb-2">📚 À propos — Wikipedia</h6>
+                <div class="wiki-excerpt">
+                    ${wiki.excerpt}
+                    <div class="wiki-src"><a href="${wiki.url}" target="_blank" class="text-muted">Lire l'article complet →</a></div>
+                </div>` : ''}
+                <h6 class="fw-bold mt-3 mb-2">✈️ Voyages disponibles (${dest.nbVoyages})</h6>
+                ${voyagesHTML}
+            </div>
+        </div>`;
+}
+
+/* ══════════════════════════════════════════════════════════
+   API 5 — Wikipedia REST API
+   ══════════════════════════════════════════════════════════ */
+const wikiCache = {};
+
+async function loadWikipedia(pays) {
+    if (wikiCache[pays] !== undefined) return wikiCache[pays];
+    try {
+        const r = await fetch(`https://fr.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(pays)}`);
+        if (!r.ok) throw new Error();
+        const data = await r.json();
+        if (data.extract) {
+            const result = {
+                excerpt: data.extract.length > 400 ? data.extract.substring(0, 400) + '…' : data.extract,
+                url: data.content_urls?.desktop?.page || `https://fr.wikipedia.org/wiki/${encodeURIComponent(pays)}`
+            };
+            wikiCache[pays] = result;
+            return result;
+        }
+    } catch {}
+    wikiCache[pays] = null;
+    return null;
+}
+
+/* ══════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', async function () {
+    await loadExchangeRates();
+    const batch = 4;
+    for (let i = 0; i < DESTINATIONS.length; i += batch) {
+        const chunk = DESTINATIONS.slice(i, i + batch);
+        await Promise.all(chunk.map(d => enrichCard(d)));
+    }
 });
 </script>
-
 {% endblock %}

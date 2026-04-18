@@ -20,10 +20,16 @@
             <div class="blog-item h-100">
                 <div class="blog-img">
                     <div class="blog-img-inner">
-                        {% if voyage.image %}
-                            <img class="img-fluid w-100 rounded-top" style="height: 220px; object-fit: cover;" src="{{ voyage.image }}" alt="{{ voyage.titre }}">
+                        {% if voyage.image and voyage.image starts with 'http' %}
+                            <img class="img-fluid w-100 rounded-top"
+                                 style="height: 220px; object-fit: cover;"
+                                 src="{{ voyage.image }}"
+                                 alt="{{ voyage.titre }}">
                         {% else %}
-                            <img class="img-fluid w-100 rounded-top" style="height: 220px; object-fit: cover;" src="{{ asset('img/blog-1.jpg') }}" alt="Image">
+                            <img class="img-fluid w-100 rounded-top"
+                                 style="height: 220px; object-fit: cover;"
+                                 src="{{ asset('img/blog-' ~ (loop.index % 3 == 0 ? 3 : loop.index % 3) ~ '.jpg') }}"
+                                 alt="{{ voyage.titre }}">
                         {% endif %}
                     </div>
                     <div class="blog-info d-flex align-items-center border border-start-0 border-end-0">
@@ -33,37 +39,77 @@
                         </small>
                         <small class="flex-fill text-center border-end py-2">
                             <i class="fa fa-tag text-primary me-1"></i>{{ voyage.prix }} TND
+                            <br>
+                            <span class="text-muted" style="font-size:10px;">
+                                ~ {{ (voyage.prix * 0.29)|number_format(0) }} EUR |
+                                {{ (voyage.prix * 0.32)|number_format(0) }} USD
+                            </span>
                         </small>
                         <small class="flex-fill text-center py-2">
                             <i class="fa fa-users text-primary me-1"></i>{{ voyage.nbPlaces }} places
                         </small>
                     </div>
                 </div>
+
                 <div class="blog-content border border-top-0 rounded-bottom p-4">
                     <h4 class="mb-2">{{ voyage.titre }}</h4>
                     <p class="text-muted mb-3">{{ voyage.description|slice(0,100) }}...</p>
-                    <div class="d-flex gap-2">
-                        <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}" class="btn btn-primary rounded-pill py-1 px-3">
-    <i class="fa fa-eye me-1"></i>Voir
-</a>
-                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}" class="btn btn-danger rounded-pill py-1 px-3">
+
+                    <div class="d-flex gap-2 flex-wrap mb-3">
+                        <a href="{{ path('app_voyage_show', {'id': voyage.id}) }}"
+                           class="btn btn-primary rounded-pill py-1 px-3">
+                            <i class="fa fa-eye me-1"></i>Voir
+                        </a>
+                        <a href="{{ path('app_voyage_toggle_favori', {'id': voyage.id}) }}"
+                           class="btn btn-danger rounded-pill py-1 px-3">
                             <i class="fa fa-heart-broken me-1"></i>Retirer
                         </a>
+                        <a href="{{ path('app_voyage_pdf', {'id': voyage.id}) }}"
+                           class="btn btn-success rounded-pill py-1 px-3" target="_blank">
+                            <i class="fa fa-file-pdf me-1"></i>PDF
+                        </a>
+
+                        {# ── QR Code toggle button ── #}
+                        <button class="btn btn-outline-dark rounded-pill py-1 px-3"
+                                type="button"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#qr-fav-{{ loop.index }}"
+                                aria-expanded="false"
+                                title="Afficher le QR Code">
+                            <i class="fa fa-qrcode"></i>
+                        </button>
+                    </div>
+
+                    {# ── QR Code collapsible panel ── #}
+                    <div class="collapse" id="qr-fav-{{ loop.index }}">
+                        <div class="border rounded p-3 text-center bg-light">
+                            <p class="small text-muted mb-2 fw-bold">Scannez pour voir ce voyage</p>
+                            {% set voyageUrl = app.request.schemeAndHttpHost ~ path('app_voyage_show', {'id': voyage.id}) %}
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ voyageUrl|url_encode }}&color=13357B&bgcolor=ffffff&qzone=2"
+                                 alt="QR Code {{ voyage.titre }}"
+                                 width="150" height="150"
+                                 class="img-fluid rounded">
+                            <p class="small text-muted mt-2 mb-0">{{ voyage.titre }}</p>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
         {% else %}
         <div class="col-12 text-center py-5">
-            <i class="fa fa-heart fa-4x text-muted mb-4"></i>
+            <i class="fa fa-heart fa-4x text-muted mb-4 d-block"></i>
             <h4 class="text-muted">Aucun voyage en favoris</h4>
             <p class="text-muted">Ajoutez des voyages à vos favoris depuis la page Voyages</p>
-            <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill mt-3">Voir les Voyages</a>
+            <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill mt-3">
+                <i class="fa fa-plane me-2"></i>Voir les Voyages
+            </a>
         </div>
         {% endfor %}
     </div>
 </div>
-<!-- Footer -->
+
+{# Footer #}
 <div class="container-fluid footer py-5">
     <div class="container py-5">
         <div class="row g-5">
@@ -82,7 +128,9 @@
             </div>
             <div class="col-md-6 col-lg-4">
                 <h4 class="mb-4 text-white">Contact</h4>
-                <a class="text-white mb-2 d-block"><i class="fas fa-envelope me-2"></i>contact@aftertravel.com</a>
+                <a class="text-white mb-2 d-block">
+                    <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                </a>
             </div>
         </div>
     </div>
@@ -92,4 +140,5 @@
         <i class="fas fa-copyright me-2"></i><span class="text-white">After Travel</span>, All rights reserved.
     </div>
 </div>
+
 {% endblock %}

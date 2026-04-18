@@ -5,11 +5,20 @@ namespace App\Controller;
 use App\Entity\DocumentArchive;
 use App\Entity\Paiement;
 use App\Entity\Reservation;
-use App\Repository\DocumentRepository;
+use App\Repository\ActiviteRepository;
 use App\Repository\CategorieDocumentRepository;
+use App\Repository\DepenseRepository;
+use App\Repository\DestinationRepository;
 use App\Repository\DocumentArchiveRepository;
+use App\Repository\DocumentRepository;
+use App\Repository\OffreRepository;
 use App\Repository\PaiementRepository;
 use App\Repository\ReservationRepository;
+use App\Repository\ServiceRepository;
+use App\Repository\UsersRepository;
+use App\Repository\VoyageRepository;
+use App\Service\CategorieDetectorService;
+use App\Service\CloudinaryService;
 use App\Service\MailjetService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -17,16 +26,19 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use App\Entity\Document;
 use App\Form\DocumentType;
-use App\Service\CloudinaryService;
-use App\Service\CategorieDetectorService;
-
 
 #[Route('/admin')]
+#[IsGranted('ROLE_ADMIN')]
 class AdminController extends AbstractController
 {
-    #[Route('', name: 'app_admin', methods: ['GET'])]
+    /**
+     * Unified admin dashboard — feeds ALL sections in one request
+     * so the single-page template can switch tabs without reloading.
+     */
+    #[Route('', name: 'app_admin', methods: ['GET', 'POST'])]
     public function index(
         Request $request,
         ReservationRepository $reservationRepository,
@@ -35,41 +47,43 @@ class AdminController extends AbstractController
         CategorieDocumentRepository $categorieDocumentRepository,
         EntityManagerInterface $entityManager,
         CategorieDetectorService $categorieDetector,
-        CloudinaryService $cloudinaryService
+        CloudinaryService $cloudinaryService,
+        UsersRepository $usersRepository,
+        VoyageRepository $voyageRepository,
+        DestinationRepository $destinationRepository,
+        ActiviteRepository $activiteRepository,
+        ServiceRepository $serviceRepository,
+        OffreRepository $offreRepository,
+        DepenseRepository $depenseRepository
     ): Response {
-        $tab = $request->query->get('tab', 'reservations');
-        if (!in_array($tab, ['reservations', 'payments', 'statistics', 'documents', 'document_new', 'document_stats', 'categories'], true)) {
-            $tab = 'reservations';
-        }
-
-        $reservations = $reservationRepository->findAll();
-        $payments = $paiementRepository->findAll();
+        // ── Reservation filters ──
         $reservationFilters = [
-            'q' => trim((string) $request->query->get('reservation_q', '')),
+            'q'      => trim((string) $request->query->get('reservation_q', '')),
             'status' => trim((string) $request->query->get('reservation_status', '')),
-            'sort' => trim((string) $request->query->get('reservation_sort', 'date')),
-            'dir' => strtolower((string) $request->query->get('reservation_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+            'sort'   => trim((string) $request->query->get('reservation_sort', 'date')),
+            'dir'    => strtolower((string) $request->query->get('reservation_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
         ];
 
         $paymentFilters = [
-            'q' => trim((string) $request->query->get('payment_q', '')),
+            'q'      => trim((string) $request->query->get('payment_q', '')),
             'status' => trim((string) $request->query->get('payment_status', '')),
             'method' => trim((string) $request->query->get('payment_method', '')),
-            'sort' => trim((string) $request->query->get('payment_sort', 'date')),
-            'dir' => strtolower((string) $request->query->get('payment_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
+            'sort'   => trim((string) $request->query->get('payment_sort', 'date')),
+            'dir'    => strtolower((string) $request->query->get('payment_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
         ];
 
-        $filteredReservations = $this->filterReservations($reservations, $reservationFilters);
-        $filteredPayments = $this->filterPayments($payments, $paymentFilters);
+        $allReservations = $reservationRepository->findAll();
+        $allPayments     = $paiementRepository->findAll();
+        $filteredRes     = $this->filterReservations($allReservations, $reservationFilters);
+        $filteredPay     = $this->filterPayments($allPayments, $paymentFilters);
 
-        // Document data
+        // ── Documents ──
         $allDocuments = $documentRepository->findAll();
         $expiredDocs  = $documentRepository->findExpired();
         $categories   = $categorieDocumentRepository->findAll();
-        $parCategorie = $documentRepository->countByCategorie();
 
-        // Document new form (tab=document_new)
-        $newDocument = new Document();
+        // ── Document new form (POST) ──
+        $newDocument  = new Document();
         $documentForm = $this->createForm(DocumentType::class, $newDocument);
         $documentForm->handleRequest($request);
 
@@ -80,7 +94,9 @@ class AdminController extends AbstractController
                 $libelleDetecte = $categorieDetector->detecterCategorie($newDocument->getNomDocument(), $cats);
                 if ($libelleDetecte) {
                     $cat = $categorieDocumentRepository->findOneBy(['libelle' => $libelleDetecte]);
-                    if ($cat) { $newDocument->setCategorie($cat); }
+                    if ($cat) {
+                        $newDocument->setCategorie($cat);
+                    }
                 }
             }
             $fichier = $documentForm->get('fichier')->getData();
@@ -98,62 +114,65 @@ class AdminController extends AbstractController
             }
             $entityManager->persist($newDocument);
             $entityManager->flush();
-            $msg = $libelleDetecte ? '✅ Document ajouté ! 🤖 Catégorie : ' . $libelleDetecte : '✅ Document ajouté !';
+            $msg = $libelleDetecte
+                ? '✅ Document ajouté ! 🤖 Catégorie : ' . $libelleDetecte
+                : '✅ Document ajouté !';
             $this->addFlash('success', $msg);
-            return $this->redirectToRoute('app_admin', ['tab' => 'documents']);
+            return $this->redirectToRoute('app_admin');
         }
 
-        return $this->render('admin/index.html.twig', [
-            'tab' => $tab,
-            'reservations' => $filteredReservations,
-            'payments' => $filteredPayments,
-            'reservationCount' => count($filteredReservations),
-            'paymentCount' => count($filteredPayments),
-            'reservationTotalCount' => count($reservations),
-            'paymentTotalCount' => count($payments),
-            'reservationFilters' => $reservationFilters,
-            'paymentFilters' => $paymentFilters,
-            'stats' => $this->buildStatistics($reservations, $payments),
-            // Document tabs
-            'allDocuments' => $allDocuments,
-            'docTotal'     => count($allDocuments),
-            'docValides'   => count($allDocuments) - count($expiredDocs),
-            'docExpires'   => count($expiredDocs),
-            'categories'   => $categories,
-            'parCategorie' => $parCategorie,
-            'documentForm'  => $documentForm->createView(),
-        ]);
-    }
-
-    #[Route('/dashboard', name: 'app_admin_dashboard')]
-    public function dashboard(
-        DocumentRepository $documentRepository,
-        CategorieDocumentRepository $categorieRepository
-    ): Response {
-        $allDocs = $documentRepository->findAll();
-        $expires = $documentRepository->findExpired();
-        $expiresSoon = $documentRepository->findExpiringSoon();
-
         return $this->render('admin/dashboard.html.twig', [
-            'total'           => count($allDocs),
-            'totalCategories' => count($categorieRepository->findAll()),
-            'expiresSoon'     => count($expiresSoon),
-            'expires'         => count($expires),
-            'documentsExpires'=> $expires,
-            'allDocuments'    => $allDocs,
-            'categories'      => $categorieRepository->findAll(),
-            'parCategorie'    => $documentRepository->countByCategorie(),
-            'uploadsParMois'  => $documentRepository->getMonthlyUploads(),
+            // ── Auth ──
+            // app.user is accessible directly in Twig via app global
+
+            // ── Reservations ──
+            'reservations'           => $filteredRes,
+            'reservationCount'       => count($filteredRes),
+            'reservationTotalCount'  => count($allReservations),
+            'reservationFilters'     => $reservationFilters,
+
+            // ── Payments ──
+            'payments'               => $filteredPay,
+            'paymentCount'           => count($filteredPay),
+            'paymentTotalCount'      => count($allPayments),
+            'paymentFilters'         => $paymentFilters,
+
+            // ── Statistics ──
+            'stats'                  => $this->buildStatistics($allReservations, $allPayments),
+
+            // ── Documents ──
+            'allDocuments'           => $allDocuments,
+            'docTotal'               => count($allDocuments),
+            'docValides'             => count($allDocuments) - count($expiredDocs),
+            'docExpires'             => count($expiredDocs),
+            'categories'             => $categories,
+            'parCategorie'           => $documentRepository->countByCategorie(),
+            'documentForm'           => $documentForm->createView(),
+
+            // ── Users ──
+            'users'                  => $usersRepository->findAll(),
+
+            // ── Voyages & Destinations ──
+            'voyages'                => $voyageRepository->findBy([], ['id_voyage' => 'DESC']),
+            'destinations'           => $destinationRepository->findAll(),
+
+            // ── Activités ──
+            'activites'              => $activiteRepository->findAll(),
+
+            // ── Services & Offres ──
+            'services'               => $serviceRepository->findAll(),
+            'offres'                 => $offreRepository->findAll(),
+
+            // ── Dépenses ──
+            'depenses'               => $depenseRepository->findAll(),
         ]);
     }
 
-    // ─── Dedicated pages (extend base_admin.html.twig like Voyages/Destinations) ───
+    // ─── Keep existing sub-routes for dedicated pages ───────────────────────────
 
     #[Route('/reservations', name: 'app_admin_reservations', methods: ['GET'])]
-    public function reservations(
-        Request $request,
-        ReservationRepository $reservationRepository
-    ): Response {
+    public function reservations(Request $request, ReservationRepository $reservationRepository): Response
+    {
         $reservations = $reservationRepository->findAll();
         $filters = [
             'q'      => trim((string) $request->query->get('reservation_q', '')),
@@ -162,18 +181,16 @@ class AdminController extends AbstractController
             'dir'    => strtolower((string) $request->query->get('reservation_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
         ];
         return $this->render('admin/reservations/index.html.twig', [
-            'reservations'        => $this->filterReservations($reservations, $filters),
-            'reservationCount'    => count($this->filterReservations($reservations, $filters)),
-            'reservationTotalCount' => count($reservations),
-            'reservationFilters'  => $filters,
+            'reservations'           => $this->filterReservations($reservations, $filters),
+            'reservationCount'       => count($this->filterReservations($reservations, $filters)),
+            'reservationTotalCount'  => count($reservations),
+            'reservationFilters'     => $filters,
         ]);
     }
 
     #[Route('/paiements', name: 'app_admin_payments', methods: ['GET'])]
-    public function payments(
-        Request $request,
-        PaiementRepository $paiementRepository
-    ): Response {
+    public function payments(Request $request, PaiementRepository $paiementRepository): Response
+    {
         $payments = $paiementRepository->findAll();
         $filters = [
             'q'      => trim((string) $request->query->get('payment_q', '')),
@@ -183,18 +200,16 @@ class AdminController extends AbstractController
             'dir'    => strtolower((string) $request->query->get('payment_dir', 'desc')) === 'asc' ? 'asc' : 'desc',
         ];
         return $this->render('admin/payments/index.html.twig', [
-            'payments'        => $this->filterPayments($payments, $filters),
-            'paymentCount'    => count($this->filterPayments($payments, $filters)),
-            'paymentTotalCount' => count($payments),
-            'paymentFilters'  => $filters,
+            'payments'           => $this->filterPayments($payments, $filters),
+            'paymentCount'       => count($this->filterPayments($payments, $filters)),
+            'paymentTotalCount'  => count($payments),
+            'paymentFilters'     => $filters,
         ]);
     }
 
     #[Route('/documents', name: 'app_admin_documents', methods: ['GET'])]
-    public function documents(
-        DocumentRepository $documentRepository,
-        CategorieDocumentRepository $categorieDocumentRepository
-    ): Response {
+    public function documents(DocumentRepository $documentRepository, CategorieDocumentRepository $catRepo): Response
+    {
         $allDocs = $documentRepository->findAll();
         $expired = $documentRepository->findExpired();
         return $this->render('admin/documents/index.html.twig', [
@@ -208,23 +223,24 @@ class AdminController extends AbstractController
     #[Route('/documents/nouveau', name: 'app_admin_document_new', methods: ['GET', 'POST'])]
     public function documentNew(
         Request $request,
-        DocumentRepository $documentRepository,
         CategorieDocumentRepository $categorieDocumentRepository,
         EntityManagerInterface $entityManager,
         CategorieDetectorService $categorieDetector,
         CloudinaryService $cloudinaryService
     ): Response {
         $newDocument  = new Document();
-        $documentForm = $this->createForm(\App\Form\DocumentType::class, $newDocument);
+        $documentForm = $this->createForm(DocumentType::class, $newDocument);
         $documentForm->handleRequest($request);
 
         if ($documentForm->isSubmitted() && $documentForm->isValid()) {
             if (!$newDocument->getCategorie()) {
-                $cats          = array_map(fn($c) => $c->getLibelle(), $categorieDocumentRepository->findAll());
+                $cats           = array_map(fn($c) => $c->getLibelle(), $categorieDocumentRepository->findAll());
                 $libelleDetecte = $categorieDetector->detecterCategorie($newDocument->getNomDocument(), $cats);
                 if ($libelleDetecte) {
                     $cat = $categorieDocumentRepository->findOneBy(['libelle' => $libelleDetecte]);
-                    if ($cat) { $newDocument->setCategorie($cat); }
+                    if ($cat) {
+                        $newDocument->setCategorie($cat);
+                    }
                 }
             }
             $fichier = $documentForm->get('fichier')->getData();
@@ -243,7 +259,7 @@ class AdminController extends AbstractController
             $entityManager->persist($newDocument);
             $entityManager->flush();
             $this->addFlash('success', '✅ Document ajouté !');
-            return $this->redirectToRoute('app_admin_documents');
+            return $this->redirectToRoute('app_admin');
         }
 
         return $this->render('admin/documents/new.html.twig', [
@@ -252,9 +268,8 @@ class AdminController extends AbstractController
     }
 
     #[Route('/documents/statistiques', name: 'app_admin_document_stats', methods: ['GET'])]
-    public function documentStats(
-        DocumentRepository $documentRepository
-    ): Response {
+    public function documentStats(DocumentRepository $documentRepository): Response
+    {
         $allDocs = $documentRepository->findAll();
         $expired = $documentRepository->findExpired();
         return $this->render('admin/documents/stats.html.twig', [
@@ -266,9 +281,8 @@ class AdminController extends AbstractController
     }
 
     #[Route('/documents/categories', name: 'app_admin_categories', methods: ['GET'])]
-    public function categories(
-        CategorieDocumentRepository $categorieDocumentRepository
-    ): Response {
+    public function categories(CategorieDocumentRepository $categorieDocumentRepository): Response
+    {
         return $this->render('admin/documents/categories.html.twig', [
             'categories' => $categorieDocumentRepository->findAll(),
         ]);
@@ -281,15 +295,13 @@ class AdminController extends AbstractController
         MailjetService $mailjetService
     ): Response {
         $expires = $documentRepository->findExpired();
-        $count = 0;
-
+        $count   = 0;
         foreach ($expires as $doc) {
             $mailjetService->envoyerNotificationExpiration(
                 'voyageur@example.com',
                 $doc->getNomDocument(),
                 $doc->getDateExpiration()?->format('d/m/Y') ?? 'N/A'
             );
-
             $archive = new DocumentArchive();
             $archive->setNomDocument($doc->getNomDocument());
             $archive->setCheminFichier($doc->getCheminFichier());
@@ -297,15 +309,13 @@ class AdminController extends AbstractController
             $archive->setDateExpiration($doc->getDateExpiration());
             $archive->setCategorie($doc->getCategorie()?->getLibelle() ?? 'N/A');
             $archive->setRaison('Expiré - Supprimé par admin');
-
             $entityManager->persist($archive);
             $entityManager->remove($doc);
             $count++;
         }
-
         $entityManager->flush();
         $this->addFlash('success', '✅ ' . $count . ' documents archivés ! Emails envoyés.');
-        return $this->redirectToRoute('app_admin_dashboard');
+        return $this->redirectToRoute('app_admin');
     }
 
     #[Route('/archives', name: 'app_admin_archives')]
@@ -323,15 +333,6 @@ class AdminController extends AbstractController
         if (!$reservation) {
             throw $this->createNotFoundException('Reservation introuvable.');
         }
-
-        $returnToDashboard = $request->query->get('return') === 'dashboard';
-        $cancelPath = $returnToDashboard
-            ? $this->generateUrl('app_dashboard', ['view' => 'reservations'])
-            : $this->generateUrl('app_admin', ['tab' => 'reservations']);
-        $submitPath = $returnToDashboard
-            ? $this->generateUrl('app_admin_reservation_edit', ['id' => $id, 'return' => 'dashboard'])
-            : $this->generateUrl('app_admin_reservation_edit', ['id' => $id]);
-
         if ($request->isMethod('POST')) {
             $reservationRepository->update(
                 $id,
@@ -345,20 +346,13 @@ class AdminController extends AbstractController
                 (int) $request->request->get('nb_personnes', 0),
                 (float) $request->request->get('prix_total', 0),
             );
-
-            $this->addFlash('success', sprintf('Reservation #%d mise a jour avec succes.', $id));
-
-            if ($returnToDashboard) {
-                return $this->redirectToRoute('app_dashboard', ['view' => 'reservations']);
-            }
-
-            return $this->redirectToRoute('app_admin', ['tab' => 'reservations']);
+            $this->addFlash('success', sprintf('Reservation #%d mise à jour.', $id));
+            return $this->redirectToRoute('app_admin');
         }
-
         return $this->render('admin/edit_reservation.html.twig', [
             'reservation' => $reservation,
-            'cancelPath' => $cancelPath,
-            'submitPath' => $submitPath,
+            'cancelPath'  => $this->generateUrl('app_admin'),
+            'submitPath'  => $this->generateUrl('app_admin_reservation_edit', ['id' => $id]),
         ]);
     }
 
@@ -366,9 +360,8 @@ class AdminController extends AbstractController
     public function deleteReservation(int $id, ReservationRepository $reservationRepository): RedirectResponse
     {
         $reservationRepository->delete($id);
-        $this->addFlash('success', sprintf('Reservation #%d supprimee.', $id));
-
-        return $this->redirectToRoute('app_admin', ['tab' => 'reservations']);
+        $this->addFlash('success', sprintf('Reservation #%d supprimée.', $id));
+        return $this->redirectToRoute('app_admin');
     }
 
     #[Route('/payments/{id}/edit', name: 'app_admin_payment_edit', methods: ['GET', 'POST'])]
@@ -378,15 +371,6 @@ class AdminController extends AbstractController
         if (!$payment) {
             throw $this->createNotFoundException('Paiement introuvable.');
         }
-
-        $returnToDashboard = $request->query->get('return') === 'dashboard';
-        $cancelPath = $returnToDashboard
-            ? $this->generateUrl('app_dashboard', ['view' => 'payments'])
-            : $this->generateUrl('app_admin', ['tab' => 'payments']);
-        $submitPath = $returnToDashboard
-            ? $this->generateUrl('app_admin_payment_edit', ['id' => $id, 'return' => 'dashboard'])
-            : $this->generateUrl('app_admin_payment_edit', ['id' => $id]);
-
         if ($request->isMethod('POST')) {
             $paiementRepository->update(
                 $id,
@@ -398,20 +382,13 @@ class AdminController extends AbstractController
                 (string) $request->request->get('date_paiement', ''),
                 (int) $request->request->get('id_reservation', 0),
             );
-
-            $this->addFlash('success', sprintf('Paiement #%d mis a jour avec succes.', $id));
-
-            if ($returnToDashboard) {
-                return $this->redirectToRoute('app_dashboard', ['view' => 'payments']);
-            }
-
-            return $this->redirectToRoute('app_admin', ['tab' => 'payments']);
+            $this->addFlash('success', sprintf('Paiement #%d mis à jour.', $id));
+            return $this->redirectToRoute('app_admin');
         }
-
         return $this->render('admin/edit_payment.html.twig', [
-            'payment' => $payment,
-            'cancelPath' => $cancelPath,
-            'submitPath' => $submitPath,
+            'payment'     => $payment,
+            'cancelPath'  => $this->generateUrl('app_admin'),
+            'submitPath'  => $this->generateUrl('app_admin_payment_edit', ['id' => $id]),
         ]);
     }
 
@@ -419,15 +396,16 @@ class AdminController extends AbstractController
     public function deletePayment(int $id, PaiementRepository $paiementRepository): RedirectResponse
     {
         $paiementRepository->delete($id);
-        $this->addFlash('success', sprintf('Paiement #%d supprime.', $id));
-
-        return $this->redirectToRoute('app_admin', ['tab' => 'payments']);
+        $this->addFlash('success', sprintf('Paiement #%d supprimé.', $id));
+        return $this->redirectToRoute('app_admin');
     }
+
+    // ─── Private helpers ────────────────────────────────────────────────────────
 
     private function filterReservations(array $reservations, array $filters): array
     {
         $filtered = array_filter($reservations, function (Reservation $reservation) use ($filters): bool {
-            $query = $this->normalize($filters['q'] ?? '');
+            $query  = $this->normalize($filters['q'] ?? '');
             $status = trim((string) ($filters['status'] ?? ''));
 
             $haystack = $this->normalize(implode(' ', [
@@ -441,38 +419,37 @@ class AdminController extends AbstractController
                 $reservation->getDescription() ?? '',
             ]));
 
-            $matchesQuery = $query === '' || str_contains($haystack, $query);
+            $matchesQuery  = $query === '' || str_contains($haystack, $query);
             $matchesStatus = $status === '' || $this->mapReservationStatus($reservation->getStatut()) === $status;
 
             return $matchesQuery && $matchesStatus;
         });
 
         usort($filtered, function (Reservation $a, Reservation $b) use ($filters): int {
-            $field = $filters['sort'] ?? 'date';
+            $field     = $filters['sort'] ?? 'date';
             $direction = ($filters['dir'] ?? 'desc') === 'asc' ? 1 : -1;
 
             $valueA = match ($field) {
-                'id' => $a->getId(),
-                'type' => $a->getType() ?? '',
-                'lieu' => $a->getLieu() ?? '',
+                'id'     => $a->getId(),
+                'type'   => $a->getType() ?? '',
+                'lieu'   => $a->getLieu() ?? '',
                 'voyage' => $a->getVoyageId(),
                 'client' => $a->getUtilisateurId(),
                 'status' => $a->getStatut(),
                 'people' => $a->getNbPersonnes(),
-                'price' => $a->getPrixTotal(),
-                default => $a->getDateReservation(),
+                'price'  => $a->getPrixTotal(),
+                default  => $a->getDateReservation(),
             };
-
             $valueB = match ($field) {
-                'id' => $b->getId(),
-                'type' => $b->getType() ?? '',
-                'lieu' => $b->getLieu() ?? '',
+                'id'     => $b->getId(),
+                'type'   => $b->getType() ?? '',
+                'lieu'   => $b->getLieu() ?? '',
                 'voyage' => $b->getVoyageId(),
                 'client' => $b->getUtilisateurId(),
                 'status' => $b->getStatut(),
                 'people' => $b->getNbPersonnes(),
-                'price' => $b->getPrixTotal(),
-                default => $b->getDateReservation(),
+                'price'  => $b->getPrixTotal(),
+                default  => $b->getDateReservation(),
             };
 
             return $direction * ($valueA <=> $valueB);
@@ -484,23 +461,18 @@ class AdminController extends AbstractController
     private function filterPayments(array $payments, array $filters): array
     {
         $filtered = array_filter($payments, function (Paiement $payment) use ($filters): bool {
-            $query = $this->normalize($filters['q'] ?? '');
+            $query  = $this->normalize($filters['q'] ?? '');
             $status = trim((string) ($filters['status'] ?? ''));
             $method = trim((string) ($filters['method'] ?? ''));
 
             $haystack = $this->normalize(implode(' ', [
-                $payment->getId(),
-                $payment->getReference(),
-                $payment->getReservationId(),
-                $payment->getReservationLieu() ?? '',
-                $payment->getStatut(),
-                $payment->getMethode(),
-                $payment->getDatePaiement() ?? '',
-                $payment->getDevise(),
-                $payment->getMontant(),
+                $payment->getId(), $payment->getReference(),
+                $payment->getReservationId(), $payment->getReservationLieu() ?? '',
+                $payment->getStatut(), $payment->getMethode(),
+                $payment->getDatePaiement() ?? '', $payment->getDevise(), $payment->getMontant(),
             ]));
 
-            $matchesQuery = $query === '' || str_contains($haystack, $query);
+            $matchesQuery  = $query === '' || str_contains($haystack, $query);
             $matchesStatus = $status === '' || $this->mapPaymentStatus($payment->getStatut()) === $status;
             $matchesMethod = $method === '' || $this->mapPaymentMethod($payment->getMethode()) === $method;
 
@@ -508,29 +480,28 @@ class AdminController extends AbstractController
         });
 
         usort($filtered, function (Paiement $a, Paiement $b) use ($filters): int {
-            $field = $filters['sort'] ?? 'date';
+            $field     = $filters['sort'] ?? 'date';
             $direction = ($filters['dir'] ?? 'desc') === 'asc' ? 1 : -1;
 
             $valueA = match ($field) {
-                'id' => $a->getId(),
-                'reference' => $a->getReference(),
-                'amount' => $a->getMontant(),
-                'currency' => $a->getDevise(),
-                'method' => $a->getMethode(),
-                'status' => $a->getStatut(),
+                'id'          => $a->getId(),
+                'reference'   => $a->getReference(),
+                'amount'      => $a->getMontant(),
+                'currency'    => $a->getDevise(),
+                'method'      => $a->getMethode(),
+                'status'      => $a->getStatut(),
                 'reservation' => $a->getReservationId(),
-                default => $a->getDatePaiement() ?? '',
+                default       => $a->getDatePaiement() ?? '',
             };
-
             $valueB = match ($field) {
-                'id' => $b->getId(),
-                'reference' => $b->getReference(),
-                'amount' => $b->getMontant(),
-                'currency' => $b->getDevise(),
-                'method' => $b->getMethode(),
-                'status' => $b->getStatut(),
+                'id'          => $b->getId(),
+                'reference'   => $b->getReference(),
+                'amount'      => $b->getMontant(),
+                'currency'    => $b->getDevise(),
+                'method'      => $b->getMethode(),
+                'status'      => $b->getStatut(),
                 'reservation' => $b->getReservationId(),
-                default => $b->getDatePaiement() ?? '',
+                default       => $b->getDatePaiement() ?? '',
             };
 
             return $direction * ($valueA <=> $valueB);
@@ -541,33 +512,29 @@ class AdminController extends AbstractController
 
     private function buildStatistics(array $reservations, array $payments): array
     {
-        $typeCounts = [];
-        $timelineCounts = [];
-        $monthlyRevenue = [];
+        $typeCounts         = [];
+        $timelineCounts     = [];
+        $monthlyRevenue     = [];
         $destinationRevenue = [];
         $pendingReservations = 0;
-        $pendingPayments = 0;
+        $pendingPayments     = 0;
 
         foreach ($reservations as $reservation) {
-            $type = $reservation->getType() ?: 'Non renseigne';
+            $type = $reservation->getType() ?: 'Non renseigné';
             $typeCounts[$type] = ($typeCounts[$type] ?? 0) + 1;
-
             $date = $reservation->getDateReservation();
             $timelineCounts[$date] = ($timelineCounts[$date] ?? 0) + 1;
-
             if (str_contains($this->normalize($reservation->getStatut()), 'attente')) {
                 ++$pendingReservations;
             }
         }
 
         foreach ($payments as $payment) {
-            $date = $payment->getDatePaiement() ?? '';
+            $date  = $payment->getDatePaiement() ?? '';
             $month = $date !== '' ? substr($date, 0, 7) : 'Sans date';
             $monthlyRevenue[$month] = ($monthlyRevenue[$month] ?? 0.0) + $payment->getMontant();
-
             $destination = $payment->getReservationLieu() ?: 'Sans lieu';
             $destinationRevenue[$destination] = ($destinationRevenue[$destination] ?? 0.0) + $payment->getMontant();
-
             if (str_contains($this->normalize($payment->getStatut()), 'attente')) {
                 ++$pendingPayments;
             }
@@ -602,56 +569,53 @@ class AdminController extends AbstractController
             $topDestinations[] = ['label' => $label, 'value' => $amount];
         }
 
-        $totalRevenue = array_sum(array_map(static fn (Paiement $payment): float => $payment->getMontant(), $payments));
+        $totalRevenue  = array_sum(array_map(static fn(Paiement $p): float => $p->getMontant(), $payments));
         $averageTicket = count($payments) > 0 ? $totalRevenue / count($payments) : 0.0;
 
         return [
-            'reservationCount' => count($reservations),
-            'paymentCount' => count($payments),
-            'totalRevenue' => $totalRevenue,
+            'reservationCount'    => count($reservations),
+            'paymentCount'        => count($payments),
+            'totalRevenue'        => $totalRevenue,
             'pendingReservations' => $pendingReservations,
-            'pendingPayments' => $pendingPayments,
-            'averageTicket' => $averageTicket,
-            'typeBreakdown' => $typeBreakdown,
+            'pendingPayments'     => $pendingPayments,
+            'averageTicket'       => $averageTicket,
+            'typeBreakdown'       => $typeBreakdown,
             'reservationTimeline' => $reservationTimeline,
-            'monthlyRevenue' => $monthlyRevenueChart,
-            'topDestinations' => $topDestinations,
+            'monthlyRevenue'      => $monthlyRevenueChart,
+            'topDestinations'     => $topDestinations,
         ];
     }
 
     private function mapReservationStatus(string $status): string
     {
-        $normalized = $this->normalize($status);
-
+        $n = $this->normalize($status);
         return match (true) {
-            str_contains($normalized, 'confirm') => 'confirmed',
-            str_contains($normalized, 'annul') => 'cancelled',
-            str_contains($normalized, 'attente') => 'pending',
-            default => 'other',
+            str_contains($n, 'confirm') => 'confirmed',
+            str_contains($n, 'annul')   => 'cancelled',
+            str_contains($n, 'attente') => 'pending',
+            default                     => 'other',
         };
     }
 
     private function mapPaymentStatus(string $status): string
     {
-        $normalized = $this->normalize($status);
-
+        $n = $this->normalize($status);
         return match (true) {
-            str_contains($normalized, 'pay') => 'paid',
-            str_contains($normalized, 'rembours') => 'refunded',
-            str_contains($normalized, 'attente') => 'pending',
-            default => 'other',
+            str_contains($n, 'pay')      => 'paid',
+            str_contains($n, 'rembours') => 'refunded',
+            str_contains($n, 'attente')  => 'pending',
+            default                      => 'other',
         };
     }
 
     private function mapPaymentMethod(string $method): string
     {
-        $normalized = $this->normalize($method);
-
+        $n = $this->normalize($method);
         return match (true) {
-            str_contains($normalized, 'carte') => 'card',
-            str_contains($normalized, 'virement') => 'transfer',
-            str_contains($normalized, 'espec') => 'cash',
-            default => 'other',
+            str_contains($n, 'carte')    => 'card',
+            str_contains($n, 'virement') => 'transfer',
+            str_contains($n, 'espec')    => 'cash',
+            default                      => 'other',
         };
     }
 
@@ -661,12 +625,10 @@ class AdminController extends AbstractController
         if ($value === '') {
             return '';
         }
-
         $converted = @iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $value);
         if ($converted !== false && $converted !== '') {
             $value = $converted;
         }
-
         return strtolower($value);
     }
 
@@ -675,9 +637,7 @@ class AdminController extends AbstractController
         if (!is_string($value)) {
             return null;
         }
-
         $trimmed = trim($value);
-
         return $trimmed === '' ? null : $trimmed;
     }
 }

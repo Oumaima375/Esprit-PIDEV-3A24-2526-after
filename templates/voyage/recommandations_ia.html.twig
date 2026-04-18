@@ -7,8 +7,13 @@
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
         <div class="text-center">
-            <h1 class="text-white display-3 mb-3">🤖 Recommandations IA</h1>
-            <p class="text-white fs-5">Laissez Claude vous conseiller le voyage parfait</p>
+            <h1 class="text-white display-3 mb-3">
+                <i class="fa fa-robot me-3" style="font-size:0.8em;"></i>Recommandations IA
+            </h1>
+            <p class="text-white fs-5">Laissez l'intelligence artificielle vous conseiller le voyage parfait</p>
+            <span class="badge rounded-pill px-3 py-2 mt-2" style="background:linear-gradient(135deg,#6366f1,#a855f7);font-size:13px;">
+                Propulsé par Groq · LLaMA 3.3
+            </span>
         </div>
     </div>
 </div>
@@ -17,7 +22,7 @@
     <div class="row justify-content-center">
         <div class="col-lg-8">
 
-            <!-- Formulaire préférences -->
+            <!-- Form -->
             <div class="bg-light rounded p-5 mb-5">
                 <h4 class="mb-4"><i class="fa fa-sliders-h text-primary me-2"></i>Vos Préférences</h4>
                 <form method="GET" action="{{ path('app_voyage_recommandations_ia') }}">
@@ -31,12 +36,12 @@
                             <label class="form-label fw-bold">🌍 Type de voyage</label>
                             <select name="type" class="form-select rounded-pill">
                                 <option value="">-- Choisir --</option>
-                                <option value="nature" {{ type == 'nature' ? 'selected' : '' }}>Nature & Aventure</option>
-                                <option value="famille" {{ type == 'famille' ? 'selected' : '' }}>Famille</option>
+                                <option value="nature"     {{ type == 'nature'     ? 'selected' : '' }}>Nature & Aventure</option>
+                                <option value="famille"    {{ type == 'famille'    ? 'selected' : '' }}>Famille</option>
                                 <option value="romantique" {{ type == 'romantique' ? 'selected' : '' }}>Romantique</option>
-                                <option value="culture" {{ type == 'culture' ? 'selected' : '' }}>Culture & Histoire</option>
-                                <option value="plage" {{ type == 'plage' ? 'selected' : '' }}>Plage & Détente</option>
-                                <option value="sport" {{ type == 'sport' ? 'selected' : '' }}>Sport & Montagne</option>
+                                <option value="culture"    {{ type == 'culture'    ? 'selected' : '' }}>Culture & Histoire</option>
+                                <option value="plage"      {{ type == 'plage'      ? 'selected' : '' }}>Plage & Détente</option>
+                                <option value="sport"      {{ type == 'sport'      ? 'selected' : '' }}>Sport & Montagne</option>
                             </select>
                         </div>
                         <div class="col-md-4">
@@ -46,31 +51,44 @@
                         </div>
                         <div class="col-12">
                             <button type="submit" class="btn btn-primary rounded-pill py-2 px-5">
-                                <i class="fa fa-magic me-2"></i>Obtenir des Recommandations
+                                <i class="fa fa-magic me-2"></i>Obtenir des Recommandations IA
                             </button>
                         </div>
                     </div>
                 </form>
             </div>
 
-            <!-- Résultat IA -->
+            <!-- IA Result -->
             {% if suggestion %}
-            <div class="bg-white rounded p-5 border border-primary">
-                <h4 class="text-primary mb-4">
-                    <i class="fa fa-robot me-2"></i>Recommandations de Claude IA
-                </h4>
-                <div class="alert alert-info mb-3">
-                    <strong>Vos critères :</strong>
-                    {% if budget %} Budget : {{ budget }} TND {% endif %}
-                    {% if type %} | Type : {{ type }} {% endif %}
-                    {% if duree %} | Durée : {{ duree }} jours {% endif %}
+            <div class="bg-white rounded-4 p-5 border" style="border-color:#6366f1 !important; border-width:2px !important;">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center me-3"
+                         style="width:46px;height:46px;background:linear-gradient(135deg,#6366f1,#a855f7);">
+                        <i class="fa fa-robot text-white"></i>
+                    </div>
+                    <div>
+                        <h4 class="mb-0" style="color:#6366f1;">Recommandations de l'IA</h4>
+                        <small class="text-muted">Analyse personnalisée basée sur vos préférences</small>
+                    </div>
                 </div>
-                <div style="white-space: pre-line; line-height: 1.8;">
+
+                <div class="alert mb-4" style="background:#eff6ff;border-color:#93c5fd;color:#1d4ed8;">
+                    <strong><i class="fa fa-filter me-1"></i> Vos critères :</strong>
+                    {% if budget %} Budget : <strong>{{ budget }} TND</strong>{% endif %}
+                    {% if type %} &nbsp;|&nbsp; Type : <strong>{{ type }}</strong>{% endif %}
+                    {% if duree %} &nbsp;|&nbsp; Durée : <strong>{{ duree }} jours</strong>{% endif %}
+                </div>
+
+                <div style="white-space: pre-line; line-height: 2.0;" class="text-dark">
                     {{ suggestion }}
                 </div>
-                <div class="mt-4">
+
+                <div class="mt-4 d-flex gap-2 flex-wrap">
                     <a href="{{ path('app_voyage') }}" class="btn btn-primary rounded-pill py-2 px-4">
                         <i class="fa fa-plane me-2"></i>Voir tous les Voyages
+                    </a>
+                    <a href="{{ path('app_voyage_recommandations_ia') }}" class="btn btn-outline-secondary rounded-pill py-2 px-4">
+                        <i class="fa fa-redo me-2"></i>Nouvelle recherche
                     </a>
                 </div>
             </div>
@@ -80,6 +98,7 @@
     </div>
 </div>
 
+<!-- Footer -->
 <div class="container-fluid footer py-5">
     <div class="container py-5">
         <div class="row g-5">

@@ -4,12 +4,11 @@ namespace App\Entity;
 
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-
 use Doctrine\Common\Collections\Collection;
 use App\Entity\Offre;
 use App\Repository\ServiceRepository;
 
-#[ORM\Entity(repositoryClass: App\Repository\ServiceRepository::class)]
+#[ORM\Entity(repositoryClass: ServiceRepository::class)]
 class Service
 {
 
@@ -34,6 +33,12 @@ class Service
     public function setId_service($value)
     {
         $this->id_service = $value;
+    }
+
+    /** Alias for Twig: service.id */
+    public function getId(): ?int
+    {
+        return $this->id_service;
     }
 
     public function getNom_service()
@@ -64,6 +69,19 @@ class Service
     public function setCategorie($value)
     {
         $this->categorie = $value;
+    }
+
+    /** Alias for Twig: service.titre → maps to nom_service */
+    public function getTitre(): ?string
+    {
+        return $this->nom_service;
+    }
+
+    /** Alias for Twig: service.titre = ... */
+    public function setTitre(string $titre): static
+    {
+        $this->nom_service = $titre;
+        return $this;
     }
 
     #[ORM\OneToMany(mappedBy: "id_service", targetEntity: Offre::class)]

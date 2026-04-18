@@ -1,0 +1,115 @@
+{# ══════════════════════════════════════════════════════════
+   AFTER TRAVEL — Shared footer for all frontoffice pages
+   ══════════════════════════════════════════════════════════ #}
+<div class="container-fluid footer py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+
+            {# ── Brand ── #}
+            <div class="col-md-6 col-lg-3">
+                <h4 class="mb-4 text-white fw-bold">
+                    <i class="fa fa-plane-departure me-2"></i>After Travel
+                </h4>
+                <p class="text-white-50">
+                    Votre plateforme de voyage tout-en-un. Découvrez, planifiez et vivez des aventures inoubliables avec After Travel.
+                </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-white-50 fs-5"><i class="fab fa-facebook"></i></a>
+                    <a href="#" class="text-white-50 fs-5"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="text-white-50 fs-5"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="text-white-50 fs-5"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+
+            {# ── Voyages & Destinations ── #}
+            <div class="col-md-6 col-lg-3">
+                <h6 class="mb-4 text-white fw-bold text-uppercase" style="letter-spacing:1px">
+                    <i class="fa fa-compass me-2"></i>Explorer
+                </h6>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ path('app_voyage') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-plane me-2"></i>Voyages
+                    </a>
+                    <a href="{{ path('app_destination') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-globe me-2"></i>Destinations
+                    </a>
+                    <a href="{{ path('app_activite') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-running me-2"></i>Activités
+                    </a>
+                    <a href="{{ path('app_planning') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-calendar-alt me-2"></i>Plannings
+                    </a>
+                </div>
+            </div>
+
+            {# ── Services & Réservations ── #}
+            <div class="col-md-6 col-lg-3">
+                <h6 class="mb-4 text-white fw-bold text-uppercase" style="letter-spacing:1px">
+                    <i class="fa fa-concierge-bell me-2"></i>Services
+                </h6>
+                <div class="d-flex flex-column gap-2">
+                    <a href="{{ path('app_dashboard') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-calendar-check me-2"></i>Mes Réservations
+                    </a>
+                    <a href="{{ path('app_service_index') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-star me-2"></i>Services
+                    </a>
+                    <a href="{{ path('app_offre_index') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-tags me-2"></i>Offres
+                    </a>
+                    <a href="{{ path('app_document') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-file-alt me-2"></i>Documents
+                    </a>
+                </div>
+            </div>
+
+            {# ── Contact & Info ── #}
+            <div class="col-md-6 col-lg-3">
+                <h6 class="mb-4 text-white fw-bold text-uppercase" style="letter-spacing:1px">
+                    <i class="fa fa-info-circle me-2"></i>Infos
+                </h6>
+                <div class="d-flex flex-column gap-2 mb-3">
+                    <a href="{{ path('app_home') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-home me-2"></i>Accueil
+                    </a>
+                    <a href="{{ path('app_about') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-users me-2"></i>À propos
+                    </a>
+                    <a href="{{ path('app_voyage_recommandations_ia') }}" class="text-white-50 text-decoration-none footer-link">
+                        <i class="fa fa-robot me-2"></i>Recommandations IA
+                    </a>
+                </div>
+                <div class="text-white-50 small">
+                    <div class="mb-1">
+                        <i class="fas fa-envelope me-2"></i>contact@aftertravel.com
+                    </div>
+                    <div>
+                        <i class="fas fa-phone me-2"></i>+216 11 111 111
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+<div class="container-fluid copyright text-body py-4">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-md-6 text-center text-md-start mb-2 mb-md-0">
+                <i class="fas fa-copyright me-2"></i>
+                <span class="text-white">After Travel</span> {{ "now"|date("Y") }}, All rights reserved.
+            </div>
+            <div class="col-md-6 text-center text-md-end">
+                <a href="{{ path('app_voyage') }}" class="text-white-50 text-decoration-none me-3 small">Voyages</a>
+                <a href="{{ path('app_destination') }}" class="text-white-50 text-decoration-none me-3 small">Destinations</a>
+                <a href="{{ path('app_activite') }}" class="text-white-50 text-decoration-none me-3 small">Activités</a>
+                <a href="{{ path('app_dashboard') }}" class="text-white-50 text-decoration-none small">Réservations</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.footer-link { transition: color .2s, padding-left .2s; }
+.footer-link:hover { color: #fff !important; padding-left: 4px; }
+</style>

@@ -1,0 +1,107 @@
+{% extends 'base.html.twig' %}
+{% block title %}Statistiques{% endblock %}
+{% block body %}
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3">Statistiques</h1>
+            <p class="text-white fs-5">Visualisez les données de vos services et offres</p>
+        </div>
+    </div>
+</div>
+<div class="container mb-5">
+    <div class="row g-4 mb-5">
+        <div class="col-md-3">
+            <div class="card text-white text-center shadow" style="background-color: #1a3a6e;">
+                <div class="card-body py-4">
+                    <h1 class="display-4 fw-bold">{{ nbServices }}</h1>
+                    <p class="mb-0">🏢 Services</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white text-center shadow" style="background-color: #0d6efd;">
+                <div class="card-body py-4">
+                    <h1 class="display-4 fw-bold">{{ nbOffres }}</h1>
+                    <p class="mb-0">🎯 Offres</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white text-center shadow" style="background-color: #198754;">
+                <div class="card-body py-4">
+                    <h1 class="display-4 fw-bold">{{ prixMoyen }} €</h1>
+                    <p class="mb-0">💰 Prix moyen</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white text-center shadow" style="background-color: #dc3545;">
+                <div class="card-body py-4">
+                    <h1 class="display-4 fw-bold">{{ prixMax }} €</h1>
+                    <p class="mb-0">🔝 Prix max</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #1a3a6e; color:white;">
+                    <h5 class="mb-0">Offres par service</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartOffres"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header" style="background-color: #1a3a6e; color:white;">
+                    <h5 class="mb-0">Répartition des offres</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="chartPie"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ path('app_service_index') }}" class="btn btn-secondary">← Retour aux services</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const labels = [{% for item in offresParService %}'{{ item.titre }}'{% if not loop.last %},{% endif %}{% endfor %}];
+const data = [{% for item in offresParService %}{{ item.nbOffres }}{% if not loop.last %},{% endif %}{% endfor %}];
+const colors = ['#1a3a6e','#0d6efd','#198754','#dc3545','#fd7e14','#6f42c1'];
+
+new Chart(document.getElementById('chartOffres'), {
+    type: 'bar',
+    data: {
+        labels: labels,
+        datasets: [{
+            label: "Nombre d'offres",
+            data: data,
+            backgroundColor: colors
+        }]
+    },
+    options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('chartPie'), {
+    type: 'doughnut',
+    data: {
+        labels: labels,
+        datasets: [{
+            data: data,
+            backgroundColor: colors
+        }]
+    },
+    options: { responsive: true }
+});
+</script>
+
+{{ include('_footer.html.twig') }}
+{% endblock %}
