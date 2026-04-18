@@ -1,31 +1,25 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Nouvelle Offre{% endblock %}
+{% block title %}Nouvelle offre{% endblock %}
 
 {% block body %}
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
-        <div class="text-center">
-            <h1 class="text-white display-3 mb-3">Ajouter une Offre</h1>
-            <p class="text-white fs-5">Créez une nouvelle offre pour un service existant</p>
-        </div>
+        <h1 class="text-white display-3 mb-0">➕ Nouvelle Offre</h1>
     </div>
 </div>
+
 <div class="container mb-5">
     <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow">
-                <div class="card-header" style="background-color: #1a3a6e; color: white;">
-                    <h4 class="mb-0">➕ Ajouter une Offre</h4>
+        <div class="col-lg-8">
+            <div class="card shadow border-0">
+                <div class="card-header text-white" style="background-color: #1a3a6e;">
+                    <h5 class="mb-0">Créer une nouvelle offre</h5>
                 </div>
                 <div class="card-body">
-                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
-                    {{ form_widget(form) }}
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">Annuler</a>
-                    </div>
-                    {{ form_end(form) }}
+                    {{ include('offre/_form.html.twig') }}
+                </div>
+                <div class="card-footer bg-white border-0">
+                    <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">← Retour</a>
                 </div>
             </div>
         </div>
@@ -33,4 +27,5 @@
 </div>
 
 {{ include('_footer.html.twig') }}
+{{ include('offre/_geo_script.html.twig') }}
 {% endblock %}

@@ -46,3 +46,17 @@ services:
     App\Service\BudgetService:
         arguments:
             $projectDir: '%kernel.project_dir%'
+
+    # ── Weather Service ─────────────────────────────────────────────
+    App\Service\WeatherService:
+        arguments:
+            $apiKey: '%env(OPENWEATHER_API_KEY)%'
+
+    # ── Notification Service ────────────────────────────────────────
+    App\Service\OffreNotificationService:
+        arguments:
+            $adminEmail: '%env(ADMIN_EMAIL)%'
+            $appBaseUrl: '%env(APP_BASE_URL)%'
+
+    # ── Recommendation Service (autowired, no extra args) ───────────
+    App\Service\OffreRecommandationService: ~

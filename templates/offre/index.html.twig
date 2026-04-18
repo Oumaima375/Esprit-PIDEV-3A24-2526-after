@@ -1,69 +1,243 @@
 {% extends 'base.html.twig' %}
 {% block title %}Nos Offres{% endblock %}
 {% block body %}
+
+{# ── Hero ─────────────────────────────────────────────── #}
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
         <div class="text-center">
-            <h1 class="text-white display-3 mb-3">Nos Offres</h1>
-            <p class="text-white fs-5">Explorez toutes les offres disponibles par service</p>
+            <h1 class="text-white display-3 mb-3">🌍 Nos Offres</h1>
+            <p class="text-white fs-5">Explorez toutes les offres disponibles — météo en temps réel incluse</p>
         </div>
     </div>
 </div>
+
 <div class="container mb-5">
-    <div class="row mb-3">
-        <div class="col-md-8">
-            <form method="get" action="{{ path('app_offre_index') }}" class="d-flex gap-2">
-                <input type="text" name="search" value="{{ app.request.get('search') }}"
-                    class="form-control" placeholder="Rechercher une offre...">
-                <select name="service_id" class="form-select" style="max-width:200px">
-                    <option value="">Tous les services</option>
-                    {% for service in services %}
-                        <option value="{{ service.id }}" {% if app.request.get('service_id') == service.id ~ '' %}selected{% endif %}>
-                            {{ service.titre }}
-                        </option>
-                    {% endfor %}
-                </select>
-                <button type="submit" class="btn btn-primary">🔍</button>
-                {% if app.request.get('search') or app.request.get('service_id') %}
-                    <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">✕</a>
-                {% endif %}
-            </form>
+
+    {# ── Flash messages ───────────────────────────────── #}
+    {% for msg in app.flashes('success') %}
+        <div class="alert alert-success alert-dismissible fade show">{{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
-        <div class="col-md-4 text-end d-flex gap-2 justify-content-end">
-            <a href="{{ path('app_offre_new') }}" class="btn btn-primary">➕ Ajouter une offre</a>
-            <a href="{{ path('app_offre_export_pdf') }}" class="btn btn-danger">📄 Exporter PDF</a>
+    {% endfor %}
+    {% for msg in app.flashes('error') %}
+        <div class="alert alert-danger alert-dismissible fade show">{{ msg }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+
+    {# ── Expiring soon banner ─────────────────────────── #}
+    {% if expirantBientot > 0 %}
+    <div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+        ⏰ <strong>{{ expirantBientot }} offre(s)</strong> expirent dans moins de 3 jours !
+        <a href="?sort=expiry" class="ms-auto btn btn-sm btn-warning">Voir</a>
+    </div>
+    {% endif %}
+
+    {# ── Search + filter bar ──────────────────────────── #}
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <form method="get" action="{{ path('app_offre_index') }}" class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" name="search" value="{{ app.request.get('search') }}"
+                        class="form-control" placeholder="🔍 Rechercher une offre ou destination...">
+                </div>
+                <div class="col-md-2">
+                    <select name="service_id" class="form-select">
+                        <option value="">Tous les services</option>
+                        {% for service in services %}
+                            <option value="{{ service.id }}"
+                                {% if app.request.get('service_id') == service.id ~ '' %}selected{% endif %}>
+                                {{ service.titre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" name="mood" value="{{ mood }}"
+                        class="form-control"
+                        placeholder="🧠 IA: burnout, rupture, aventure…">
+                </div>
+                <div class="col-md-2">
+                    <input type="number" name="max_prix" value="{{ app.request.get('max_prix') }}"
+                        class="form-control" placeholder="💰 Budget max (€)" min="0">
+                </div>
+                <div class="col-md-1 d-flex gap-1">
+                    <button type="submit" class="btn btn-primary w-100">OK</button>
+                    {% if app.request.get('search') or app.request.get('service_id') or mood %}
+                        <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">✕</a>
+                    {% endif %}
+                </div>
+            </form>
         </div>
     </div>
 
-    {% for message in app.flashes('success') %}
-        <div class="alert alert-success">{{ message }}</div>
-    {% endfor %}
+    {# ── AI Recommendation results ────────────────────── #}
+    {% if recommendations is not empty %}
+    <div class="card border-0 shadow-sm mb-5" style="border-left: 4px solid #6366f1 !important;">
+        <div class="card-header text-white"
+             style="background: linear-gradient(135deg,#6366f1,#a855f7); border-radius: 8px 8px 0 0;">
+            <h5 class="mb-0">🧠 Recommandations IA pour « {{ mood }} »</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                {% for rec in recommendations %}
+                <div class="col-md-4">
+                    <div class="card h-100 border-0 shadow-sm"
+                         style="border-top: 3px solid #6366f1 !important;">
+                        <div class="card-body">
+                            <span class="badge mb-2" style="background:#6366f1;">
+                                Score {{ rec.score }}
+                            </span>
+                            <h6 class="fw-bold">{{ rec.offre.titre }}</h6>
+                            <p class="mb-1 text-success fw-bold">{{ rec.offre.prix }} €
+                                <small class="text-muted fw-normal">· {{ rec.offre.duree }} jours</small>
+                            </p>
+                            {% if rec.offre.destination %}
+                            <p class="mb-1 small text-muted">📍 {{ rec.offre.destination }}</p>
+                            {% endif %}
+                            <ul class="list-unstyled small text-muted mb-2">
+                                {% for r in rec.reasons %}<li>• {{ r }}</li>{% endfor %}
+                            </ul>
+                            <a href="{{ path('app_offre_show', {id: rec.offre.id}) }}"
+                               class="btn btn-sm btn-outline-primary w-100">Voir l'offre</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
+    {# ── Action buttons ───────────────────────────────── #}
+    <div class="d-flex gap-2 justify-content-end mb-4">
+        <a href="{{ path('app_offre_new') }}" class="btn btn-primary">➕ Ajouter une offre</a>
+        <a href="{{ path('app_offre_export_pdf') }}" class="btn btn-danger">📄 Exporter PDF</a>
+    </div>
+
+    {# ── Offers grid ──────────────────────────────────── #}
     <div class="row g-4">
         {% for offre in offres %}
+        {% set w = weatherData[offre.id] ?? null %}
+        {% set fav = app.session.get('fav_offre_' ~ offre.id, false) %}
+
         <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header text-white" style="background-color: #1a3a6e;">
+            <div class="card h-100 shadow-sm border-0 offer-card position-relative">
+
+                {# Availability badge #}
+                <div class="position-absolute top-0 start-0 m-2 z-1">
+                    {% if not offre.isDisponible %}
+                        <span class="badge bg-secondary">Indisponible</span>
+                    {% elseif offre.joursRestants is not null and offre.joursRestants <= 3 %}
+                        <span class="badge bg-warning text-dark">⏰ {{ offre.joursRestants }}j restants</span>
+                    {% else %}
+                        <span class="badge bg-success">✓ Disponible</span>
+                    {% endif %}
+                </div>
+
+                {# Favorite button #}
+                <button class="btn-fav position-absolute top-0 end-0 m-2 btn btn-sm
+                               {% if fav %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                        data-offre-id="{{ offre.id }}"
+                        title="{% if fav %}Retirer des favoris{% else %}Ajouter aux favoris{% endif %}">
+                    {% if fav %}❤️{% else %}🤍{% endif %}
+                    <span class="fav-count">{{ offre.favorisCount }}</span>
+                </button>
+
+                <div class="card-header text-white pt-4" style="background-color: #1a3a6e;">
                     <h5 class="mb-0">{{ offre.titre }}</h5>
+                    {% if offre.destination %}
+                    <small class="opacity-75">📍 {{ offre.destination }}</small>
+                    {% endif %}
                 </div>
+
                 <div class="card-body">
-                    <p><strong>Prix :</strong> {{ offre.prix }} €</p>
-                    <p><strong>Durée :</strong> {{ offre.duree }} jours</p>
-                    <p><strong>Service :</strong> <span class="badge bg-primary">{{ offre.service.titre }}</span></p>
+                    {# Weather widget #}
+                    {% if w %}
+                    <div class="d-flex align-items-center gap-2 mb-2 p-2 rounded"
+                         style="background:#f0f4ff;">
+                        <img src="https://openweathermap.org/img/wn/{{ w.icon }}.png"
+                             alt="{{ w.description }}" width="40" height="40">
+                        <div>
+                            <span class="fw-bold text-primary">{{ w.temp }}°C</span>
+                            <small class="text-muted d-block">{{ w.description }}</small>
+                        </div>
+                        <div class="ms-auto text-end">
+                            <small class="text-muted d-block">💧 {{ w.humidity }}%</small>
+                            <small class="text-muted">💨 {{ w.wind_speed }} km/h</small>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <p class="mb-1">
+                        <strong>Prix :</strong>
+                        <span class="text-success fw-bold">{{ offre.prix }} €</span>
+                    </p>
+                    <p class="mb-1">
+                        <strong>Durée :</strong> {{ offre.duree }} jours
+                    </p>
+                    <p class="mb-1">
+                        <strong>Service :</strong>
+                        <span class="badge bg-primary">{{ offre.service.titre }}</span>
+                    </p>
+
+                    {# Calendar badge #}
+                    {% if offre.dateDebut or offre.dateFin %}
+                    <p class="mb-0 small text-muted">
+                        📅
+                        {% if offre.dateDebut %}{{ offre.dateDebut|date('d/m/Y') }}{% endif %}
+                        {% if offre.dateFin %} → {{ offre.dateFin|date('d/m/Y') }}{% endif %}
+                    </p>
+                    {% endif %}
                 </div>
+
                 <div class="card-footer bg-white border-0 d-flex gap-2">
-                    <a href="{{ path('app_offre_show', {'id': offre.id}) }}" class="btn btn-sm btn-outline-primary">Voir</a>
-                    <a href="{{ path('app_offre_edit', {'id': offre.id}) }}" class="btn btn-sm btn-outline-warning">Modifier</a>
+                    <a href="{{ path('app_offre_show', {id: offre.id}) }}"
+                       class="btn btn-sm btn-outline-primary flex-fill">Voir</a>
+                    <a href="{{ path('app_offre_edit', {id: offre.id}) }}"
+                       class="btn btn-sm btn-outline-warning flex-fill">Modifier</a>
                 </div>
             </div>
         </div>
         {% else %}
         <div class="col-12 text-center py-5">
             <h4 class="text-muted">Aucune offre trouvée</h4>
+            <a href="{{ path('app_offre_new') }}" class="btn btn-primary mt-2">Créer la première offre</a>
         </div>
         {% endfor %}
     </div>
 </div>
 
 {{ include('_footer.html.twig') }}
+
+{# ── Favorites AJAX ──────────────────────────────────── #}
+<script>
+document.querySelectorAll('.btn-fav').forEach(btn => {
+    btn.addEventListener('click', function() {
+        const id = this.dataset.offreId;
+        fetch(`/offre/${id}/favori`, {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            this.querySelector('.fav-count').textContent = data.favorisCount;
+            if (data.isFav) {
+                this.innerHTML = '❤️ <span class="fav-count">' + data.favorisCount + '</span>';
+                this.classList.replace('btn-outline-danger', 'btn-danger');
+            } else {
+                this.innerHTML = '🤍 <span class="fav-count">' + data.favorisCount + '</span>';
+                this.classList.replace('btn-danger', 'btn-outline-danger');
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.offer-card { transition: transform .2s, box-shadow .2s; }
+.offer-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(26,58,110,.15) !important; }
+.btn-fav { z-index: 2; border-radius: 20px; font-size: .75rem; }
+</style>
 {% endblock %}

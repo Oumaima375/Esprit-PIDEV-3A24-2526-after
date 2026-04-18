@@ -3,14 +3,19 @@
 {% block title %}Nouvelle dépense - After Travel{% endblock %}
 
 {% block hero %}
-<div class="bg-breadcrumb">
-    <div class="container text-center py-5">
-        <h3 class="text-white display-3 mb-4 fw-bold">Nouvelle Dépense</h3>
-        <ol class="breadcrumb justify-content-center mb-0">
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3 fw-bold">
+                <i class="fa fa-plus-circle me-2"></i>Nouvelle Dépense
+            </h1>
+            <p class="text-white fs-5">Enregistrez une nouvelle dépense</p>
+            <ol class="breadcrumb justify-content-center mb-0 mt-3">
             <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
             <li class="breadcrumb-item"><a href="{{ path('depense_index') }}">Dépenses</a></li>
             <li class="breadcrumb-item active text-white">Nouvelle dépense</li>
-        </ol>
+            </ol>
+        </div>
     </div>
 </div>
 {% endblock %}
@@ -32,4 +37,6 @@
         </div>
     </div>
 </div>
+
+{% include '_footer.html.twig' ignore missing %}
 {% endblock %}

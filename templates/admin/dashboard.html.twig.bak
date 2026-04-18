@@ -811,124 +811,45 @@
   </div>
 
   {# ════ DEPENSE ════ #}
+  
   <div class="page-content" id="page-depense">
-    <div class="tabs">
-      <div class="tab active" onclick="switchTab('depense','liste',this)">💰 Dépenses</div>
-      <div class="tab" onclick="switchTab('depense','rapport',this);initRapportTab()">📊 Rapport</div>
-      <div class="tab" onclick="switchTab('depense','carte',this);initCarteTab()">🗺️ Carte</div>
-    </div>
-
-    {# ── Tab: Liste des dépenses ── #}
-    <div id="depense-tab-liste">
-      <div class="section-header">
-        <div class="section-title">💰 Gestion des Dépenses</div>
-        <button class="btn btn-primary" onclick="openModal('modal-depense-add')">➕ Nouvelle Dépense</button>
-      </div>
-
-      {# Mini stats #}
-      <div class="stats-grid" style="margin-bottom:16px">
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(247,119,79,.15)">💸</div>
-          <div class="stat-num" style="color:var(--accent3)">{{ depenses is defined ? depenses|length : 0 }}</div>
-          <div class="stat-label">Total dépenses</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(79,209,197,.15)">💰</div>
-          <div class="stat-num" style="color:var(--accent4)">
-            {% set totalDep = 0 %}
-            {% if depenses is defined %}{% for d in depenses %}{% set totalDep = totalDep + (d.montant ?? 0) %}{% endfor %}{% endif %}
-            {{ totalDep|number_format(0) }}
-          </div>
-          <div class="stat-label">Total TND</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon" style="background:rgba(79,142,247,.15)">📍</div>
-          <div class="stat-num" style="color:var(--accent)">
-            {% set withLoc = 0 %}
-            {% if depenses is defined %}{% for d in depenses %}{% if d.latitude and d.longitude %}{% set withLoc = withLoc + 1 %}{% endif %}{% endfor %}{% endif %}
-            {{ withLoc }}
-          </div>
-          <div class="stat-label">Avec localisation</div>
-        </div>
-      </div>
-
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>#</th><th>Titre</th><th>Catégorie</th><th>Montant</th><th>Date</th><th>Lieu</th><th>Actions</th></tr></thead>
-          <tbody>
-            {% if depenses is defined and depenses|length > 0 %}
-              {% for dep in depenses %}
-                <tr>
-                  <td>{{ dep.idDep ?? dep.id ?? '—' }}</td>
-                  <td><strong>{{ dep.titre ?? '—' }}</strong></td>
-                  <td><span class="chip chip-orange">{{ dep.idCategorie is not null ? dep.idCategorie.nomCategorie : '—' }}</span></td>
-                  <td><strong>{{ dep.montant is not null ? dep.montant~' TND' : '—' }}</strong></td>
-                  <td>{{ dep.dateDepense is not null ? dep.dateDepense|date('d/m/Y') : '—' }}</td>
-                  <td style="font-size:12px;color:var(--muted)">{{ dep.lieu ?? '—' }}</td>
-                  <td>
-                    <div class="td-actions">
-                      <a href="{{ path('depense_show', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-secondary">👁️</a>
-                      <a href="{{ path('depense_edit', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-warning">✏️</a>
-                      <form method="post" action="{{ path('depense_delete', {id: dep.idDep ?? dep.id}) }}" style="display:inline" onsubmit="return confirm('Supprimer cette dépense ?')">
-                        <input type="hidden" name="_token" value="{{ csrf_token('delete'~(dep.idDep ?? dep.id)) }}">
-                        <button type="submit" class="btn btn-danger btn-sm">🗑️</button>
-                      </form>
-                    </div>
-                  </td>
-                </tr>
-              {% endfor %}
-            {% else %}
-              <tr class="empty-row"><td colspan="7">Aucune dépense trouvée</td></tr>
-            {% endif %}
-          </tbody>
-        </table>
+    <div class="section-header">
+      <div class="section-title">💰 Gestion des Dépenses</div>
+      <div class="btn-group">
+        <a href="{{ path('depense_new') }}" class="btn btn-primary">➕ Nouvelle Dépense</a>
+        <a href="{{ path('rapport_index') }}" class="btn btn-secondary">📊 Rapport</a>
+        <a href="{{ path('carte_depenses') }}" class="btn btn-secondary">🗺️ Carte</a>
       </div>
     </div>
-
-    {# ── Tab: Rapport ── #}
-    <div id="depense-tab-rapport" style="display:none">
-      <div class="section-header">
-        <div class="section-title">📊 Rapport des Dépenses</div>
-        <a href="{{ path('rapport_index') }}" target="_blank" class="btn btn-secondary btn-sm">↗ Ouvrir page complète</a>
-      </div>
-      <div id="rapport-tab-content" style="color:var(--muted);padding:32px;text-align:center">
-        <div style="font-size:32px;margin-bottom:12px">📊</div>
-        <div>Cliquez sur l'onglet <strong>Rapport</strong> pour charger les données…</div>
-      </div>
-    </div>
-
-    {# ── Tab: Carte ── #}
-    <div id="depense-tab-carte" style="display:none">
-      <div class="section-header">
-        <div class="section-title">🗺️ Carte des Dépenses</div>
-        <a href="{{ path('carte_depenses') }}" target="_blank" class="btn btn-secondary btn-sm">↗ Ouvrir page complète</a>
-      </div>
-      <div id="admin-map-wrap" style="border-radius:14px;overflow:hidden;border:1px solid var(--border)">
-        <div id="admin-depense-map" style="height:480px;background:var(--surface2)"></div>
-      </div>
-      <div id="carte-no-data" style="display:none;text-align:center;padding:40px;color:var(--muted)">
-        <div style="font-size:32px;margin-bottom:8px">📍</div>
-        <div>Aucune dépense avec localisation disponible.</div>
-      </div>
-      <div class="table-wrap" style="margin-top:16px" id="carte-depenses-table">
-        <table>
-          <thead><tr><th>Titre</th><th>Montant</th><th>Date</th><th>Lieu</th></tr></thead>
-          <tbody>
-            {% if depenses is defined %}
-              {% for dep in depenses %}
-                {% if dep.latitude and dep.longitude %}
-                <tr>
-                  <td><strong>{{ dep.titre }}</strong></td>
-                  <td><span class="chip chip-orange">{{ dep.montant }} TND</span></td>
-                  <td>{{ dep.dateDepense ? dep.dateDepense|date('d/m/Y') : '—' }}</td>
-                  <td style="font-size:12px;color:var(--muted)"><i>📍</i> {{ dep.lieu ?? dep.latitude~', '~dep.longitude }}</td>
-                </tr>
-                {% endif %}
-              {% endfor %}
-            {% endif %}
-          </tbody>
-        </table>
-      </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Titre</th><th>Catégorie</th><th>Montant</th><th>Date</th><th>Actions</th></tr></thead>
+        <tbody>
+          {% if depenses is defined and depenses|length > 0 %}
+            {% for dep in depenses %}
+              <tr>
+                <td>{{ dep.idDep ?? dep.id ?? '—' }}</td>
+                <td>{{ dep.titre ?? '—' }}</td>
+                <td>
+                  <span class="chip chip-orange">
+                    {{ dep.idCategorie is not null ? dep.idCategorie.nomCategorie : '—' }}
+                  </span>
+                </td>
+                <td><strong>{{ dep.montant is not null ? dep.montant~' TND' : '—' }}</strong></td>
+                <td>{{ dep.dateDepense is not null ? dep.dateDepense|date('d/m/Y') : '—' }}</td>
+                <td>
+                  <div class="td-actions">
+                    <a href="{{ path('depense_show', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-secondary">👁️</a>
+                    <a href="{{ path('depense_edit', {id: dep.idDep ?? dep.id}) }}" class="btn btn-sm btn-warning">✏️</a>
+                  </div>
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr class="empty-row"><td colspan="6">Aucune dépense trouvée</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
     </div>
   </div>
 
@@ -1515,41 +1436,6 @@
   </div>
 </div>
 
-
-{# ADD DEPENSE #}
-<div class="modal-overlay" id="modal-depense-add">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">💸 Ajouter une Dépense</div>
-      <button class="modal-close" onclick="closeModal('modal-depense-add')">✕</button>
-    </div>
-    <form method="post" action="{{ path('depense_new') }}">
-      <input type="hidden" name="_token" value="{{ csrf_token('depense_new') }}">
-      <div class="form-grid">
-        <div class="form-group full"><label>Titre</label><input type="text" name="depense[titre]" placeholder="Ex: Hôtel Tunis" required></div>
-        <div class="form-group"><label>Montant (TND)</label><input type="number" name="depense[montant]" step="0.01" placeholder="0.00" min="0" required></div>
-        <div class="form-group"><label>Date</label><input type="date" name="depense[dateDepense]" required></div>
-        <div class="form-group full"><label>Catégorie</label>
-          <select name="depense[idCategorie]">
-            <option value="">— Sans catégorie —</option>
-            {% if depenseCategories is defined %}
-              {% for cat in depenseCategories %}
-                <option value="{{ cat.id }}">{{ cat.nomCategorie }}</option>
-              {% endfor %}
-            {% endif %}
-          </select>
-        </div>
-        <div class="form-group full"><label>Lieu</label><input type="text" name="depense[lieu]" placeholder="Ex: Tunis, Centre ville"></div>
-      </div>
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" onclick="closeModal('modal-depense-add')">Annuler</button>
-        <a href="{{ path('depense_new') }}" class="btn btn-secondary">📝 Formulaire complet</a>
-        <button type="submit" class="btn btn-primary">💾 Enregistrer</button>
-      </div>
-    </form>
-  </div>
-</div>
-
 <div id="toast"></div>
 <script>
 function showPage(id, el) {
@@ -1802,118 +1688,6 @@ function weatherIcon(code) {
   if (code === 801) return '🌤️';
   return '☁️';
 }
-
-// ── Dépenses Rapport Tab ──
-var _rapportLoaded = false;
-function initRapportTab() {
-  if (_rapportLoaded) return;
-  _rapportLoaded = true;
-  var container = document.getElementById('rapport-tab-content');
-  container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)"><div style="font-size:24px">⏳</div><div>Chargement du rapport…</div></div>';
-  fetch('/rapport', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => r.text())
-    .then(html => {
-      // Extract body content only
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(html, 'text/html');
-      // Try to get the main content area
-      var main = doc.querySelector('.container-fluid') || doc.querySelector('main') || doc.body;
-      container.innerHTML = '<div style="background:var(--surface2);border-radius:12px;padding:20px;color:var(--text)">' + 
-        '<div style="background:#fff;border-radius:10px;padding:16px;">' + (main ? main.innerHTML : html) + '</div>' +
-        '<div style="margin-top:12px;text-align:center"><a href="/rapport" target="_blank" class="btn btn-primary">📊 Ouvrir rapport complet</a></div>' +
-        '</div>';
-      // Re-run scripts
-      container.querySelectorAll('script').forEach(s => {
-        var ns = document.createElement('script');
-        ns.textContent = s.textContent;
-        document.body.appendChild(ns);
-      });
-    })
-    .catch(() => {
-      container.innerHTML = '<div style="text-align:center;padding:32px;color:var(--muted)">Impossible de charger le rapport. <a href="/rapport" target="_blank" style="color:var(--accent)">Ouvrir dans un nouvel onglet ↗</a></div>';
-    });
-}
-
-// ── Dépenses Carte Tab ──
-var _carteInitialized = false;
-var _adminDepMap = null;
-
-function initCarteTab() {
-  if (_carteInitialized) return;
-  _carteInitialized = true;
-
-  // Load Leaflet if needed
-  if (typeof L === 'undefined') {
-    var link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-    document.head.appendChild(link);
-    var script = document.createElement('script');
-    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = buildAdminMap;
-    document.body.appendChild(script);
-  } else {
-    buildAdminMap();
-  }
-}
-
-function buildAdminMap() {
-  var mapEl = document.getElementById('admin-depense-map');
-  if (!mapEl || _adminDepMap) return;
-
-  _adminDepMap = L.map('admin-depense-map').setView([36.8065, 10.1815], 6);
-  var streets = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    attribution: '&copy; OpenStreetMap & CartoDB'
-  }).addTo(_adminDepMap);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri'
-  });
-  L.control.layers({'Plan': streets}, null, {collapsed: false}).addTo(_adminDepMap);
-
-  // Fetch depenses with coords from API
-  fetch('/depense/?format=json', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-    .then(r => r.json())
-    .then(data => buildMarkersFromData(data))
-    .catch(() => {
-      // Fallback: use inline Twig data if available
-      if (typeof window._adminDepenses !== 'undefined') {
-        buildMarkersFromData(window._adminDepenses);
-      } else {
-        document.getElementById('carte-no-data').style.display = 'block';
-        mapEl.style.display = 'none';
-      }
-    });
-}
-
-function buildMarkersFromData(depenses) {
-  if (!_adminDepMap) return;
-  var bounds = [];
-  var count = 0;
-  depenses.forEach(function(dep) {
-    if (dep.latitude && dep.longitude) {
-      count++;
-      var lat = parseFloat(dep.latitude);
-      var lng = parseFloat(dep.longitude);
-      var marker = L.marker([lat, lng]).addTo(_adminDepMap);
-      marker.bindPopup(
-        '<strong>' + (dep.titre || '—') + '</strong><br>' +
-        'Montant : <strong>' + (dep.montant || '—') + ' TND</strong><br>' +
-        (dep.lieu ? '📍 ' + dep.lieu + '<br>' : '') +
-        '<a href="/depense/' + (dep.id || dep.idDep) + '" style="color:#4f8ef7">Voir le détail ↗</a>'
-      );
-      bounds.push([lat, lng]);
-    }
-  });
-  if (bounds.length > 0) {
-    _adminDepMap.fitBounds(bounds, {padding: [40, 40]});
-  } else {
-    document.getElementById('carte-no-data').style.display = 'block';
-    document.getElementById('admin-map-wrap').style.display = 'none';
-  }
-  setTimeout(() => { if (_adminDepMap) _adminDepMap.invalidateSize(); }, 300);
-}
-
-
 </script>
 {# ══════════════════════════════════════════════════════════════════
    ADMIN CHATBOT — AfterTravelBot

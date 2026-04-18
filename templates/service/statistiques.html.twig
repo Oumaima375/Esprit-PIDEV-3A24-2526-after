@@ -1,45 +1,89 @@
 {% extends 'base.html.twig' %}
-{% block title %}Statistiques{% endblock %}
+{% block title %}Statistiques — Services & Offres{% endblock %}
+
 {% block body %}
 <div class="container-fluid bg-primary py-5 mb-5">
     <div class="container py-5">
         <div class="text-center">
-            <h1 class="text-white display-3 mb-3">Statistiques</h1>
-            <p class="text-white fs-5">Visualisez les données de vos services et offres</p>
+            <h1 class="text-white display-3 mb-3">📊 Statistiques</h1>
+            <p class="text-white fs-5">Tableau de bord complet — Services, Offres, Favoris</p>
         </div>
     </div>
 </div>
+
 <div class="container mb-5">
+
+    {# ── KPI Cards ─────────────────────────────────────── #}
     <div class="row g-4 mb-5">
-        <div class="col-md-3">
-            <div class="card text-white text-center shadow" style="background-color: #1a3a6e;">
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#1a3a6e;">
                 <div class="card-body py-4">
-                    <h1 class="display-4 fw-bold">{{ nbServices }}</h1>
-                    <p class="mb-0">🏢 Services</p>
+                    <h1 class="display-5 fw-bold mb-1">{{ nbServices }}</h1>
+                    <p class="mb-0 small">🏢 Services</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white text-center shadow" style="background-color: #0d6efd;">
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#0d6efd;">
                 <div class="card-body py-4">
-                    <h1 class="display-4 fw-bold">{{ nbOffres }}</h1>
-                    <p class="mb-0">🎯 Offres</p>
+                    <h1 class="display-5 fw-bold mb-1">{{ nbOffres }}</h1>
+                    <p class="mb-0 small">🎯 Offres</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white text-center shadow" style="background-color: #198754;">
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#198754;">
                 <div class="card-body py-4">
-                    <h1 class="display-4 fw-bold">{{ prixMoyen }} €</h1>
-                    <p class="mb-0">💰 Prix moyen</p>
+                    <h1 class="display-5 fw-bold mb-1">{{ prixMoyen }} €</h1>
+                    <p class="mb-0 small">💰 Prix moyen</p>
                 </div>
             </div>
         </div>
-        <div class="col-md-3">
-            <div class="card text-white text-center shadow" style="background-color: #dc3545;">
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#fd7e14;">
                 <div class="card-body py-4">
-                    <h1 class="display-4 fw-bold">{{ prixMax }} €</h1>
-                    <p class="mb-0">🔝 Prix max</p>
+                    <h1 class="display-5 fw-bold mb-1">{{ prixMin }} €</h1>
+                    <p class="mb-0 small">⬇️ Prix min</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#dc3545;">
+                <div class="card-body py-4">
+                    <h1 class="display-5 fw-bold mb-1">{{ prixMax }} €</h1>
+                    <p class="mb-0 small">🔝 Prix max</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2 col-6">
+            <div class="card text-white text-center shadow-sm h-100" style="background:#6f42c1;">
+                <div class="card-body py-4">
+                    <h1 class="display-5 fw-bold mb-1">{{ totalDisponibles }}</h1>
+                    <p class="mb-0 small">✅ Disponibles</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Google Charts Row ─────────────────────────────── #}
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background:#1a3a6e;">
+                    <h6 class="mb-0">Offres par service (Google Charts)</h6>
+                </div>
+                <div class="card-body p-2">
+                    <div id="chart_bar" style="height:300px;"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background:#1a3a6e;">
+                    <h6 class="mb-0">Répartition (Donut)</h6>
+                </div>
+                <div class="card-body p-2">
+                    <div id="chart_pie" style="height:300px;"></div>
                 </div>
             </div>
         </div>
@@ -47,22 +91,85 @@
 
     <div class="row g-4 mb-5">
         <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header" style="background-color: #1a3a6e; color:white;">
-                    <h5 class="mb-0">Offres par service</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background:#198754;">
+                    <h6 class="mb-0">Distribution des prix (€)</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="chartOffres"></canvas>
+                <div class="card-body p-2">
+                    <div id="chart_price" style="height:280px;"></div>
                 </div>
             </div>
         </div>
         <div class="col-md-6">
-            <div class="card shadow">
-                <div class="card-header" style="background-color: #1a3a6e; color:white;">
-                    <h5 class="mb-0">Répartition des offres</h5>
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background:#fd7e14;">
+                    <h6 class="mb-0">Prix moyen par service</h6>
                 </div>
-                <div class="card-body">
-                    <canvas id="chartPie"></canvas>
+                <div class="card-body p-2">
+                    <div id="chart_avg" style="height:280px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# ── Availability doughnut ─────────────────────────── #}
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="card shadow-sm border-0">
+                <div class="card-header text-white" style="background:#6f42c1;">
+                    <h6 class="mb-0">Disponibilité des offres</h6>
+                </div>
+                <div class="card-body p-2">
+                    <div id="chart_dispo" style="height:250px;"></div>
+                </div>
+            </div>
+        </div>
+
+        {# ── Top Favoris Leaderboard ──────────────────── #}
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-header text-white" style="background:#dc3545;">
+                    <h6 class="mb-0">❤️ Top 5 Offres Favorites</h6>
+                </div>
+                <div class="card-body p-0">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Offre</th>
+                                <th>Destination</th>
+                                <th>Prix</th>
+                                <th>Favoris</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        {% for offre in topFavoris %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>
+                                <a href="{{ path('app_offre_show', {id: offre.id}) }}">
+                                    {{ offre.titre }}
+                                </a>
+                            </td>
+                            <td>{{ offre.destination ?? '—' }}</td>
+                            <td><span class="badge bg-success">{{ offre.prix }} €</span></td>
+                            <td>
+                                <span class="badge bg-danger">
+                                    ❤️ {{ offre.favorisCount }}
+                                </span>
+                                <div class="progress mt-1" style="height:4px;">
+                                    <div class="progress-bar bg-danger"
+                                         style="width:{{ topFavoris[0].favorisCount > 0
+                                                    ? (offre.favorisCount / topFavoris[0].favorisCount * 100)
+                                                    : 0 }}%"></div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr><td colspan="5" class="text-center text-muted py-3">Aucun favori encore</td></tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
@@ -71,37 +178,106 @@
     <a href="{{ path('app_service_index') }}" class="btn btn-secondary">← Retour aux services</a>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-const labels = [{% for item in offresParService %}'{{ item.titre }}'{% if not loop.last %},{% endif %}{% endfor %}];
-const data = [{% for item in offresParService %}{{ item.nbOffres }}{% if not loop.last %},{% endif %}{% endfor %}];
-const colors = ['#1a3a6e','#0d6efd','#198754','#dc3545','#fd7e14','#6f42c1'];
-
-new Chart(document.getElementById('chartOffres'), {
-    type: 'bar',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: "Nombre d'offres",
-            data: data,
-            backgroundColor: colors
-        }]
-    },
-    options: { responsive: true, plugins: { legend: { display: false } } }
-});
-
-new Chart(document.getElementById('chartPie'), {
-    type: 'doughnut',
-    data: {
-        labels: labels,
-        datasets: [{
-            data: data,
-            backgroundColor: colors
-        }]
-    },
-    options: { responsive: true }
-});
-</script>
-
 {{ include('_footer.html.twig') }}
+
+{# ── Google Charts ────────────────────────────────────── #}
+<script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+<script>
+google.charts.load('current', { packages: ['corechart', 'bar'] });
+google.charts.setOnLoadCallback(drawAll);
+
+function drawAll() {
+    drawBar();
+    drawPie();
+    drawPrice();
+    drawAvg();
+    drawDispo();
+}
+
+// 1. Bar – Offers per service
+function drawBar() {
+    const data = google.visualization.arrayToDataTable([
+        ['Service', "Nb d'offres", { role: 'style' }],
+        {% for item in offresParService %}
+        ['{{ item.titre }}', {{ item.nbOffres }}, '#1a3a6e'],
+        {% endfor %}
+    ]);
+    const options = {
+        title: "Nombre d'offres par service",
+        legend: { position: 'none' },
+        chartArea: { width: '75%' },
+        hAxis: { title: "Nb d'offres" },
+        vAxis: { title: 'Service' },
+        bars: 'horizontal',
+    };
+    new google.visualization.BarChart(document.getElementById('chart_bar')).draw(data, options);
+}
+
+// 2. Donut
+function drawPie() {
+    const data = google.visualization.arrayToDataTable([
+        ['Service', "Nb d'offres"],
+        {% for item in offresParService %}
+        ['{{ item.titre }}', {{ item.nbOffres }}],
+        {% endfor %}
+    ]);
+    const options = {
+        title: 'Répartition des offres',
+        pieHole: 0.4,
+        legend: { position: 'right' },
+    };
+    new google.visualization.PieChart(document.getElementById('chart_pie')).draw(data, options);
+}
+
+// 3. Price distribution
+function drawPrice() {
+    const data = google.visualization.arrayToDataTable([
+        ['Tranche de prix', 'Nombre d\'offres', { role: 'style' }],
+        {% for label, count in priceBuckets %}
+        ['{{ label }}', {{ count }}, '#198754'],
+        {% endfor %}
+    ]);
+    const options = {
+        title: 'Distribution des prix',
+        legend: { position: 'none' },
+        chartArea: { width: '70%' },
+        hAxis: { title: 'Nb offres' },
+        bars: 'horizontal',
+    };
+    new google.visualization.BarChart(document.getElementById('chart_price')).draw(data, options);
+}
+
+// 4. Avg price per service
+function drawAvg() {
+    const data = google.visualization.arrayToDataTable([
+        ['Service', 'Prix moyen (€)', { role: 'style' }],
+        {% for item in offresParService %}
+        ['{{ item.titre }}', {{ item.prixMoyen|round(2) }}, '#fd7e14'],
+        {% endfor %}
+    ]);
+    const options = {
+        title: 'Prix moyen par service',
+        legend: { position: 'none' },
+        chartArea: { width: '70%' },
+        hAxis: { title: 'Prix moyen (€)' },
+        bars: 'horizontal',
+    };
+    new google.visualization.BarChart(document.getElementById('chart_avg')).draw(data, options);
+}
+
+// 5. Availability
+function drawDispo() {
+    const data = google.visualization.arrayToDataTable([
+        ['Statut', 'Nombre'],
+        ['✅ Disponibles', {{ totalDisponibles }}],
+        ['❌ Indisponibles', {{ totalExpires }}],
+    ]);
+    const options = {
+        title: 'Disponibilité',
+        pieHole: 0.5,
+        colors: ['#198754', '#6c757d'],
+    };
+    new google.visualization.PieChart(document.getElementById('chart_dispo')).draw(data, options);
+}
+</script>
 {% endblock %}

@@ -1,8 +1,11 @@
 <?php
+
 namespace App\Controller;
 
 use App\Entity\Service;
+use App\Entity\Offre;
 use App\Form\ServiceType;
+use App\Service\OffreNotificationService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -12,6 +15,9 @@ use Symfony\Component\Routing\Annotation\Route;
 #[Route('/service')]
 class ServiceController extends AbstractController
 {
+    // ─────────────────────────────────────────────────────────────────
+    // LIST
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/', name: 'app_service_index', methods: ['GET'])]
     public function index(Request $request, EntityManagerInterface $em): Response
     {
@@ -26,22 +32,29 @@ class ServiceController extends AbstractController
 
         $services = $qb->getQuery()->getResult();
 
+        // Count total offers for quick stats banner
+        $totalOffres = $em->getRepository(Offre::class)->count([]);
+
         return $this->render('service/index.html.twig', [
-            'services' => $services,
+            'services'    => $services,
+            'totalOffres' => $totalOffres,
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // NEW
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/new', name: 'app_service_new', methods: ['GET', 'POST'])]
     public function new(Request $request, EntityManagerInterface $em): Response
     {
         $service = new Service();
-        $form = $this->createForm(ServiceType::class, $service);
+        $form    = $this->createForm(ServiceType::class, $service);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->persist($service);
             $em->flush();
-            $this->addFlash('success', 'Service créé avec succès !');
+            $this->addFlash('success', '✅ Service créé avec succès !');
             return $this->redirectToRoute('app_service_index');
         }
 
@@ -50,37 +63,69 @@ class ServiceController extends AbstractController
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // STATISTICS (with Google Charts data)
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/statistiques', name: 'app_service_stats', methods: ['GET'])]
     public function statistiques(EntityManagerInterface $em): Response
     {
         $nbServices = $em->getRepository(Service::class)->count([]);
-        $nbOffres   = $em->getRepository(\App\Entity\Offre::class)->count([]);
+        $nbOffres   = $em->getRepository(Offre::class)->count([]);
 
-        $prixMoyen = $em->createQuery(
+        $prixMoyen = (float) $em->createQuery(
             'SELECT AVG(o.prix) FROM App\Entity\Offre o'
         )->getSingleScalarResult();
 
-        $prixMax = $em->createQuery(
+        $prixMax = (float) $em->createQuery(
             'SELECT MAX(o.prix) FROM App\Entity\Offre o'
         )->getSingleScalarResult();
 
-        // Use s.nom_service (actual DB field) and s.id_service for GROUP BY
+        $prixMin = (float) $em->createQuery(
+            'SELECT MIN(o.prix) FROM App\Entity\Offre o'
+        )->getSingleScalarResult();
+
+        // Offers per service
         $offresParService = $em->createQuery(
-            'SELECT s.nom_service AS titre, COUNT(o.id_offre) as nbOffres
+            'SELECT s.nom_service AS titre, COUNT(o.id_offre) as nbOffres,
+                    AVG(o.prix) as prixMoyen, MAX(o.prix) as prixMax
              FROM App\Entity\Service s
              LEFT JOIN s.offres o
              GROUP BY s.id_service'
         )->getResult();
 
+        // Price distribution buckets (for histogram)
+        $allPrices = $em->createQuery('SELECT o.prix FROM App\Entity\Offre o')->getScalarResult();
+        $priceBuckets = $this->buildPriceBuckets(array_column($allPrices, 'prix'));
+
+        // Availability stats
+        $totalDisponibles = 0;
+        $totalExpires     = 0;
+        foreach ($em->getRepository(Offre::class)->findAll() as $o) {
+            $o->isDisponible() ? $totalDisponibles++ : $totalExpires++;
+        }
+
+        // Favorites leaderboard (top 5)
+        $topFavoris = $em->createQuery(
+            'SELECT o FROM App\Entity\Offre o ORDER BY o.favorisCount DESC'
+        )->setMaxResults(5)->getResult();
+
         return $this->render('service/statistiques.html.twig', [
-            'nbServices'       => $nbServices,
-            'nbOffres'         => $nbOffres,
-            'prixMoyen'        => round((float)$prixMoyen, 2),
-            'prixMax'          => $prixMax,
-            'offresParService' => $offresParService,
+            'nbServices'        => $nbServices,
+            'nbOffres'          => $nbOffres,
+            'prixMoyen'         => round($prixMoyen, 2),
+            'prixMax'           => $prixMax,
+            'prixMin'           => $prixMin,
+            'offresParService'  => $offresParService,
+            'priceBuckets'      => $priceBuckets,
+            'totalDisponibles'  => $totalDisponibles,
+            'totalExpires'      => $totalExpires,
+            'topFavoris'        => $topFavoris,
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // SHOW
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/{id}', name: 'app_service_show', methods: ['GET'])]
     public function show(Service $service): Response
     {
@@ -89,6 +134,9 @@ class ServiceController extends AbstractController
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // EDIT
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/{id}/edit', name: 'app_service_edit', methods: ['GET', 'POST'])]
     public function edit(Request $request, Service $service, EntityManagerInterface $em): Response
     {
@@ -97,7 +145,7 @@ class ServiceController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             $em->flush();
-            $this->addFlash('success', 'Service modifié avec succès !');
+            $this->addFlash('success', '✅ Service modifié avec succès !');
             return $this->redirectToRoute('app_service_index');
         }
 
@@ -107,6 +155,9 @@ class ServiceController extends AbstractController
         ]);
     }
 
+    // ─────────────────────────────────────────────────────────────────
+    // DELETE
+    // ─────────────────────────────────────────────────────────────────
     #[Route('/{id}/delete', name: 'app_service_delete', methods: ['POST'])]
     public function delete(Request $request, Service $service, EntityManagerInterface $em): Response
     {
@@ -122,5 +173,37 @@ class ServiceController extends AbstractController
         }
 
         return $this->redirectToRoute('app_service_index');
+    }
+
+    // ─────────────────────────────────────────────────────────────────
+    // Private helpers
+    // ─────────────────────────────────────────────────────────────────
+    private function buildPriceBuckets(array $prices): array
+    {
+        if (empty($prices)) return [];
+
+        $min    = min($prices);
+        $max    = max($prices);
+        $range  = $max - $min;
+        $step   = $range > 0 ? ceil($range / 5) : 100;
+        $step   = max($step, 50);
+        $bucket = [];
+
+        for ($i = $min; $i <= $max; $i += $step) {
+            $label = (int)$i . '–' . (int)($i + $step - 1) . ' €';
+            $bucket[$label] = 0;
+        }
+
+        foreach ($prices as $p) {
+            foreach (array_keys($bucket) as $label) {
+                [$lo, $hi] = sscanf($label, '%d–%d €');
+                if ($p >= $lo && $p <= $hi) {
+                    $bucket[$label]++;
+                    break;
+                }
+            }
+        }
+
+        return $bucket;
     }
 }

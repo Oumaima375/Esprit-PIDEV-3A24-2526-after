@@ -1,21 +1,26 @@
 {% extends 'base.html.twig' %}
 
-{% block title %}Travela - Planning{% endblock %}
+{% block title %}Planning des Activités - After Travel{% endblock %}
 
-{% block body %}
-
-<!-- Header Start -->
-<div class="container-fluid bg-breadcrumb">
-    <div class="container text-center py-5" style="max-width: 900px;">
-        <h3 class="text-white display-3 mb-4">Planning des Activités</h3>
-        <ol class="breadcrumb justify-content-center mb-0">
-           
-
-           
-        </ol>
+{% block hero %}
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3 fw-bold">
+                <i class="fa fa-calendar-alt me-2"></i>Planning des Activités
+            </h1>
+            <p class="text-white fs-5">Consultez et gérez le calendrier de toutes les activités</p>
+            <ol class="breadcrumb justify-content-center mb-0 mt-3">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('app_activite') }}">Activités</a></li>
+                <li class="breadcrumb-item active text-white">Planning</li>
+            </ol>
+        </div>
     </div>
 </div>
-<!-- Header End -->
+{% endblock %}
+
+{% block body %}
 
 <!-- Planning Start -->
 <div class="container-fluid py-5">
@@ -113,6 +118,8 @@
                        padding:10px 16px; border-radius:25px; cursor:pointer; font-size:1rem;">➤</button>
     </div>
 </div>
+
+{% include '_footer.html.twig' ignore missing %}
 {% endblock %}
 
 {% block javascripts %}

@@ -1,11 +1,36 @@
 {% extends 'base.html.twig' %}
 {% block title %}Carte des dépenses{% endblock %}
 
-{% block body %}
-<div class="container mt-4">
-    <h1>Carte des dépenses</h1>
-    <div id="map" style="height: 600px;"></div>
+{% block hero %}
+<div class="container-fluid bg-primary py-5 mb-5">
+    <div class="container py-5">
+        <div class="text-center">
+            <h1 class="text-white display-3 mb-3 fw-bold">
+                <i class="fa fa-map-marker-alt me-2"></i>Carte des Dépenses
+            </h1>
+            <p class="text-white fs-5">Visualisez vos dépenses géolocalisées sur la carte</p>
+            <ol class="breadcrumb justify-content-center mb-0 mt-3">
+                <li class="breadcrumb-item"><a href="{{ path('app_home') }}">Accueil</a></li>
+                <li class="breadcrumb-item"><a href="{{ path('depense_index') }}">Dépenses</a></li>
+                <li class="breadcrumb-item active text-white">Carte</li>
+            </ol>
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-5">
+    <div class="container py-5">
+        <div class="bg-white rounded shadow-sm overflow-hidden">
+            <div class="p-4" style="background-color: #13357B;">
+                <h4 class="text-white mb-0"><i class="fa fa-map me-2"></i>Carte interactive des dépenses</h4>
+            </div>
+            <div id="map" style="height: 600px;"></div>
+        </div>
+    </div>
+</div>
+{% include '_footer.html.twig' ignore missing %}
 {% endblock %}
 
 {% block javascripts %}

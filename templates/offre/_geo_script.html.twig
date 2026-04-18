@@ -1,0 +1,50 @@
+{#
+  Shared JS partial: auto-fills latitude/longitude fields
+  when the user types a destination city name.
+  Uses OpenStreetMap Nominatim (free, no key needed).
+#}
+<script>
+(function () {
+    const destInput = document.getElementById('field_destination');
+    const latInput  = document.getElementById('field_latitude');
+    const lngInput  = document.getElementById('field_longitude');
+
+    if (!destInput || !latInput || !lngInput) return;
+
+    let debounceTimer = null;
+
+    // Status indicator
+    const status = document.createElement('small');
+    status.className = 'text-muted ms-2';
+    destInput.parentNode.appendChild(status);
+
+    destInput.addEventListener('input', function () {
+        clearTimeout(debounceTimer);
+        const query = this.value.trim();
+        if (query.length < 3) return;
+
+        debounceTimer = setTimeout(() => {
+            status.textContent = '🔍 Recherche des coordonnées…';
+            fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+                headers: { 'Accept-Language': 'fr' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    latInput.value = parseFloat(data[0].lat).toFixed(6);
+                    lngInput.value = parseFloat(data[0].lon).toFixed(6);
+                    status.textContent = `✅ ${data[0].display_name.split(',').slice(0,2).join(',')}`;
+                    status.className = 'text-success ms-2 small';
+                } else {
+                    status.textContent = '⚠️ Lieu non trouvé — coordonnées non renseignées';
+                    status.className = 'text-warning ms-2 small';
+                }
+            })
+            .catch(() => {
+                status.textContent = '❌ Erreur de géocodage';
+                status.className = 'text-danger ms-2 small';
+            });
+        }, 700);
+    });
+})();
+</script>

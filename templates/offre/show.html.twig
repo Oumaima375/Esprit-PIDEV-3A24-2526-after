@@ -1,25 +1,25 @@
 {% extends 'base.html.twig' %}
-
-{% block title %}Offre — {{ offre.titre }}{% endblock %}
+{% block title %}{{ offre.titre }}{% endblock %}
 
 {% block body %}
 <div class="container-fluid page-header py-5 mb-5">
     <h1 class="text-white display-3 mb-0">{{ offre.titre }}</h1>
+    {% if offre.destination %}
+    <p class="text-white opacity-75 mt-2">📍 {{ offre.destination }}</p>
+    {% endif %}
 </div>
 
 <div class="container mb-5">
-    <div class="row justify-content-center">
-        <div class="col-lg-7">
-            <div class="card shadow">
+    <div class="row g-4">
+
+        {# ── LEFT: Offer details ───────────────────────── #}
+        <div class="col-lg-5">
+            <div class="card shadow border-0">
                 <div class="card-header text-white" style="background-color: #1a3a6e;">
                     <h5 class="mb-0"><i class="fa fa-tag me-2"></i>Détails de l'offre</h5>
                 </div>
                 <div class="card-body">
-
-                    <dl class="row">
-                        <dt class="col-sm-4 text-muted">ID</dt>
-                        <dd class="col-sm-8">{{ offre.id }}</dd>
-
+                    <dl class="row mb-0">
                         <dt class="col-sm-4 text-muted">Titre</dt>
                         <dd class="col-sm-8"><strong>{{ offre.titre }}</strong></dd>
 
@@ -35,20 +35,57 @@
 
                         <dt class="col-sm-4 text-muted">Service</dt>
                         <dd class="col-sm-8">
-                            <a href="{{ path('app_service_show', {'id': offre.service.id}) }}"
+                            <a href="{{ path('app_service_show', {id: offre.service.id}) }}"
                                class="badge bg-primary text-decoration-none fs-6">
                                 {{ offre.service.titre }}
                             </a>
                         </dd>
-                    </dl>
 
+                        {% if offre.destination %}
+                        <dt class="col-sm-4 text-muted">Destination</dt>
+                        <dd class="col-sm-8">📍 {{ offre.destination }}</dd>
+                        {% endif %}
+
+                        {# Availability #}
+                        <dt class="col-sm-4 text-muted">Disponibilité</dt>
+                        <dd class="col-sm-8">
+                            {% if offre.isDisponible %}
+                                <span class="badge bg-success">✓ Disponible</span>
+                            {% else %}
+                                <span class="badge bg-secondary">✗ Indisponible</span>
+                            {% endif %}
+                            {% set jr = offre.joursRestants %}
+                            {% if jr is not null and jr > 0 %}
+                                <small class="text-muted ms-1">{{ jr }} jour(s) restant(s)</small>
+                            {% endif %}
+                        </dd>
+
+                        {% if offre.dateDebut or offre.dateFin %}
+                        <dt class="col-sm-4 text-muted">Calendrier</dt>
+                        <dd class="col-sm-8">
+                            📅
+                            {% if offre.dateDebut %}{{ offre.dateDebut|date('d/m/Y') }}{% endif %}
+                            {% if offre.dateFin %} → {{ offre.dateFin|date('d/m/Y') }}{% endif %}
+                        </dd>
+                        {% endif %}
+
+                        <dt class="col-sm-4 text-muted">Favoris</dt>
+                        <dd class="col-sm-8">
+                            <button id="btn-fav-show"
+                                    class="btn btn-sm {% if app.session.get('fav_offre_' ~ offre.id) %}btn-danger{% else %}btn-outline-danger{% endif %}"
+                                    data-offre-id="{{ offre.id }}">
+                                {% if app.session.get('fav_offre_' ~ offre.id) %}❤️{% else %}🤍{% endif %}
+                                <span id="fav-count-show">{{ offre.favorisCount }}</span> favoris
+                            </button>
+                        </dd>
+                    </dl>
                 </div>
-                <div class="card-footer bg-white border-0 d-flex gap-2 align-items-center">
-                    <a href="{{ path('app_offre_edit', {'id': offre.id}) }}" class="btn btn-warning">
+                <div class="card-footer bg-white border-0 d-flex gap-2">
+                    <a href="{{ path('app_offre_edit', {id: offre.id}) }}" class="btn btn-warning">
                         <i class="fa fa-edit me-1"></i>Modifier
                     </a>
                     <a href="{{ path('app_offre_index') }}" class="btn btn-secondary">
-                        <i class="fa fa-arrow-left me-1"></i>Retour aux offres
+                        <i class="fa fa-arrow-left me-1"></i>Retour
                     </a>
                     <div class="ms-auto">
                         {{ include('offre/_delete_form.html.twig') }}
@@ -56,6 +93,140 @@
                 </div>
             </div>
         </div>
-    </div>
+
+        {# ── RIGHT: Weather + Map ─────────────────────── #}
+        <div class="col-lg-7">
+
+            {# Weather Card #}
+            {% if weatherData %}
+            <div class="card shadow border-0 mb-4">
+                <div class="card-header text-white d-flex align-items-center gap-2"
+                     style="background: linear-gradient(135deg,#0d6efd,#0dcaf0);">
+                    <img src="https://openweathermap.org/img/wn/{{ weatherData.icon }}@2x.png"
+                         width="40" height="40" alt="">
+                    <h5 class="mb-0">
+                        ☁️ Météo à {{ weatherData.city }}, {{ weatherData.country }}
+                    </h5>
+                    <button class="btn btn-sm btn-light ms-auto" id="btn-refresh-weather"
+                            data-offre-id="{{ offre.id }}" title="Rafraîchir">🔄</button>
+                </div>
+                <div class="card-body" id="weather-body">
+                    <div class="row text-center g-3">
+                        <div class="col-3">
+                            <div class="p-3 rounded" style="background:#fff3cd;">
+                                <div class="fs-2 fw-bold text-warning">{{ weatherData.temp }}°C</div>
+                                <small class="text-muted">Température</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-3 rounded" style="background:#d1ecf1;">
+                                <div class="fs-2 fw-bold text-info">{{ weatherData.feels_like }}°C</div>
+                                <small class="text-muted">Ressenti</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-3 rounded" style="background:#d4edda;">
+                                <div class="fs-2 fw-bold text-success">{{ weatherData.humidity }}%</div>
+                                <small class="text-muted">Humidité</small>
+                            </div>
+                        </div>
+                        <div class="col-3">
+                            <div class="p-3 rounded" style="background:#f8d7da;">
+                                <div class="fs-2 fw-bold text-danger">{{ weatherData.wind_speed }}</div>
+                                <small class="text-muted">Vent km/h</small>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-center text-muted mt-3 mb-0">
+                        {{ weatherData.description }}
+                    </p>
+                </div>
+            </div>
+            {% elseif offre.destination %}
+            <div class="alert alert-info">
+                🌡️ Météo indisponible pour « {{ offre.destination }} ».
+                Vérifiez votre clé OpenWeatherMap dans <code>.env</code>.
+            </div>
+            {% endif %}
+
+            {# Map Card (Leaflet) #}
+            {% if offre.latitude and offre.longitude %}
+            <div class="card shadow border-0">
+                <div class="card-header text-white" style="background-color: #198754;">
+                    <h5 class="mb-0">🗺️ Localisation — {{ offre.destination }}</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="map" style="height:350px; border-radius: 0 0 8px 8px;"></div>
+                </div>
+            </div>
+
+            <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+            <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+            <script>
+            const map = L.map('map').setView([{{ offre.latitude }}, {{ offre.longitude }}], 10);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://openstreetmap.org">OpenStreetMap</a>'
+            }).addTo(map);
+            L.marker([{{ offre.latitude }}, {{ offre.longitude }}])
+             .addTo(map)
+             .bindPopup(`<strong>{{ offre.titre }}</strong><br>📍 {{ offre.destination }}<br>💰 {{ offre.prix }} €`)
+             .openPopup();
+            </script>
+            {% elseif offre.destination %}
+            <div class="card shadow border-0">
+                <div class="card-header text-white" style="background-color: #198754;">
+                    <h5 class="mb-0">🗺️ Localisation</h5>
+                </div>
+                <div class="card-body text-center text-muted py-4">
+                    <p>Coordonnées GPS non renseignées.</p>
+                    <a href="{{ path('app_offre_edit', {id: offre.id}) }}"
+                       class="btn btn-sm btn-outline-success">
+                       Ajouter les coordonnées
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+        </div>{# /col-lg-7 #}
+    </div>{# /row #}
 </div>
+
+{# ── Favorite AJAX ─────────────────────────────────────── #}
+<script>
+const btnFav = document.getElementById('btn-fav-show');
+if (btnFav) {
+    btnFav.addEventListener('click', function() {
+        fetch(`/offre/${this.dataset.offreId}/favori`, { method: 'POST' })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('fav-count-show').textContent = data.favorisCount;
+            if (data.isFav) {
+                this.innerHTML = '❤️ <span id="fav-count-show">' + data.favorisCount + '</span> favoris';
+                this.classList.replace('btn-outline-danger','btn-danger');
+            } else {
+                this.innerHTML = '🤍 <span id="fav-count-show">' + data.favorisCount + '</span> favoris';
+                this.classList.replace('btn-danger','btn-outline-danger');
+            }
+        });
+    });
+}
+
+// Weather refresh
+const btnWeather = document.getElementById('btn-refresh-weather');
+if (btnWeather) {
+    btnWeather.addEventListener('click', function() {
+        const id = this.dataset.offreId;
+        this.textContent = '⏳';
+        fetch(`/offre/${id}/weather`)
+        .then(r => r.json())
+        .then(data => {
+            if (!data.error) {
+                location.reload();
+            } else {
+                this.textContent = '❌';
+            }
+        });
+    });
+}
+</script>
 {% endblock %}
