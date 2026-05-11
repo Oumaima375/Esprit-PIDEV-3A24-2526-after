@@ -18,7 +18,7 @@ Backend: Symfony 7 (PHP 8.2+), Doctrine ORM Frontend: Twig, Bootstrap 5, custom 
 
 PHP 8.2+ Composer MySQL 8+ Node.js (for Vite assets, optional)
 
-Steps bash# 1. Clone the repository git clone https://github.com/your-org/Esprit-PIDEV-3A24-2526.git cd Esprit-PIDEV-3A24-2526
+Steps bash# 1. Clone the repository git clone cd Esprit-PIDEV-3A24-2526
 
 2. Install PHP dependencies
 composer install
